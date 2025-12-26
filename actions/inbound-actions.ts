@@ -21,63 +21,96 @@ export async function getCategoryDetail(categoryId: string) {
 export async function getInboundOptions(warehouseId: string, categoryId: string) {
     const supabase = createClient();
     const { data: products } = await supabase.from('products').select('id, sku, name').eq('category_id', categoryId);
-    const { data: locations } = await supabase.from('warehouses').select('locations(id, code, type)').eq('code', warehouseId).single();
-    return { products: products || [], locations: locations?.locations || [] };
-}
+    const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
+    
+    let locations: any[] = [];
+    if (wh) {
+        const { data: locs } = await supabase
+            .from('locations') // ดึงจาก table locations ตรงๆ
+            .select('id, code, type')
+            .eq('warehouse_id', wh.id)
+            .order('code', { ascending: true });
+        locations = locs || [];
+    }
 
-// --- NEW: Submit Inbound with "New Product" Support ---
+    return { 
+        products: products || [], 
+        locations: locations // ส่งกลับไป
+    };
+  }
+
+// --- MAIN FUNCTION: Submit Inbound ---
 export async function submitInbound(formData: any) {
   const supabase = createClient();
   const { 
       warehouseId, locationId, 
-      productId, // ถ้าเลือกจาก Dropdown จะมีค่านี้
-      isNewProduct, newProductData, // ข้อมูลสำหรับสินค้าใหม่
+      productId, // ID สินค้าเดิม (ถ้ามี)
+      isNewProduct, newProductData, // ข้อมูลสินค้าใหม่
       quantity, attributes 
   } = formData;
 
   try {
-    // 1. ตรวจสอบ Warehouse
+    // 1. Validation เบื้องต้น
+    if (!warehouseId || !locationId || !quantity) throw new Error("ข้อมูลไม่ครบถ้วน (Warehouse, Location, Qty)");
+
+    // 2. หา Warehouse ID
     const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
     if (!wh) throw new Error("Warehouse not found");
 
     let finalProductId = productId;
 
-    // 2. ถ้าเป็นสินค้าใหม่ -> สร้าง Product Master ก่อน
-    if (isNewProduct && newProductData) {
-        // เช็ค SKU ซ้ำ
-        const { data: existingSku } = await supabase.from('products').select('id').eq('sku', newProductData.sku).single();
-        if (existingSku) throw new Error(`SKU ${newProductData.sku} มีอยู่ในระบบแล้ว กรุณาเลือกจากรายการ`);
+    // 3. Logic สร้างสินค้าใหม่ (Auto Create Product Master)
+    if (isNewProduct) {
+        if (!newProductData?.sku || !newProductData?.name) throw new Error("กรุณาระบุ SKU และชื่อสินค้าใหม่");
 
-        const { data: newProd, error: createError } = await supabase.from('products').insert({
-            sku: newProductData.sku,
-            name: newProductData.name,
-            category_id: newProductData.categoryId,
-            uom: newProductData.uom,
-            min_stock: Number(newProductData.minStock) || 0,
-            base_attributes: {} // เผื่ออนาคต
-        }).select('id').single();
+        // 3.1 เช็คว่า SKU ซ้ำไหม?
+        const { data: existingSku } = await supabase
+            .from('products')
+            .select('id')
+            .eq('sku', newProductData.sku.toUpperCase()) // บังคับตัวใหญ่
+            .maybeSingle(); // ใช้ maybeSingle เพื่อไม่ throw error ถ้าไม่เจอ
+
+        if (existingSku) {
+            throw new Error(`SKU ${newProductData.sku} มีอยู่ในระบบแล้ว (ID: ${existingSku.id}) กรุณาเลือกจากรายการสินค้าเดิม`);
+        }
+
+        // 3.2 สร้าง Product ใหม่
+        const { data: newProd, error: createError } = await supabase
+            .from('products')
+            .insert({
+                sku: newProductData.sku.toUpperCase(),
+                name: newProductData.name,
+                category_id: newProductData.categoryId || 'GENERAL', // Default Category
+                uom: newProductData.uom || 'PCS',
+                min_stock: Number(newProductData.minStock) || 0
+            })
+            .select('id')
+            .single();
 
         if (createError) throw createError;
         finalProductId = newProd.id;
     }
 
-    if (!finalProductId) throw new Error("ระบุสินค้าไม่ถูกต้อง");
+    if (!finalProductId) throw new Error("System Error: Product ID not resolved");
 
-    // 3. จัดการ Stock (Logic เดิม: Merge หรือ Insert)
+    // 4. บันทึก Stock (Merge or Insert)
+    // เช็คว่ามีของเดิมที่ Location นี้ + Attributes นี้ไหม
     const { data: existingStock } = await supabase
         .from('stocks')
         .select('id, quantity')
         .eq('location_id', locationId)
         .eq('product_id', finalProductId)
-        .contains('attributes', attributes)
+        .contains('attributes', attributes) // JSONB Match
         .maybeSingle();
 
     if (existingStock) {
+        // UPDATE: บวกยอด
         await supabase.from('stocks').update({
             quantity: Number(existingStock.quantity) + Number(quantity),
             updated_at: new Date().toISOString()
         }).eq('id', existingStock.id);
     } else {
+        // INSERT: แถวใหม่
         await supabase.from('stocks').insert({
             warehouse_id: wh.id,
             location_id: locationId,
@@ -87,7 +120,7 @@ export async function submitInbound(formData: any) {
         });
     }
 
-    // 4. Log Transaction
+    // 5. Transaction Log (สำคัญมากสำหรับการตรวจสอบย้อนหลัง)
     await supabase.from('transactions').insert({
         type: 'INBOUND',
         warehouse_id: wh.id,
@@ -96,10 +129,12 @@ export async function submitInbound(formData: any) {
         quantity: Number(quantity),
         attributes_snapshot: attributes,
         created_at: new Date().toISOString()
+        // user_id: ... (ถ้ามี auth context ให้ใส่ตรงนี้)
     });
 
+    // 6. Refresh หน้าจอ
     revalidatePath(`/dashboard/${warehouseId}`);
-    return { success: true };
+    return { success: true, message: `รับสินค้า ${isNewProduct ? newProductData.sku : ''} เข้าคลังสำเร็จ` };
 
   } catch (error: any) {
     console.error("Inbound Error:", error);
