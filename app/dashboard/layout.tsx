@@ -8,12 +8,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar (Static สำหรับทุกหน้า) */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
-        <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-          <div className="bg-indigo-600 p-2 rounded-lg">
+       <Link href="/dashboard" className="p-6 border-b border-slate-800 flex items-center gap-3 hover:bg-slate-800 transition-colors cursor-pointer group">
+          <div className="bg-indigo-600 p-2 rounded-lg group-hover:bg-indigo-500 transition-colors">
             <Package size={20} />
           </div>
           <span className="font-bold text-lg tracking-tight">WMS Pro</span>
-        </div>
+        </Link>
         
         <nav className="flex-1 p-4 space-y-2">
           <Link 

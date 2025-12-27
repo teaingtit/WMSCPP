@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitInbound } from '@/actions/inbound-actions';
-import { Loader2, Save, PackagePlus, Box } from 'lucide-react';
+import { Loader2, Save, Search, Plus, X, Package, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DynamicInboundFormProps {
@@ -20,94 +20,95 @@ export default function DynamicInboundForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
-  // --- 1. Mode Selection State ---
-  const [isNewProduct, setIsNewProduct] = useState(false);
+  // --- Unified Search State ---
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null); // เก็บสินค้าที่เลือก (ถ้ามี)
+  const [isNewProductMode, setIsNewProductMode] = useState(false); // โหมดสร้างใหม่
 
-  // --- 2. Form State ---
+  // Form State
   const [formData, setFormData] = useState({
-    productId: '',
     locationId: '',
     quantity: '',
   });
 
-  // State สำหรับสินค้าใหม่
   const [newProd, setNewProd] = useState({
-    sku: '',
-    name: '',
-    uom: 'PCS',
-    minStock: 0
+    sku: '', name: '', uom: 'PCS', minStock: 0
   });
 
-  // State สำหรับพิกัด (Lot/Cart Selector)
-  const [selectedLot, setSelectedLot] = useState('');
-  const [selectedCart, setSelectedCart] = useState('');
+  // Coordinates State
+  const [lotInput, setLotInput] = useState('');
+  const [cartInput, setCartInput] = useState('');
 
-  // State สำหรับ Dynamic Attributes
+  // Attributes
   const [attributes, setAttributes] = useState<Record<string, any>>({});
 
-  // --- 3. Location Logic (Auto-Match Coordinates) ---
-  // เมื่อเลือก Lot/Cart ให้หา Location ID ที่ตรงกัน
+  // --- Logic: Filter Products ---
+  const filteredProducts = products.filter((p: any) => 
+    (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) || 
+    (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  ).slice(0, 8); // Limit Results
+
+  // --- Logic: Handle Selection ---
+  const selectExistingProduct = (product: any) => {
+    setSelectedProduct(product);
+    setSearchTerm(product.name); 
+    setIsNewProductMode(false);
+    setShowDropdown(false);
+  };
+
+  const switchToNewProductMode = () => {
+    setIsNewProductMode(true);
+    setSelectedProduct(null);
+    setShowDropdown(false);
+    setNewProd(prev => ({ ...prev, name: searchTerm })); // Auto-fill name
+  };
+
+  const resetSelection = () => {
+    setSelectedProduct(null);
+    setIsNewProductMode(false);
+    setSearchTerm('');
+    setNewProd({ sku: '', name: '', uom: 'PCS', minStock: 0 });
+  };
+
+  // --- Logic: Coordinates Matcher ---
   useEffect(() => {
-     if(selectedLot && selectedCart) {
-        // Format: {WH}-L{xx}-C{xx} เช่น WH-TEST-L01-C05
-        const lotStr = selectedLot.padStart(2, '0');
-        const cartStr = selectedCart.padStart(2, '0');
-        const targetCode = `${warehouseId}-L${lotStr}-C${cartStr}`;
-
+     if(lotInput && cartInput) {
+        // Format: WH-XX-L01-C01
+        const targetCode = `${warehouseId}-L${lotInput.padStart(2,'0')}-C${cartInput.padStart(2,'0')}`;
         const foundLoc = locations.find((l: any) => l.code === targetCode);
-        if(foundLoc) {
-            setFormData(prev => ({ ...prev, locationId: foundLoc.id }));
-        } else {
-            setFormData(prev => ({ ...prev, locationId: '' })); // Reset ถ้าไม่เจอ
-        }
+        setFormData(prev => ({ ...prev, locationId: foundLoc ? foundLoc.id : '' }));
+     } else {
+        setFormData(prev => ({ ...prev, locationId: '' }));
      }
-  }, [selectedLot, selectedCart, locations, warehouseId]);
+  }, [lotInput, cartInput, locations, warehouseId]);
 
-  // แยกรายการ Lots และ Carts ที่มีอยู่จริงใน Database เพื่อทำ Dropdown
-  const availableLots = Array.from(new Set(
-    locations.map((l:any) => {
-        // Parse Code: WH-A-L01-C01 -> L01
-        const parts = l.code.split('-L');
-        if(parts.length > 1) return parts[1].split('-C')[0];
-        return null;
-    }).filter(Boolean)
-  )).sort() as string[];
-
-  const availableCarts = Array.from(new Set(
-    locations.map((l:any) => {
-        const parts = l.code.split('-C');
-        if(parts.length > 1) return parts[1];
-        return null;
-    }).filter(Boolean)
-  )).sort() as string[];
-
-
-  // --- 4. Submit Handler ---
+  // --- Submit ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.locationId) {
-        alert("❌ กรุณาระบุตำแหน่งจัดเก็บ (Lot/Cart) ให้ครบถ้วน");
-        return;
-    }
-    
-    setLoading(true);
+    if (!formData.locationId) return alert("❌ พิกัด Lot/Cart ไม่ถูกต้อง");
+    if (!selectedProduct && !isNewProductMode) return alert("❌ กรุณาเลือกสินค้า");
 
+    setLoading(true);
     const payload = {
         warehouseId,
         locationId: formData.locationId,
         quantity: formData.quantity,
-        isNewProduct,
-        productId: isNewProduct ? null : formData.productId,
-        newProductData: isNewProduct ? { ...newProd, categoryId: category.id } : null,
+        isNewProduct: isNewProductMode,
+        productId: selectedProduct?.id,
+        newProductData: isNewProductMode ? { ...newProd, categoryId: category.id } : null,
         attributes
     };
 
     const result = await submitInbound(payload);
-    
     if (result.success) {
-        alert("✅ " + result.message);
-        router.push(`/dashboard/${warehouseId}/inventory`);
-        router.refresh();
+        if(confirm("✅ บันทึกสำเร็จ! ต้องการรับสินค้าต่อหรือไม่?")) {
+            setFormData(prev => ({ ...prev, quantity: '' }));
+            resetSelection();
+            router.refresh();
+        } else {
+            router.push(`/dashboard/${warehouseId}/inventory`);
+        }
     } else {
         alert("❌ Error: " + result.message);
     }
@@ -115,101 +116,125 @@ export default function DynamicInboundForm({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
        
-       {/* Toggle Mode Switch */}
-       <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm inline-flex mb-2">
-            <button
-               type="button"
-               onClick={() => setIsNewProduct(false)}
-               className={cn(
-                  "px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all",
-                  !isNewProduct ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
-               )}
-            >
-               <Box size={18} /> สินค้าเดิม (Existing)
-            </button>
-            <button
-               type="button"
-               onClick={() => setIsNewProduct(true)}
-               className={cn(
-                  "px-6 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all",
-                  isNewProduct ? "bg-emerald-600 text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
-               )}
-            >
-               <PackagePlus size={18} /> สินค้าใหม่ (New SKU)
-            </button>
-       </div>
-
-       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-         
-         {/* LEFT COLUMN: Product Info */}
-         <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    {isNewProduct ? <PackagePlus className="text-emerald-600" size={20}/> : <Box className="text-indigo-600" size={20}/>}
-                    {isNewProduct ? 'สร้างสินค้าใหม่' : 'เลือกสินค้า'}
+       {/* LEFT COLUMN: Product Selection */}
+       <div className="space-y-6">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[400px]">
+                <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
+                    <Package className="text-indigo-600" /> ข้อมูลสินค้า (Product)
                 </h3>
 
-                {!isNewProduct ? (
-                    <div>
-                        <label className="label-text">ค้นหาสินค้าจากรายการ</label>
-                        <select 
-                            required
-                            className="input-field w-full text-lg"
-                            value={formData.productId}
-                            onChange={e => setFormData({...formData, productId: e.target.value})}
-                        >
-                            <option value="">-- Search Product --</option>
-                            {products.map((p: any) => (
-                                <option key={p.id} value={p.id}>{p.sku} | {p.name}</option>
-                            ))}
-                        </select>
+                {/* 1. Search Box (Unified) */}
+                {!selectedProduct && !isNewProductMode ? (
+                    <div className="relative">
+                        <label className="block text-sm font-bold text-slate-500 mb-2">ค้นหา หรือ สร้างสินค้าใหม่</label>
+                        <div className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={24} />
+                            <input 
+                                type="text"
+                                className="w-full pl-14 pr-4 py-4 text-lg bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm"
+                                placeholder="พิมพ์ชื่อสินค้า หรือ SKU..."
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setShowDropdown(true);
+                                }}
+                                onFocus={() => setShowDropdown(true)}
+                                autoFocus
+                            />
+                        </div>
+
+                        {/* Dropdown Results */}
+                        {showDropdown && searchTerm && (
+                            <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden animate-in slide-in-from-top-2">
+                                {filteredProducts.map((p: any) => (
+                                    <div 
+                                        key={p.id}
+                                        onClick={() => selectExistingProduct(p)}
+                                        className="p-4 hover:bg-indigo-50 cursor-pointer border-b border-slate-50 flex justify-between items-center group transition-colors"
+                                    >
+                                        <div>
+                                            <div className="font-bold text-slate-700 group-hover:text-indigo-700">{p.name}</div>
+                                            <div className="text-xs text-slate-400 font-mono flex gap-2">
+                                                <span className="bg-slate-100 px-1 rounded">{p.sku}</span>
+                                                <span>• {p.uom}</span>
+                                            </div>
+                                        </div>
+                                        <span className="text-xs bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-bold opacity-0 group-hover:opacity-100 transition-opacity">เลือก</span>
+                                    </div>
+                                ))}
+
+                                {/* Create New Option */}
+                                <div 
+                                    onClick={switchToNewProductMode}
+                                    className="p-4 bg-emerald-50 hover:bg-emerald-100 cursor-pointer flex items-center gap-3 text-emerald-700 font-bold border-t-2 border-emerald-100"
+                                >
+                                    <div className="p-2 bg-emerald-200 rounded-lg text-emerald-800"><Plus size={20} /></div>
+                                    <div className="flex flex-col">
+                                        <span>สร้างสินค้าใหม่: "{searchTerm}"</span>
+                                        <span className="text-xs font-normal opacity-80">คลิกเพื่อสร้าง Product Master ใหม่</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="mt-8 text-center text-sm text-slate-400 bg-slate-50/50 p-4 rounded-xl border border-dashed border-slate-200">
+                             พิมพ์คำค้นหาเพื่อเริ่มทำงาน <br/> ระบบจะแสดงสินค้าที่มีอยู่ หรือให้ตัวเลือกสร้างใหม่
+                        </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                        <div className="md:col-span-2">
-                            <label className="label-text text-emerald-700">ชื่อสินค้า (Name) *</label>
-                            <input 
-                                required className="input-field w-full" 
-                                placeholder="Ex. ปากกาลูกลื่น สีน้ำเงิน"
-                                value={newProd.name}
-                                onChange={e => setNewProd({...newProd, name: e.target.value})}
-                            />
+                    // 2. Selected State
+                    <div className="animate-in fade-in zoom-in-95">
+                        <div className="flex justify-between items-start mb-6 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-2 pl-2">
+                                <span className={`px-3 py-1 rounded-lg text-xs font-bold shadow-sm ${isNewProductMode ? 'bg-emerald-500 text-white' : 'bg-indigo-500 text-white'}`}>
+                                    {isNewProductMode ? '✨ สินค้าใหม่' : '📦 สินค้าเดิม'}
+                                </span>
+                            </div>
+                            <button type="button" onClick={resetSelection} className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="ยกเลิก">
+                                <X size={20} />
+                            </button>
                         </div>
-                        <div>
-                            <label className="label-text text-emerald-700">รหัสสินค้า (SKU) *</label>
-                            <input 
-                                required className="input-field w-full uppercase font-mono" 
-                                placeholder="Ex. A-001"
-                                value={newProd.sku}
-                                onChange={e => setNewProd({...newProd, sku: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <label className="label-text">หน่วยนับ (UOM)</label>
-                            <select 
-                                className="input-field w-full"
-                                value={newProd.uom}
-                                onChange={e => setNewProd({...newProd, uom: e.target.value})}
-                            >
-                                <option value="PCS">ชิ้น (PCS)</option>
-                                <option value="BOX">กล่อง (BOX)</option>
-                                <option value="SET">ชุด (SET)</option>
-                                <option value="KG">กิโลกรัม (KG)</option>
-                            </select>
-                        </div>
+
+                        {isNewProductMode ? (
+                            <div className="space-y-4">
+                                 <div>
+                                    <label className="block text-xs font-bold text-emerald-700 mb-1">ชื่อสินค้า *</label>
+                                    <input required className="input-field w-full p-3 border border-emerald-200 rounded-lg focus:ring-emerald-500/20" value={newProd.name} onChange={e => setNewProd({...newProd, name: e.target.value})} />
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-emerald-700 mb-1">SKU *</label>
+                                        <input required className="input-field w-full p-3 border border-emerald-200 rounded-lg font-mono uppercase" placeholder="AUTO-GEN" value={newProd.sku} onChange={e => setNewProd({...newProd, sku: e.target.value})} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 mb-1">หน่วยนับ</label>
+                                        <select className="input-field w-full p-3 border border-slate-200 rounded-lg" value={newProd.uom} onChange={e => setNewProd({...newProd, uom: e.target.value})}>
+                                            <option value="PCS">ชิ้น (PCS)</option><option value="BOX">กล่อง (BOX)</option><option value="KG">กก. (KG)</option>
+                                        </select>
+                                    </div>
+                                 </div>
+                            </div>
+                        ) : (
+                            <div className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 text-center">
+                                <div className="text-2xl font-black text-slate-800 mb-1">{selectedProduct.name}</div>
+                                <div className="inline-block bg-white px-3 py-1 rounded text-xs font-mono text-slate-500 shadow-sm border border-indigo-100">
+                                    SKU: {selectedProduct.sku}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
 
             {/* Dynamic Attributes */}
             {category.form_schema && category.form_schema.length > 0 && (
-                <div className="bg-amber-50/60 p-6 rounded-2xl border border-amber-100">
+                <div className="bg-amber-50 p-6 rounded-3xl border border-amber-100">
                     <h4 className="font-bold text-amber-700 mb-4 text-xs uppercase tracking-wider flex items-center gap-2">
                         ข้อมูลจำเพาะ ({category.name})
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         {category.form_schema.map((field: any) => (
                             <div key={field.key}>
                                 <label className="block text-xs font-bold text-slate-500 mb-1.5">
@@ -218,7 +243,7 @@ export default function DynamicInboundForm({
                                 <input 
                                     type={field.type}
                                     required={field.required}
-                                    className="input-field w-full bg-white border-amber-200 focus:ring-amber-500/20"
+                                    className="w-full p-3 bg-white border border-amber-200 rounded-lg focus:ring-amber-500/20 outline-none"
                                     onChange={e => setAttributes({...attributes, [field.key]: e.target.value})}
                                 />
                             </div>
@@ -226,75 +251,65 @@ export default function DynamicInboundForm({
                     </div>
                 </div>
             )}
-         </div>
+       </div>
 
-         {/* RIGHT COLUMN: Location & Quantity */}
-         <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                 <h3 className="font-bold text-slate-800 mb-4">ระบุพิกัด & จำนวน</h3>
-                 
-                 {/* Coordinate Selector */}
-                 <div className="space-y-4 mb-6">
-                    <div className="flex gap-2 items-center">
-                        <div className="flex-1">
-                            <label className="label-text text-center block mb-1">LOT (แถว)</label>
-                            <select 
-                                className="input-field w-full text-center font-mono text-lg font-bold bg-indigo-50 border-indigo-100 text-indigo-700"
-                                value={selectedLot}
-                                onChange={e => setSelectedLot(e.target.value)}
-                            >
-                                <option value="">--</option>
-                                {availableLots.map((lot) => (
-                                    <option key={lot} value={lot}>{lot}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="text-slate-300 pt-5">➔</div>
-                        <div className="flex-1">
-                            <label className="label-text text-center block mb-1">CART (แคร่)</label>
-                            <select 
-                                className="input-field w-full text-center font-mono text-lg font-bold bg-indigo-50 border-indigo-100 text-indigo-700"
-                                value={selectedCart}
-                                onChange={e => setSelectedCart(e.target.value)}
-                            >
-                                <option value="">--</option>
-                                {availableCarts.map((cart) => (
-                                    <option key={cart} value={cart}>{cart}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+       {/* RIGHT COLUMN: Location & Qty */}
+       <div className="space-y-6">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit relative overflow-hidden">
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-10 -mt-10"></div>
+                 <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4 relative z-10">
+                    <MapPin className="text-rose-500" /> พิกัด & จำนวน
+                 </h3>
 
-                    {/* Feedback Status */}
-                    {formData.locationId ? (
-                         <div className="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-xs font-bold text-center border border-emerald-100 animate-in zoom-in-95">
-                             ✅ พิกัดถูกต้อง: {locations.find((l:any) => l.id === formData.locationId)?.code}
-                         </div>
-                    ) : (selectedLot && selectedCart) ? (
-                         <div className="bg-rose-50 text-rose-600 px-3 py-2 rounded-lg text-xs font-bold text-center border border-rose-100 animate-in shake">
-                             ❌ ไม่พบพิกัดนี้ในระบบ
-                         </div>
-                    ) : (
-                         <div className="text-center text-xs text-slate-400 py-2">
-                             กรุณาเลือก Lot และ Cart
-                         </div>
-                    )}
+                 {/* Coordinates */}
+                 <div className="flex gap-4 items-end mb-8 relative z-10">
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">LOT (แถว)</label>
+                            <input 
+                                type="number"
+                                className="w-full text-center font-mono text-4xl font-black bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-500 outline-none transition-all h-24 placeholder:text-slate-200"
+                                placeholder="--"
+                                value={lotInput}
+                                onChange={e => setLotInput(e.target.value)}
+                            />
+                        </div>
+                        <div className="text-slate-200 pb-8 font-black text-3xl">/</div>
+                        <div className="flex-1">
+                            <label className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">CART (แคร่)</label>
+                            <input 
+                                type="number"
+                                className="w-full text-center font-mono text-4xl font-black bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-500 outline-none transition-all h-24 placeholder:text-slate-200"
+                                placeholder="--"
+                                value={cartInput}
+                                onChange={e => setCartInput(e.target.value)}
+                            />
+                        </div>
                  </div>
 
-                 <div className="border-t border-slate-100 my-4"></div>
+                 {/* Status Feedback */}
+                 {formData.locationId ? (
+                     <div className="bg-emerald-50 text-emerald-700 px-4 py-3 rounded-xl text-sm font-bold text-center border border-emerald-100 mb-8 animate-in zoom-in-95 shadow-sm">
+                         ✅ เจอพิกัด: {locations.find((l:any) => l.id === formData.locationId)?.code}
+                     </div>
+                 ) : (lotInput || cartInput) ? (
+                     <div className="bg-rose-50 text-rose-600 px-4 py-3 rounded-xl text-sm font-bold text-center border border-rose-100 mb-8 animate-in shake shadow-sm">
+                         ❌ ไม่พบพิกัดนี้ในคลัง
+                     </div>
+                 ) : null}
 
+                 {/* Quantity */}
                  <div>
-                    <label className="label-text mb-2 block">จำนวนรับเข้า (Quantity)</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">จำนวนรับเข้า (Quantity)</label>
                     <div className="relative">
                         <input 
                             type="number" required min="1"
-                            className="input-field w-full text-3xl font-black text-slate-800 pl-4 pr-16 h-16"
+                            className="w-full text-4xl font-black text-slate-900 pl-6 pr-24 py-6 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                             placeholder="0"
                             value={formData.quantity}
                             onChange={e => setFormData({...formData, quantity: e.target.value})}
                         />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm bg-slate-100 px-2 py-1 rounded">
-                            {isNewProduct ? newProd.uom : 'UNITS'}
+                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-sm uppercase tracking-wide">
+                            {isNewProductMode ? newProd.uom : selectedProduct?.uom || 'UNIT'}
                         </span>
                     </div>
                  </div>
@@ -302,15 +317,13 @@ export default function DynamicInboundForm({
 
             <button 
                 type="submit" 
-                disabled={loading || !formData.locationId}
-                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-lg hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !formData.locationId || (!selectedProduct && !isNewProductMode)}
+                className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-                {loading ? <Loader2 className="animate-spin" /> : <Save size={20} />}
-                บันทึกรับเข้า
+                {loading ? <Loader2 className="animate-spin" /> : <Save size={24} className="group-hover:scale-110 transition-transform" />}
+                <span>บันทึกรับเข้า</span>
             </button>
-         </div>
-
-       </form>
-    </div>
+       </div>
+    </form>
   );
 }
