@@ -1,29 +1,30 @@
-// File: types/inventory.ts
+// types/inventory.ts
+
 export interface InventoryItem {
   id: string;
-  item_name: string;
-  code: string;
+  itemName: string; // เปลี่ยนจาก item_name
+  code: string;     // SKU
   quantity: number;
-  warehouse: string;
-  location: string;
-  cart_no: string;
-  lot: string;
-  unit: string;
+  warehouse: string; // Warehouse Code
+  location: string;  // Location Code
+  cartNo?: string;   // เปลี่ยนจาก cart_no (Optional?)
+  lot?: string;
+  unit: string;      // UOM
   remark?: string;
-  created_at?: string;
-  updated_at?: string;
-  
+  createdAt?: string;
+  updatedAt?: string;
 }
-// กำหนดโครงสร้างข้อมูลของ "ตะกร้า" (Cart)
+
 export interface CartData {
   cartId: string;
   location: string;
   items: InventoryItem[];
 }
+
 export interface HistoryLogItem {
   id: number;
   timestamp: string;
   action: string;
   details: string;
-  status: string;
+  status: 'SUCCESS' | 'ERROR' | 'PENDING'; // ระบุ Type ชัดเจนดีกว่า string เฉยๆ
 }

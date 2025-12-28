@@ -2,7 +2,7 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase-server';
-import WarehouseHeader from '@/components/ui/WarehouseHeader'; // ✅ Import ตัวใหม่
+import WarehouseHeader from '@/components/ui/WarehouseHeader';
 
 export default async function WarehouseContextLayout({ 
   children, params 
@@ -10,7 +10,8 @@ export default async function WarehouseContextLayout({
   children: React.ReactNode;
   params: { warehouseId: string };
 }) {
-  const supabase = createClient();
+  // ✅ FIX: เติม await ตรงนี้
+  const supabase = await createClient();
 
   // Validate Warehouse
   const { data: warehouse } = await supabase
@@ -25,10 +26,7 @@ export default async function WarehouseContextLayout({
 
   return (
     <div className="flex flex-col h-full bg-slate-50/50">
-      {/* เรียกใช้ Smart Header ที่จัดการปุ่มย้อนกลับให้เอง */}
       <WarehouseHeader warehouse={warehouse} />
-
-      {/* เนื้อหาภายใน */}
       <div className="flex-1 p-6 overflow-auto">
         {children}
       </div>

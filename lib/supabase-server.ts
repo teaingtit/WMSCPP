@@ -2,9 +2,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// เปลี่ยนจาก const เป็น function
-export function createClient() {
-  const cookieStore = cookies()
+// ✅ FIX: ต้องเป็น async function เพราะ Next.js 15 cookies() เป็น async
+export async function createClient() {
+  const cookieStore = await cookies() // ✅ Await ตรงนี้
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,14 +18,14 @@ export function createClient() {
           try {
             cookieStore.set({ name, value, ...options })
           } catch (error) {
-            // กรณีรันใน Server Component อาจจะ set ไม่ได้ (ปกติ)
+            // Server Component (RSC) cannot set cookies
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options })
           } catch (error) {
-            // กรณีรันใน Server Component อาจจะ remove ไม่ได้ (ปกติ)
+            // Server Component (RSC) cannot set cookies
           }
         },
       },

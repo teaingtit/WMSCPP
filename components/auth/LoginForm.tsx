@@ -6,6 +6,12 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { login } from '@/actions/auth-actions';
 import { KeyRound, Loader2, AlertCircle } from 'lucide-react';
 
+// 1. กำหนดค่าเริ่มต้นให้ตรงกับ Type (LoginState)
+const initialState = {
+  success: false,
+  message: ''
+};
+
 const SubmitButton = () => {
   const { pending } = useFormStatus();
   return (
@@ -20,14 +26,14 @@ const SubmitButton = () => {
 };
 
 export default function LoginForm() {
-  // ใช้ useFormState เพื่อรับค่า Error จาก Server Action
-  const [state, formAction] = useFormState(login, null);
+  // 2. ใช้ initialState แทน null
+  const [state, formAction] = useFormState(login, initialState);
 
   return (
     <form action={formAction} className="space-y-4 relative z-10">
       
       {/* Error Message Box */}
-      {state?.success === false && (
+      {state?.success === false && state?.message && (
         <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-2 text-rose-600 text-sm font-bold animate-in slide-in-from-top-2">
             <AlertCircle size={18} />
             {state.message}

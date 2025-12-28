@@ -11,7 +11,7 @@ export interface Warehouse {
 }
 
 export async function getWarehouses() {
-  const supabase = createClient();
+  const supabase = await createClient();
   try {
     const { data, error } = await supabase
       .from('warehouses')

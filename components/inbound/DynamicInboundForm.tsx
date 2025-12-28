@@ -1,11 +1,9 @@
-// components/inbound/DynamicInboundForm.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitInbound } from '@/actions/inbound-actions';
 import { Loader2, Save, Search, Plus, X, Package, MapPin } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface DynamicInboundFormProps {
   warehouseId: string;
@@ -23,8 +21,8 @@ export default function DynamicInboundForm({
   // --- Unified Search State ---
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null); // เก็บสินค้าที่เลือก (ถ้ามี)
-  const [isNewProductMode, setIsNewProductMode] = useState(false); // โหมดสร้างใหม่
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isNewProductMode, setIsNewProductMode] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -39,7 +37,8 @@ export default function DynamicInboundForm({
   // Coordinates State
   const [lotInput, setLotInput] = useState('');
   const [cartInput, setCartInput] = useState('');
-
+  const [levelInput, setLevelInput] = useState('');
+  
   // Attributes
   const [attributes, setAttributes] = useState<Record<string, any>>({});
 
@@ -47,7 +46,7 @@ export default function DynamicInboundForm({
   const filteredProducts = products.filter((p: any) => 
     (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) || 
     (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  ).slice(0, 8); // Limit Results
+  ).slice(0, 8);
 
   // --- Logic: Handle Selection ---
   const selectExistingProduct = (product: any) => {
@@ -61,7 +60,7 @@ export default function DynamicInboundForm({
     setIsNewProductMode(true);
     setSelectedProduct(null);
     setShowDropdown(false);
-    setNewProd(prev => ({ ...prev, name: searchTerm })); // Auto-fill name
+    setNewProd(prev => ({ ...prev, name: searchTerm }));
   };
 
   const resetSelection = () => {
@@ -73,15 +72,20 @@ export default function DynamicInboundForm({
 
   // --- Logic: Coordinates Matcher ---
   useEffect(() => {
-     if(lotInput && cartInput) {
-        // Format: WH-XX-L01-C01
-        const targetCode = `${warehouseId}-L${lotInput.padStart(2,'0')}-C${cartInput.padStart(2,'0')}`;
+     if(lotInput && cartInput && levelInput) {
+        const lotStr = lotInput.padStart(2, '0');
+        const cartStr = cartInput.padStart(2, '0');
+        const levelStr = levelInput.padStart(2, '0');
+        
+        // Format: WH-Lxx-Cxx-LVxx
+        const targetCode = `${warehouseId}-L${lotStr}-C${cartStr}-LV${levelStr}`;
+
         const foundLoc = locations.find((l: any) => l.code === targetCode);
         setFormData(prev => ({ ...prev, locationId: foundLoc ? foundLoc.id : '' }));
      } else {
         setFormData(prev => ({ ...prev, locationId: '' }));
      }
-  }, [lotInput, cartInput, locations, warehouseId]);
+  }, [lotInput, cartInput, levelInput, locations, warehouseId]);
 
   // --- Submit ---
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,13 +94,15 @@ export default function DynamicInboundForm({
     if (!selectedProduct && !isNewProductMode) return alert("❌ กรุณาเลือกสินค้า");
 
     setLoading(true);
+    
     const payload = {
         warehouseId,
         locationId: formData.locationId,
         quantity: formData.quantity,
         isNewProduct: isNewProductMode,
         productId: selectedProduct?.id,
-        newProductData: isNewProductMode ? { ...newProd, categoryId: category.id } : null,
+        // ✅ FIX: เปลี่ยน null เป็น undefined
+        newProductData: isNewProductMode ? { ...newProd, categoryId: category.id } : undefined,
         attributes
     };
 
@@ -128,10 +134,11 @@ export default function DynamicInboundForm({
                 {/* 1. Search Box (Unified) */}
                 {!selectedProduct && !isNewProductMode ? (
                     <div className="relative">
-                        <label className="block text-sm font-bold text-slate-500 mb-2">ค้นหา หรือ สร้างสินค้าใหม่</label>
+                        <label htmlFor="product-search" className="block text-sm font-bold text-slate-500 mb-2">ค้นหา หรือ สร้างสินค้าใหม่</label>
                         <div className="relative group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={24} />
                             <input 
+                                id="product-search"
                                 type="text"
                                 className="w-full pl-14 pr-4 py-4 text-lg bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm"
                                 placeholder="พิมพ์ชื่อสินค้า หรือ SKU..."
@@ -200,17 +207,35 @@ export default function DynamicInboundForm({
                         {isNewProductMode ? (
                             <div className="space-y-4">
                                  <div>
-                                    <label className="block text-xs font-bold text-emerald-700 mb-1">ชื่อสินค้า *</label>
-                                    <input required className="input-field w-full p-3 border border-emerald-200 rounded-lg focus:ring-emerald-500/20" value={newProd.name} onChange={e => setNewProd({...newProd, name: e.target.value})} />
+                                    <label htmlFor="new-prod-name" className="block text-xs font-bold text-emerald-700 mb-1">ชื่อสินค้า *</label>
+                                    <input 
+                                        id="new-prod-name"
+                                        required 
+                                        className="input-field w-full p-3 border border-emerald-200 rounded-lg focus:ring-emerald-500/20" 
+                                        value={newProd.name} 
+                                        onChange={e => setNewProd({...newProd, name: e.target.value})} 
+                                    />
                                  </div>
                                  <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-emerald-700 mb-1">SKU *</label>
-                                        <input required className="input-field w-full p-3 border border-emerald-200 rounded-lg font-mono uppercase" placeholder="AUTO-GEN" value={newProd.sku} onChange={e => setNewProd({...newProd, sku: e.target.value})} />
+                                        <label htmlFor="new-prod-sku" className="block text-xs font-bold text-emerald-700 mb-1">SKU *</label>
+                                        <input 
+                                            id="new-prod-sku"
+                                            required 
+                                            className="input-field w-full p-3 border border-emerald-200 rounded-lg font-mono uppercase" 
+                                            placeholder="AUTO-GEN" 
+                                            value={newProd.sku} 
+                                            onChange={e => setNewProd({...newProd, sku: e.target.value})} 
+                                        />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 mb-1">หน่วยนับ</label>
-                                        <select className="input-field w-full p-3 border border-slate-200 rounded-lg" value={newProd.uom} onChange={e => setNewProd({...newProd, uom: e.target.value})}>
+                                        <label htmlFor="new-prod-uom" className="block text-xs font-bold text-slate-500 mb-1">หน่วยนับ</label>
+                                        <select 
+                                            id="new-prod-uom"
+                                            className="input-field w-full p-3 border border-slate-200 rounded-lg" 
+                                            value={newProd.uom} 
+                                            onChange={e => setNewProd({...newProd, uom: e.target.value})}
+                                        >
                                             <option value="PCS">ชิ้น (PCS)</option><option value="BOX">กล่อง (BOX)</option><option value="KG">กก. (KG)</option>
                                         </select>
                                     </div>
@@ -237,10 +262,11 @@ export default function DynamicInboundForm({
                     <div className="grid grid-cols-1 gap-4">
                         {category.form_schema.map((field: any) => (
                             <div key={field.key}>
-                                <label className="block text-xs font-bold text-slate-500 mb-1.5">
+                                <label htmlFor={`attr-${field.key}`} className="block text-xs font-bold text-slate-500 mb-1.5">
                                     {field.label} {field.required && <span className="text-rose-500">*</span>}
                                 </label>
                                 <input 
+                                    id={`attr-${field.key}`}
                                     type={field.type}
                                     required={field.required}
                                     className="w-full p-3 bg-white border border-amber-200 rounded-lg focus:ring-amber-500/20 outline-none"
@@ -261,30 +287,48 @@ export default function DynamicInboundForm({
                     <MapPin className="text-rose-500" /> พิกัด & จำนวน
                  </h3>
 
-                 {/* Coordinates */}
-                 <div className="flex gap-4 items-end mb-8 relative z-10">
-                        <div className="flex-1">
-                            <label className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">LOT (แถว)</label>
-                            <input 
-                                type="number"
-                                className="w-full text-center font-mono text-4xl font-black bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-500 outline-none transition-all h-24 placeholder:text-slate-200"
-                                placeholder="--"
-                                value={lotInput}
-                                onChange={e => setLotInput(e.target.value)}
-                            />
-                        </div>
-                        <div className="text-slate-200 pb-8 font-black text-3xl">/</div>
-                        <div className="flex-1">
-                            <label className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">CART (แคร่)</label>
-                            <input 
-                                type="number"
-                                className="w-full text-center font-mono text-4xl font-black bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-indigo-500 outline-none transition-all h-24 placeholder:text-slate-200"
-                                placeholder="--"
-                                value={cartInput}
-                                onChange={e => setCartInput(e.target.value)}
-                            />
-                        </div>
-                 </div>
+                 {/* Coordinates Section */}
+                <div className="flex gap-2 items-end mb-8 relative z-10">
+                    <div className="flex-1">
+                        <label htmlFor="coord-lot" className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">LOT (แถว)</label>
+                        <input 
+                            id="coord-lot"
+                            type="number"
+                            className="w-full text-center font-mono text-3xl font-black bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-indigo-500 outline-none h-20"
+                            placeholder="--"
+                            value={lotInput}
+                            onChange={e => setLotInput(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="text-slate-200 pb-6 font-black text-xl">-</div>
+
+                    <div className="flex-1">
+                        <label htmlFor="coord-cart" className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">CART (แคร่)</label>
+                        <input 
+                            id="coord-cart"
+                            type="number"
+                            className="w-full text-center font-mono text-3xl font-black bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-indigo-500 outline-none h-20"
+                            placeholder="--"
+                            value={cartInput}
+                            onChange={e => setCartInput(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="text-slate-200 pb-6 font-black text-xl">-</div>
+
+                    <div className="flex-1">
+                        <label htmlFor="coord-level" className="block text-xs font-bold text-indigo-500 text-center mb-2 uppercase">ชั้น (Level)</label>
+                        <input 
+                            id="coord-level"
+                            type="number"
+                            className="w-full text-center font-mono text-3xl font-black bg-indigo-50 border-2 border-indigo-100 rounded-xl focus:bg-white focus:border-indigo-500 outline-none h-20 text-indigo-700"
+                            placeholder="--"
+                            value={levelInput}
+                            onChange={e => setLevelInput(e.target.value)}
+                        />
+                    </div>
+                </div>
 
                  {/* Status Feedback */}
                  {formData.locationId ? (
@@ -299,9 +343,10 @@ export default function DynamicInboundForm({
 
                  {/* Quantity */}
                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">จำนวนรับเข้า (Quantity)</label>
+                    <label htmlFor="inbound-qty" className="block text-sm font-bold text-slate-700 mb-2">จำนวนรับเข้า (Quantity)</label>
                     <div className="relative">
                         <input 
+                            id="inbound-qty"
                             type="number" required min="1"
                             className="w-full text-4xl font-black text-slate-900 pl-6 pr-24 py-6 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                             placeholder="0"

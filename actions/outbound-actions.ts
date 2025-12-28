@@ -4,100 +4,78 @@
 import { createClient } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
 
-// --- Types ---
-type OutboundType = 'ISSUE' | 'TRANSFER';
-
-interface OutboundParams {
-  warehouseId: string; // Code ของคลังต้นทาง
-  itemId: string;      // ID ของ Stock Item ที่จะตัด (จากตาราง stocks)
-  qty: number;
-  type: OutboundType;
-  // กรณี Transfer
-  toWarehouseId?: string; // Code คลังปลายทาง
-  toLocationId?: string;  // ID Location ปลายทาง
+// Interface เพื่อ Type Safety
+interface OutboundFormData {
+  warehouseId: string;
+  stockId: string;
+  qty: string | number;
   note?: string;
-  userId?: string;
 }
 
-export async function submitOutbound(params: OutboundParams) {
-  const { warehouseId, itemId, qty, type, toWarehouseId, toLocationId, note } = params;
+// 1. ค้นหาสินค้า (ปรับปรุงให้อ่านง่ายขึ้น)
+export async function searchStockForOutbound(warehouseId: string, query: string) {
+  const supabase = await createClient();
+  
+  // ใช้ maybeSingle เพื่อไม่ให้ throw error ถ้าไม่เจอ
+  const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).maybeSingle();
+  if (!wh) return [];
 
-  try {
-    const supabase = createClient();
-    // 1. ดึงข้อมูล Stock ปัจจุบันเพื่อตรวจสอบและ Snapshot Attributes
-    const { data: currentStock } = await supabase
-      .from('stocks')
-      .select('*, products(id, name), warehouses(id)')
-      .eq('id', itemId)
-      .single();
+  const { data: stocks, error } = await supabase
+    .from('stocks')
+    .select(`
+        id, quantity, attributes,
+        products!inner(sku, name, uom),
+        locations!inner(code)
+    `)
+    .eq('warehouse_id', wh.id)
+    .gt('quantity', 0)
+    // การ search ข้าม table แบบนี้ถูกต้องแล้วใน Supabase-js v2
+    .or(`name.ilike.%${query}%,sku.ilike.%${query}%`, { foreignTable: 'products' })
+    .order('quantity', { ascending: false })
+    .limit(20);
 
-    if (!currentStock) throw new Error("Item not found");
-    if (currentStock.quantity < qty) throw new Error("Insufficient stock (ยอดคงเหลือไม่พอ)");
+  if (error) {
+    console.error("Search Error:", error);
+    return [];
+  }
 
-    // 2. เรียก Database Function (RPC) เพื่อตัดสต็อก (ถ้าคุณยังไม่ได้สร้าง RPC ให้ใช้ SQL Update ปกติไปก่อนได้ แต่ RPC ปลอดภัยกว่า)
-    // ในที่นี้ใช้ Update ตรงๆ เพื่อความง่ายใน WMSv.03 แต่ใน Production ควรใช้ RPC
-    const newQty = Number(currentStock.quantity) - Number(qty);
-    
-    // 2.1 อัปเดตยอดคงเหลือ
-    const { error: updateError } = await supabase
-        .from('stocks')
-        .update({ quantity: newQty, updated_at: new Date().toISOString() })
-        .eq('id', itemId);
+  return stocks || [];
+}
 
-    if (updateError) throw updateError;
+// 2. สั่งตัดสต็อก (Atomic Deduct via RPC)
+export async function submitOutbound(formData: OutboundFormData) {
+    const supabase = await createClient();
+    const { warehouseId, stockId, qty, note } = formData;
+    const deductQty = Number(qty);
 
-    // 2.2 ถ้าเป็นการย้าย (TRANSFER) -> ต้องไปเพิ่มที่ปลายทาง
-    if (type === 'TRANSFER' && toLocationId && toWarehouseId) {
-        // หา warehouse_id (UUID) ของปลายทาง
-        const { data: destWh } = await supabase.from('warehouses').select('id').eq('code', toWarehouseId).single();
-        if (!destWh) throw new Error("Destination Warehouse Not Found");
-
-        // เช็คว่ามีของเดิมที่ปลายทางไหม (Merge Logic)
-        const { data: destStock } = await supabase
-            .from('stocks')
-            .select('id, quantity')
-            .eq('warehouse_id', destWh.id)
-            .eq('location_id', toLocationId)
-            .eq('product_id', currentStock.product_id)
-            .contains('attributes', currentStock.attributes) // Attributes ต้องเหมือนเดิมเป๊ะ
-            .maybeSingle();
-
-        if (destStock) {
-            await supabase.from('stocks').update({
-                quantity: Number(destStock.quantity) + Number(qty)
-            }).eq('id', destStock.id);
-        } else {
-            await supabase.from('stocks').insert({
-                warehouse_id: destWh.id,
-                location_id: toLocationId,
-                product_id: currentStock.product_id,
-                quantity: Number(qty),
-                attributes: currentStock.attributes // ยก Attributes เดิมไปทั้งก้อน (Batch/Expiry)
-            });
-        }
+    if (isNaN(deductQty) || deductQty <= 0) {
+        return { success: false, message: "จำนวนที่ระบุไม่ถูกต้อง" };
     }
 
-    // 3. บันทึก Transaction Log
-    const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
-    
-    await supabase.from('transactions').insert({
-        type: type,
-        warehouse_id: wh?.id,
-        product_id: currentStock.product_id,
-        from_location_id: currentStock.location_id,
-        to_location_id: type === 'TRANSFER' ? toLocationId : null,
-        quantity: qty,
-        attributes_snapshot: currentStock.attributes,
-        note: note
-    });
+    try {
+        // เรียกใช้ RPC (Stored Procedure) ที่เราสร้างไว้
+        // ปลอดภัยจาก Race Condition 100%
+        const { data: result, error } = await supabase.rpc('deduct_stock', {
+            p_stock_id: stockId,
+            p_deduct_qty: deductQty,
+            p_note: note || ''
+        });
 
-    revalidatePath(`/dashboard/${warehouseId}`);
-    revalidatePath(`/dashboard/${warehouseId}/inventory`);
-    
-    return { success: true, message: 'ทำรายการสำเร็จ' };
+        if (error) throw error;
 
-  } catch (error: any) {
-    console.error("Outbound Error:", error);
-    return { success: false, message: error.message };
-  }
+        // เช็คผลลัพธ์จาก JSON ที่ return มาจาก DB
+        if (!result.success) {
+            return { success: false, message: result.message };
+        }
+
+        // Revalidate หน้าเว็บ
+        revalidatePath(`/dashboard/${warehouseId}`);
+        revalidatePath(`/dashboard/${warehouseId}/inventory`);
+        
+        return { success: true, message: result.message };
+
+    } catch (error: any) {
+        console.error("Outbound Error:", error);
+        return { success: false, message: error.message || "เกิดข้อผิดพลาดในการตัดสต็อก" };
+    }
 }

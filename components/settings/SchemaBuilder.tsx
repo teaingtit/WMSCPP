@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Type, Hash, Calendar, List } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface SchemaField {
   key: string;
@@ -24,7 +24,7 @@ export default function SchemaBuilder({ onSchemaChange }: SchemaBuilderProps) {
 
   const addField = () => {
     const newField: SchemaField = {
-      key: `field_${Date.now()}`, // Auto Gen Key ไปก่อน
+      key: `field_${Date.now()}`,
       label: '',
       type: 'text',
       required: false
@@ -38,17 +38,31 @@ export default function SchemaBuilder({ onSchemaChange }: SchemaBuilderProps) {
     setFields(newFields);
   };
 
+  // ✅ Fix TypeScript: ใช้ .map เพื่อ update state แบบ Immutable และ Type-safe
   const updateField = (index: number, key: keyof SchemaField, value: any) => {
-    const newFields = [...fields];
-    // @ts-ignore
-    newFields[index][key] = value;
-    
-    // Auto-generate key from label (ถ้าเป็นภาษาอังกฤษ)
-    if (key === 'label') {
-       newFields[index].key = value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') || `field_${Date.now()}`;
-    }
-    
-    setFields(newFields);
+    setFields(prev => prev.map((field, i) => {
+      if (i !== index) return field; // คืนค่าเดิมถ้าไม่ใช่ index ที่แก้ไข
+
+      // 1. สร้าง object ใหม่ (Clone) เพื่อแก้ไข
+      const updatedField = { ...field, [key]: value };
+
+      // 2. Logic: Auto-generate key เมื่อ Label เปลี่ยน
+      if (key === 'label' && typeof value === 'string') {
+         // สร้าง baseKey จาก Label (ตัดอักขระพิเศษ, เปลี่ยนเว้นวรรคเป็น _)
+         let baseKey = value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+         
+         // ถ้าว่าง (เช่นใส่แต่ space) ให้ใช้ timestamp กันเหนียว
+         if (!baseKey) baseKey = `field_${Date.now()}`;
+         
+         // 3. Duplicate Check: ตรวจสอบว่า Key ซ้ำกับ Field อื่นหรือไม่
+         const isDuplicate = prev.some((f, fIdx) => fIdx !== index && f.key === baseKey);
+         
+         // ถ้าซ้ำ ให้เติม _index ต่อท้าย
+         updatedField.key = isDuplicate ? `${baseKey}_${index}` : baseKey;
+      }
+      
+      return updatedField;
+    }));
   };
 
   return (
@@ -80,6 +94,7 @@ export default function SchemaBuilder({ onSchemaChange }: SchemaBuilderProps) {
                 value={field.label}
                 onChange={(e) => updateField(idx, 'label', e.target.value)}
                 required
+                aria-label={`ชื่อช่องรายการที่ ${idx + 1}`} // ✅ A11y Fix
               />
            </div>
 
@@ -89,6 +104,7 @@ export default function SchemaBuilder({ onSchemaChange }: SchemaBuilderProps) {
                 className="w-full p-2 text-sm border border-slate-200 rounded-lg bg-white"
                 value={field.type}
                 onChange={(e) => updateField(idx, 'type', e.target.value)}
+                aria-label={`ชนิดข้อมูลรายการที่ ${idx + 1}`} // ✅ A11y Fix (Select Name)
               >
                  <option value="text">ข้อความ</option>
                  <option value="number">ตัวเลข</option>
@@ -103,6 +119,7 @@ export default function SchemaBuilder({ onSchemaChange }: SchemaBuilderProps) {
                 checked={field.required}
                 onChange={(e) => updateField(idx, 'required', e.target.checked)}
                 className="w-4 h-4 accent-indigo-600"
+                aria-label={`จำเป็นต้องกรอกรายการที่ ${idx + 1}`} // ✅ A11y Fix (Label)
               />
            </div>
 
@@ -111,6 +128,8 @@ export default function SchemaBuilder({ onSchemaChange }: SchemaBuilderProps) {
              type="button"
              onClick={() => removeField(idx)}
              className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+             aria-label={`ลบรายการที่ ${idx + 1}`} // ✅ A11y Fix (Button Text)
+             title="ลบรายการ"
            >
              <Trash2 size={16} />
            </button>

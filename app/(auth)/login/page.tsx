@@ -2,6 +2,12 @@
 import React from 'react';
 import LoginForm from '@/components/auth/LoginForm';
 import { Box } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'เข้าสู่ระบบ (Login) - WMS Pro',
+  description: 'ระบบจัดการคลังสินค้า',
+};
 
 export default function LoginPage() {
   return (
