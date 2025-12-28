@@ -1,35 +1,42 @@
 import React from 'react';
 import { getCategoryDetail, getInboundOptions } from '@/actions/inbound-actions';
 import DynamicInboundForm from '@/components/inbound/DynamicInboundForm';
-import PageHeader from '@/components/ui/PageHeader'; 
+import PageHeader from '@/components/ui/PageHeader';
 
-// ✅ FIX 1: เปลี่ยน Type ของ params เป็น Promise
 export default async function DynamicInboundPage({ 
-    params 
+  params 
 }: { 
-    params: Promise<{ warehouseId: string; categoryId: string }> 
+  // ✅ FIX 1: ปรับ Type เป็น Promise เพื่อรองรับ Next.js 15
+  params: Promise<{ warehouseId: string; categoryId: string }> 
 }) {
-  // ✅ FIX 2: Await params เพื่อดึงค่าออกมาก่อน
+  // ✅ FIX 2: Await params ก่อนใช้งาน
   const { warehouseId, categoryId } = await params;
 
-  // เรียกใช้โดยส่งตัวแปรที่ await มาแล้ว
+  // ดึงข้อมูลพร้อมกัน (Parallel Data Fetching) -> ดีมากครับจุดนี้
   const [category, options] = await Promise.all([
-    getCategoryDetail(categoryId),
-    getInboundOptions(warehouseId, categoryId)
+    getCategoryDetail(categoryId),              // ใช้ตัวแปรที่ await แล้ว
+    getInboundOptions(warehouseId, categoryId)  // ใช้ตัวแปรที่ await แล้ว
   ]);
 
-  if (!category) return <div>Category Not Found</div>;
+  if (!category) {
+      // เพิ่ม UI กรณีไม่พบข้อมูลให้ดูดีขึ้นนิดนึงครับ
+      return (
+        <div className="p-8 text-center text-slate-500">
+          ไม่พบหมวดหมู่สินค้า (Category Not Found)
+        </div>
+      );
+  }
 
   return (
     <div className="pb-20">
       <PageHeader 
          title={`รับเข้า: ${category.name}`}
          subtitle="กรอกข้อมูลสินค้าเพื่อนำเข้าสต็อก (รองรับสินค้าใหม่)"
-         warehouseId={warehouseId} // ✅ ใช้ตัวแปรที่ await แล้ว
+         warehouseId={warehouseId} // ใช้ตัวแปรที่ await แล้ว
       />
 
       <DynamicInboundForm 
-         warehouseId={warehouseId} // ✅ ใช้ตัวแปรที่ await แล้ว
+         warehouseId={warehouseId} // ใช้ตัวแปรที่ await แล้ว
          category={category}
          products={options.products}
          locations={options.locations}

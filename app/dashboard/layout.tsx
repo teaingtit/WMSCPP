@@ -2,12 +2,15 @@ import React from 'react';
 import Link from 'next/link';
 import { Package, Settings, LogOut } from 'lucide-react';
 import { logout } from '@/actions/auth-actions'; // ✅ Import Action ล็อกเอาท์
-
+import MobileNav from '@/components/ui/MobileNav';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar (Static สำหรับทุกหน้า) */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex">
+    
+    <div className="flex h-screen overflow-hidden flex-col md:flex-row">
+      {/* Mobile Navigation */}
+      <MobileNav />    
+     {/* 2. Desktop Sidebar (แสดงเฉพาะ Desktop: md:flex) */}
+      <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col shrink-0 h-full">
        <Link href="/dashboard" className="p-6 border-b border-slate-800 flex items-center gap-3 hover:bg-slate-800 transition-colors cursor-pointer group">
           <div className="bg-indigo-600 p-2 rounded-lg group-hover:bg-indigo-500 transition-colors">
             <Package size={20} />
@@ -30,8 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
         </nav>
 
-        {/* ✅ Logout Form Section */}
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-slate-800 mt-auto">
           <form action={logout}>
             <button 
               type="submit"
@@ -44,7 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto bg-slate-50 relative">
+      <main className="flex-1 overflow-auto bg-slate-50 relative w-full">
         {children}
       </main>
     </div>

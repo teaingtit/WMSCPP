@@ -1,10 +1,11 @@
 // components/auth/LoginForm.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { login } from '@/actions/auth-actions';
 import { KeyRound, Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 // 1. กำหนดค่าเริ่มต้นให้ตรงกับ Type (LoginState)
 const initialState = {
@@ -26,19 +27,23 @@ const SubmitButton = () => {
 };
 
 export default function LoginForm() {
-  // 2. ใช้ initialState แทน null
   const [state, formAction] = useFormState(login, initialState);
+
+  // ✅ ใช้ useEffect ดักจับ state เพื่อแสดง Toast
+  useEffect(() => {
+    if (state?.message) {
+      if (state.success === false) {
+        toast.error(state.message); // ❌ แสดง Error สีแดง
+      } else {
+        toast.success(state.message); // ✅ แสดง Success สีเขียว
+      }
+    }
+  }, [state]);
 
   return (
     <form action={formAction} className="space-y-4 relative z-10">
       
-      {/* Error Message Box */}
-      {state?.success === false && state?.message && (
-        <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-2 text-rose-600 text-sm font-bold animate-in slide-in-from-top-2">
-            <AlertCircle size={18} />
-            {state.message}
-        </div>
-      )}
+      {/* ลบ Error Box เดิมออก เพราะเราใช้ Toast แล้ว */}
 
       <div>
         <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
