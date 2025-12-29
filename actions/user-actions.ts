@@ -1,14 +1,24 @@
+// actions/user-actions.ts
 'use server';
 
 import { createClient } from '@/lib/supabase-server';
-import { supabaseAdmin } from '@/lib/supabase-admin'; // ตัวเทพที่เราเพิ่งสร้าง
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 
-// 1. ดึงรายชื่อ User ทั้งหมด (เฉพาะ Admin ถึงเห็น)
+// Schema Validation (กำหนด message แทน errorMap เพื่อเลี่ยง TS Error)
+const createUserSchema = z.object({
+  email: z.string().email('รูปแบบอีเมลไม่ถูกต้อง'),
+  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
+  role: z.enum(['admin', 'staff'], { 
+    message: 'บทบาทต้องเป็น admin หรือ staff เท่านั้น' 
+  }),
+});
+
 export async function getUsers() {
   const supabase = await createClient();
   
-  // เช็คก่อนว่าเป็น Admin ไหม
+  // Security: ตรวจสอบว่าเป็น Admin
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
@@ -20,18 +30,13 @@ export async function getUsers() {
 
   if (myRole?.role !== 'admin') return [];
 
-  // ดึงข้อมูล User + Role
-  // เนื่องจาก auth.users เข้าถึงยาก เราจะดึงจาก user_roles แล้ว join ข้อมูล (หรือดึง auth.users ผ่าน admin client ก็ได้)
+  // ใช้ supabaseAdmin เพื่อดึง Users ทั้งหมด (Bypass RLS)
   const { data: users, error } = await supabaseAdmin.auth.admin.listUsers();
   
   if (error || !users.users) return [];
 
-  // ดึง Role ของทุกคนมาแปะ
-  const { data: roles } = await supabase
-    .from('user_roles')
-    .select('*');
+  const { data: roles } = await supabase.from('user_roles').select('*');
 
-  // Map ข้อมูลรวมกัน
   return users.users.map(u => {
     const roleData = roles?.find(r => r.user_id === u.id);
     return {
@@ -44,35 +49,48 @@ export async function getUsers() {
   });
 }
 
-// 2. สร้าง User ใหม่
 export async function createUser(formData: FormData) {
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const role = formData.get('role') as string;
-  const warehouses = formData.getAll('warehouses') as string[]; // รับเป็น Array
+  // 1. Validate
+  const rawData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+    role: formData.get('role'),
+  };
+
+  const validatedFields = createUserSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    return { 
+        success: false, 
+        message: validatedFields.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง' 
+    };
+  }
+
+  const { email, password, role } = validatedFields.data;
+  const warehouses = formData.getAll('warehouses') as string[];
 
   try {
-    // 1. สร้างใน Supabase Auth
+    // 2. Create User (Supabase Auth)
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true // ไม่ต้องรอ Verify Email
+      email_confirm: true 
     });
 
     if (error) throw error;
     if (!data.user) throw new Error("User creation failed");
 
-    // 2. บันทึก Role ลงตาราง user_roles
+    // 3. Create Role (DB)
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: data.user.id,
         role,
-        allowed_warehouses: role === 'admin' ? [] : warehouses // Admin เข้าได้หมด ไม่ต้องระบุ
+        allowed_warehouses: role === 'admin' ? [] : warehouses 
       });
 
     if (roleError) {
-        // ถ้าใส่ Role ไม่ผ่าน ให้ลบ User ทิ้งด้วย (Rollback แบบ Manual)
+        // Rollback: ลบ User ทิ้งถ้าบันทึก Role ไม่ผ่าน
         await supabaseAdmin.auth.admin.deleteUser(data.user.id);
         throw roleError;
     }
@@ -81,11 +99,13 @@ export async function createUser(formData: FormData) {
     return { success: true, message: `สร้างผู้ใช้ ${email} สำเร็จ` };
 
   } catch (error: any) {
+    if (error.message?.includes('already been registered')) {
+        return { success: false, message: 'อีเมลนี้ถูกใช้งานแล้ว' };
+    }
     return { success: false, message: error.message };
   }
 }
 
-// 3. ลบ User
 export async function deleteUser(userId: string) {
   try {
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);

@@ -4,9 +4,10 @@
 import { createClient } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
 
-// --- 1. Getters (เพิ่มส่วนนี้เพื่อให้ Frontend เรียกใช้ได้) ---
+// --- 1. Getters (ดึงข้อมูล) ---
 
-export async function getWarehouses() {
+// [ADMIN ONLY] ดึงคลังทั้งหมด (รวมที่ปิดใช้งาน) เพื่อการจัดการ
+export async function getAllWarehousesForAdmin() {
   const supabase = await createClient();
   try {
     const { data } = await supabase
@@ -17,11 +18,10 @@ export async function getWarehouses() {
     
     return data || [];
   } catch (error) {
-    console.error("Fetch Warehouses Error:", error);
+    console.error("Fetch All Warehouses Error:", error);
     return [];
   }
 }
-
 export async function getCategories() {
   const supabase = await createClient();
   try {
@@ -37,12 +37,75 @@ export async function getCategories() {
   }
 }
 
-// --- 2. Mutations ---
+// --- 2. Mutations (แก้ไขข้อมูล) ---
+export async function getProducts() {
+  const supabase = await createClient();
+  try {
+    const { data } = await supabase
+      .from('products')
+      .select('*, category:product_categories(name)') // Join เอาชื่อหมวดหมู่
+      .order('created_at', { ascending: false });
+    return data || [];
+  } catch (error) {
+    return [];
+  }
+}
 
-export async function createWarehouse(formData: FormData) {
-  const supabase = await createClient(); // อย่าลืม await
+export async function createProduct(formData: FormData) {
+  const supabase = await createClient();
   
-  // 1. เตรียมข้อมูล
+  const sku = (formData.get('sku') as string).trim().toUpperCase();
+  const name = (formData.get('name') as string).trim();
+  const categoryId = formData.get('category_id') as string;
+  
+  if (!sku || !name) return { success: false, message: 'SKU and Name are required' };
+
+  try {
+    const { error } = await supabase.from('products').insert({
+      sku,
+      name,
+      category_id: categoryId || 'GENERAL',
+      uom: formData.get('uom') as string || 'PCS',
+      min_stock: Number(formData.get('min_stock')) || 0,
+      image_url: formData.get('image_url') as string || null
+    });
+
+    if (error) {
+      if (error.code === '23505') return { success: false, message: `SKU "${sku}" มีอยู่แล้ว` };
+      throw error;
+    }
+
+    revalidatePath('/dashboard/settings');
+    return { success: true, message: 'สร้างสินค้าสำเร็จ' };
+  } catch (err: any) {
+    return { success: false, message: err.message };
+  }
+}
+
+export async function deleteProduct(formData: FormData) {
+  const supabase = await createClient();
+  const id = formData.get('id') as string;
+
+  try {
+    // 1. Check Stock
+    const { count } = await supabase.from('stocks').select('*', { count: 'exact', head: true }).eq('product_id', id);
+    if (count && count > 0) return { success: false, message: '❌ ลบไม่ได้: มีสินค้าคงเหลือในสต็อก' };
+
+    // 2. Check Transactions (ถ้าเข้มงวดต้องห้ามลบ แต่ถ้า MVP อนุโลมให้ลบได้ถ้าไม่มีของ)
+    // const { count: transCount } = ...
+
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw error;
+
+    revalidatePath('/dashboard/settings');
+    return { success: true, message: 'ลบสินค้าสำเร็จ' };
+  } catch (err: any) {
+    return { success: false, message: err.message };
+  }
+}
+export async function createWarehouse(formData: FormData) {
+  const supabase = await createClient();
+  
   const payload = {
     p_code: (formData.get('code') as string).trim(),
     p_name: (formData.get('name') as string).trim(),
@@ -52,18 +115,15 @@ export async function createWarehouse(formData: FormData) {
   };
 
   try {
-    // 2. เรียกใช้ RPC (เหมือนเรียกฟังก์ชันปกติ)
     const { data, error } = await supabase.rpc('create_warehouse_with_locations', payload);
 
     if (error) throw error;
 
-    // data ที่ return มาจะเป็น JSON ตามที่เรากำหนดใน SQL
-    // { success: true/false, message: "..." }
     const result = data as { success: boolean; message: string };
 
     if (result.success) {
         revalidatePath('/dashboard/settings');
-        revalidatePath('/dashboard');
+        revalidatePath('/dashboard'); // อัปเดตเมนูหรือหน้าอื่นๆ ด้วย
         return { success: true, message: result.message };
     } else {
         return { success: false, message: result.message };
@@ -73,8 +133,6 @@ export async function createWarehouse(formData: FormData) {
     console.error('RPC Error:', err);
     return { success: false, message: 'System Error: ' + err.message };
   }
-
- 
 }
 
 export async function deleteWarehouse(formData: FormData) {
@@ -88,14 +146,11 @@ export async function deleteWarehouse(formData: FormData) {
       return { success: false, message: '❌ ไม่สามารถลบได้: มีสินค้าคงเหลือในคลังนี้' };
     }
 
-    // 2. เช็ค Transaction (ถ้าซีเรียสเรื่อง Audit Trail ห้ามลบ แต่ถ้า MVP อนุโลม)
-    // ในที่นี้เราปล่อยให้ลบได้ถ้าเคลียร์ของหมดแล้ว เพื่อความสะดวกช่วง Dev
-
-    // 3. ลบ Locations ก่อน (Cascade Manual)
+    // 2. ลบ Locations
     const { error: locError } = await supabase.from('locations').delete().eq('warehouse_id', id);
     if (locError) throw locError;
 
-    // 4. ลบคลัง
+    // 3. ลบคลัง
     const { error } = await supabase.from('warehouses').delete().eq('id', id);
     if (error) throw error;
 
@@ -117,7 +172,6 @@ export async function createCategory(formData: FormData) {
   const supabase = await createClient();
 
   try {
-    // Validate JSON Schema
     let parsedSchema;
     try {
         parsedSchema = JSON.parse(schemaString);

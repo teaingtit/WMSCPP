@@ -4,22 +4,32 @@
 import { createClient } from '@/lib/supabase-server'; 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { loginSchema } from '@/lib/schemas/auth-schemas';
 
-// Define State Type
 interface LoginState {
   success?: boolean;
   message?: string;
 }
 
 export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
-  const supabase = await createClient();
+  // 1. Validate Input
+  const rawData = {
+    email: formData.get('email'),
+    password: formData.get('password'),
+  };
 
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+  const validatedFields = loginSchema.safeParse(rawData);
 
-  if (!email || !password) {
-      return { success: false, message: 'กรุณากรอกอีเมลและรหัสผ่าน' };
+  if (!validatedFields.success) {
+    return { 
+      success: false, 
+      // ป้องกัน undefined ด้วย ?. และ ??
+      message: validatedFields.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง' 
+    };
   }
+
+  const { email, password } = validatedFields.data;
+  const supabase = await createClient();
 
   try {
     const { error } = await supabase.auth.signInWithPassword({
@@ -29,7 +39,6 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
     if (error) {
       console.error("Login Error:", error.message);
-      // แปล Error Message ให้ User เข้าใจง่าย
       if (error.message.includes("Invalid login")) {
           return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
       }
@@ -46,6 +55,6 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  revalidatePath('/', 'layout'); // Clear Cache ทั้งหมด
+  revalidatePath('/', 'layout');
   redirect('/login');
 }
