@@ -1,8 +1,9 @@
 'use server';
 
 import { createClient } from '@/lib/supabase-server';
-
+import { unstable_noStore as noStore } from 'next/cache';
 export async function getHistory(warehouseId: string, limit = 20) {
+  noStore();
   const supabase = await createClient();
 
   const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();

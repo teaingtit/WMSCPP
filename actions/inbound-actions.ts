@@ -99,7 +99,7 @@ export async function submitInbound(formData: InboundFormData) {
     });
 
     if (logError) console.error("Transaction Log Error:", logError);
-
+    revalidatePath(`/dashboard/${warehouseId}/history`);
     revalidatePath(`/dashboard/${warehouseId}`);
     revalidatePath(`/dashboard/${warehouseId}/inventory`);
     

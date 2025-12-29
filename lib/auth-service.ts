@@ -24,12 +24,12 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     .single();
 
   // --- 🕵️ DEBUG LOG START (ดูที่ Terminal ของ VS Code) ---
-  console.log("🔍 DEBUG AUTH CHECK 🔍");
-  console.log("User Email:", user.email);
-  console.log("User ID:", user.id);
-  console.log("DB Role Data:", roleData); // ถ้าเป็น null แสดงว่า SQL Insert ไม่สำเร็จ หรือผิด ID
-  console.log("DB Error:", roleError);    // ถ้ามี Error แสดงว่าติด RLS หรือตารางไม่มีอยู่จริง
-  console.log("-----------------------");
+  //console.log("🔍 DEBUG AUTH CHECK 🔍");
+  //.log("User Email:", user.email);
+  //.log("User ID:", user.id);
+  //.log("DB Role Data:", roleData); // ถ้าเป็น null แสดงว่า SQL Insert ไม่สำเร็จ หรือผิด ID
+  //.log("DB Error:", roleError);    // ถ้ามี Error แสดงว่าติด RLS หรือตารางไม่มีอยู่จริง
+  //.log("-----------------------");
   // --- DEBUG LOG END ---
 
   return {

@@ -2,17 +2,19 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation'; // ✅ เพิ่ม useParams
 import { LogOut, Package, UserCircle, Shield, Warehouse } from 'lucide-react';
 import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants';
 import { logout } from '@/actions/auth-actions';
-import { useUser } from '@/components/providers/UserProvider'; // ✅ Import Hook
+import { useUser } from '@/components/providers/UserProvider';
 
 export default function DesktopSidebar() {
   const pathname = usePathname();
-  const user = useUser(); // ✅ ดึงข้อมูล User จาก Context ทันที (เร็วมาก)
+  const params = useParams(); // ✅ ดึง Params
+  const user = useUser();
 
   const isAdmin = user?.role === 'admin';
+  const warehouseId = params?.warehouseId as string; // ✅ อ่าน warehouseId
 
   return (
     <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col shrink-0 h-full shadow-2xl z-50">
@@ -33,17 +35,24 @@ export default function DesktopSidebar() {
         <div className="mb-2 px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Main Menu</div>
         
         {MENU_ITEMS.filter(m => !m.hidden).map((item) => {
-          // ✅ Security Filter: ถ้าไม่ใช่ Admin ห้ามเห็นเมนู Settings เด็ดขาด
+          // 1. Security Filter
           if (item.href.includes('/settings') && !isAdmin) return null;
 
+          // 2. ✅ Logic ใหม่: จัดการ Dynamic Link
+          // ถ้า Link ต้องใช้ warehouseId แต่ตอนนี้ User ยังไม่ได้เลือกคลัง (ไม่มีใน URL) -> ซ่อนเมนูนี้ไปก่อน
+          if (item.href.includes('[warehouseId]') && !warehouseId) return null;
+
+          // แทนที่ [warehouseId] ด้วย ID จริงๆ (เช่น 'WH-001')
+          const realHref = item.href.replace('[warehouseId]', warehouseId || '');
+
           const isActive = item.exact 
-             ? pathname === item.href 
+             ? pathname === realHref
              : pathname.includes(item.matchPath);
 
           return (
             <Link 
               key={item.href}
-              href={item.href} 
+              href={realHref} // ✅ ใช้ Link ที่แปลงแล้ว
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
                 isActive 
                 ? 'bg-indigo-600 text-white shadow-md' 
@@ -58,7 +67,7 @@ export default function DesktopSidebar() {
         })}
       </nav>
 
-      {/* User Profile Section (The Fix) */}
+      {/* User Profile Section */}
       <div className="p-4 bg-slate-950/80 border-t border-slate-800">
         {user && (
             <div className="bg-slate-800/50 rounded-xl p-3 mb-3 border border-slate-700/50 backdrop-blur-sm">
@@ -75,8 +84,6 @@ export default function DesktopSidebar() {
                         </div>
                     </div>
                 </div>
-                
-                {/* Info Badge */}
                 {!isAdmin && (
                     <div className="flex items-center gap-1.5 text-[10px] text-slate-400 bg-slate-900/50 px-2 py-1 rounded border border-slate-700">
                         <Warehouse size={10}/>

@@ -25,7 +25,7 @@ export const MENU_ITEMS = [
   },
   {
     title: 'ประวัติ (History)',
-    href: '/dashboard/history',
+    href: '/dashboard/[warehouseId]/history',
     icon: History,
     matchPath: '/history'
   },
