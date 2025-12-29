@@ -4,14 +4,13 @@ import Link from 'next/link';
 import { getProductCategories } from '@/actions/inbound-actions';
 import { Box, Container, ArrowRight, AlertCircle } from 'lucide-react';
 
-// ✅ FIX 1: Update params type to Promise
-export default async function InboundMenuPage({ 
-  params 
-}: { 
-  params: Promise<{ warehouseId: string }> 
-}) {
-  // ✅ FIX 2: Await params ก่อนใช้งาน
-  const { warehouseId } = await params;
+interface PageProps {
+  params: { warehouseId: string };
+}
+
+export default async function InboundMenuPage({ params }: PageProps) {
+  // สำหรับ Next.js 14 params เป็น object ปกติ ไม่ต้อง await
+  const { warehouseId } = params;
 
   // เรียก Server Action
   const categories = await getProductCategories();
@@ -26,7 +25,6 @@ export default async function InboundMenuPage({
           categories.map((cat: any) => (
             <Link 
               key={cat.id} 
-              // ✅ FIX 3: ใช้ตัวแปร warehouseId ที่ await มาแล้ว
               href={`/dashboard/${warehouseId}/inbound/${cat.id}`}
               className="flex items-center p-6 bg-white rounded-2xl border border-slate-200 hover:border-indigo-500 hover:shadow-lg transition-all group"
             >

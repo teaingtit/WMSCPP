@@ -1,10 +1,11 @@
 // app/dashboard/[warehouseId]/inventory/page.tsx
 import React from 'react';
 import { createClient } from '@/lib/supabase-server';
-import { Package, AlertCircle } from 'lucide-react';
+import { Package } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
 import PaginationControls from '@/components/ui/PaginationControls';
 import InventoryCard from '@/components/inventory/InventoryCard';
+import ExportButton from '@/components/inventory/ExportButton'; // ✅ Import ปุ่มเข้ามา
 
 const ITEMS_PER_PAGE = 12;
 
@@ -15,7 +16,7 @@ export default async function InventoryPage({
   params: Promise<{ warehouseId: string }>;
   searchParams?: { q?: string; page?: string };
 }) {
-  const { warehouseId } = await params;
+  const { warehouseId } = await params; // warehouseId นี้จะเป็น Code หรือ UUID ตาม URL
   const query = searchParams?.q || '';
   const currentPage = Number(searchParams?.page) || 1;
   
@@ -24,6 +25,7 @@ export default async function InventoryPage({
 
   const supabase = await createClient();
 
+  // ... (Query Logic เดิม) ...
   let dbQuery = supabase
     .from('stocks')
     .select(`
@@ -43,10 +45,9 @@ export default async function InventoryPage({
     .order('updated_at', { ascending: false })
     .range(from, to);
 
-  if (error) {     
-      return <div>Error loading data</div>;
-  }
-const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE);
+  if (error) return <div>Error loading data</div>;
+  
+  const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE);
 
   return (
     <div className="pb-20 p-4 md:p-8 space-y-6">
@@ -63,12 +64,18 @@ const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE);
             <p className="text-slate-500 mt-1 text-sm md:text-base">จัดการสต็อกสินค้าในคลัง <span className="font-bold text-indigo-600">{warehouseId}</span></p>
          </div>
          
-         <div className="w-full md:w-1/3">
-             <SearchInput placeholder="ค้นหาชื่อสินค้า..." />
+         {/* ✅ ปรับ Layout Header ขวาให้มีปุ่ม Export */}
+         <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+             <div className="w-full sm:w-64">
+                <SearchInput placeholder="ค้นหาชื่อสินค้า..." />
+             </div>
+             
+             {/* ปุ่ม Export วางตรงนี้ */}
+             <ExportButton warehouseId={warehouseId} />
          </div>
       </div>
 
-      {/* ✅ Grid Layout ที่ Clean ขึ้นมาก */}
+      {/* Grid Layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {stocks?.map((item: any) => (
             <InventoryCard key={item.id} item={item} />

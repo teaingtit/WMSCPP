@@ -5,8 +5,11 @@ import { History, ArrowRight, ArrowLeft, RefreshCw, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 export default async function HistoryPage({ params }: { params: { warehouseId: string } }) {
-  const logs = await getHistory(params.warehouseId, 50); // ดึง 50 รายการล่าสุด
+  // ดึงข้อมูลจาก Server Action
+  const logs = await getHistory(params.warehouseId, 50); 
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-10">
@@ -55,7 +58,7 @@ export default async function HistoryPage({ params }: { params: { warehouseId: s
                     </td>
                 </tr>
               ) : (
-                logs.map((log) => (
+                logs.map((log: any) => (
                   <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
                        <div className="font-medium text-slate-700">

@@ -58,6 +58,26 @@ export async function createProduct(formData: FormData) {
   const name = (formData.get('name') as string).trim();
   const categoryId = formData.get('category_id') as string;
   
+  // 1. ดึง Schema ของ Category นั้นเพื่อตรวจสอบ Key ที่ต้องบันทึก
+  const { data: category } = await supabase
+    .from('product_categories')
+    .select('form_schema')
+    .eq('id', categoryId)
+    .single();
+
+  // 2. Extract Dynamic Attributes
+  const attributes: Record<string, any> = {};
+  if (category?.form_schema) {
+    const schema = category.form_schema as any[]; // หรือ Type SchemaField[]
+    schema.forEach((field) => {
+      const value = formData.get(field.key);
+      if (value) {
+        // แปลง Type ตาม Schema (ถ้าจำเป็น)
+        attributes[field.key] = field.type === 'number' ? Number(value) : value;
+      }
+    });
+  }
+
   if (!sku || !name) return { success: false, message: 'SKU and Name are required' };
 
   try {
@@ -67,7 +87,8 @@ export async function createProduct(formData: FormData) {
       category_id: categoryId || 'GENERAL',
       uom: formData.get('uom') as string || 'PCS',
       min_stock: Number(formData.get('min_stock')) || 0,
-      image_url: formData.get('image_url') as string || null
+      image_url: formData.get('image_url') as string || null,
+      attributes: attributes // ✅ บันทึก JSON ลงไป
     });
 
     if (error) {
@@ -79,8 +100,7 @@ export async function createProduct(formData: FormData) {
     return { success: true, message: 'สร้างสินค้าสำเร็จ' };
   } catch (err: any) {
     return { success: false, message: err.message };
-  }
-}
+  }}
 
 export async function deleteProduct(formData: FormData) {
   const supabase = await createClient();
