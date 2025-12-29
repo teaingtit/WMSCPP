@@ -1,22 +1,34 @@
-// app/dashboard/layout.tsx
 import React from 'react';
+import { redirect } from 'next/navigation';
 import MobileNav from '@/components/ui/MobileNav';
-import DesktopSidebar from '@/components/ui/DesktopSidebar'; // ✅ Import Component ใหม่
+import DesktopSidebar from '@/components/ui/DesktopSidebar';
+import UserProvider from '@/components/providers/UserProvider';
+import { getCurrentUser } from '@/lib/auth-service';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  // ✅ 1. Single Point of Fetching: ดึงครั้งเดียวที่นี่ มีประสิทธิภาพสูงสุด
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden flex-col md:flex-row">
-      
-      {/* 1. Mobile Navigation (แสดงเฉพาะ Mobile) */}
-      <MobileNav />
+    // ✅ 2. Wrap ด้วย Provider เพื่อส่งข้อมูล User ไปทั่วทั้ง Dashboard (Client Side)
+    <UserProvider user={user}>
+      <div className="flex h-screen overflow-hidden flex-col md:flex-row">
+        
+        {/* Mobile Nav */}
+        <MobileNav />
 
-      {/* 2. Desktop Sidebar (แสดงเฉพาะ Desktop, Logic อยู่ใน Component) */}
-      <DesktopSidebar />
+        {/* Desktop Sidebar: ไม่ต้องส่ง props แล้ว ใช้ Context ภายในเอา */}
+        <DesktopSidebar />
 
-      {/* 3. Main Content Area */}
-      <main className="flex-1 overflow-auto bg-slate-50 relative w-full">
-        {children}
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto bg-slate-50 relative w-full">
+          {children}
+        </main>
+      </div>
+    </UserProvider>
   );
 }

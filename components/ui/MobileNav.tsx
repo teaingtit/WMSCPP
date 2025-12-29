@@ -4,66 +4,73 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, LogOut, Package } from 'lucide-react';
+import { Menu, X, Package, LogOut, Settings } from 'lucide-react';
+import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants';
 import { logout } from '@/actions/auth-actions';
-import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants'; // ✅ Import Constants
+import { useUser } from '@/components/providers/UserProvider'; // ✅ Import Hook
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const user = useUser(); // ✅ ดึง User จาก Context
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const isAdmin = user?.role === 'admin';
 
   return (
-    <>
-      <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
+    <div className="md:hidden bg-slate-900 text-white sticky top-0 z-50">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-2 font-bold text-lg">
           <div className="bg-indigo-600 p-1.5 rounded-lg">
-            <Package size={20} className="text-white" />
+             <Package size={20} className="text-white" />
           </div>
-          <span>{APP_CONFIG.name}</span>
+          {APP_CONFIG.name}
         </div>
-        
-        <button onClick={toggleMenu} className="p-2 hover:bg-slate-800 rounded-lg">
+        <button onClick={() => setIsOpen(!isOpen)} className="p-2">
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm md:hidden pt-20 px-6 pb-6 flex flex-col animate-in fade-in">
-           <nav className="space-y-2 flex-1">
-             {/* ✅ Loop สร้างเมนูอัตโนมัติ */}
-             {MENU_ITEMS.filter(m => !m.hidden).map((item) => {
-               const isActive = item.exact 
+        <nav className="absolute top-full left-0 w-full bg-slate-900 border-t border-slate-800 shadow-2xl p-4 flex flex-col gap-2">
+            
+            {/* User Info (Mobile) */}
+            {user && (
+                <div className="mb-4 pb-4 border-b border-slate-800">
+                    <div className="text-sm font-bold text-white">{user.email}</div>
+                    <div className="text-xs text-slate-400 uppercase font-mono mt-1">{user.role}</div>
+                </div>
+            )}
+
+            {MENU_ITEMS.filter(m => !m.hidden).map((item) => {
+                // ✅ Security Filter สำหรับ Mobile
+                if (item.href.includes('/settings') && !isAdmin) return null;
+
+                const isActive = item.exact 
                   ? pathname === item.href 
                   : pathname.includes(item.matchPath);
 
-               return (
-                 <Link 
-                   key={item.href}
-                   href={item.href} 
-                   onClick={toggleMenu}
-                   className={`flex items-center gap-4 p-4 rounded-xl text-lg font-medium transition-all ${
-                     isActive
-                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50' 
-                     : 'text-slate-300 hover:bg-slate-800'
-                   }`}
-                 >
-                   <item.icon size={24} /> {item.title}
-                 </Link>
-               );
-             })}
-           </nav>
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium ${
+                      isActive ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800'
+                    }`}
+                  >
+                    <item.icon size={20} />
+                    {item.title}
+                  </Link>
+                );
+            })}
 
-           <div className="mt-auto border-t border-slate-800 pt-6">
-              <form action={logout}>
-                <button type="submit" className="flex items-center gap-4 w-full p-4 text-rose-400 hover:bg-rose-900/20 rounded-xl transition-colors font-bold">
-                  <LogOut size={24} /> ออกจากระบบ
+            <form action={logout} className="mt-2 border-t border-slate-800 pt-2">
+                <button className="flex items-center gap-3 w-full px-4 py-3 text-rose-400 font-bold">
+                    <LogOut size={20} /> ออกจากระบบ
                 </button>
-              </form>
-           </div>
-        </div>
+            </form>
+        </nav>
       )}
-    </>
+    </div>
   );
 }

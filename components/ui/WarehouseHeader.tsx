@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, UserCircle } from 'lucide-react';
+import { ArrowLeft, UserCircle, Shield, User } from 'lucide-react';
 
 interface WarehouseHeaderProps {
   warehouse: {
@@ -12,18 +12,22 @@ interface WarehouseHeaderProps {
     code: string;
     is_active: boolean;
   };
+  // ✅ ADD: เพิ่ม Type สำหรับ User
+  user?: {
+    email: string;
+    role: string;
+  } | null;
 }
 
-export default function WarehouseHeader({ warehouse }: WarehouseHeaderProps) {
+export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProps) {
   const pathname = usePathname();
-  // เช็คว่าอยู่หน้า Dashboard หลักของคลังหรือไม่? (เช่น /dashboard/WH-TEST)
-  // ถ้าใช่ -> ไม่โชว์ปุ่มย้อนกลับ / ถ้าไม่ใช่ (เช่นหน้า Inbound) -> โชว์
   const isRoot = pathname === `/dashboard/${warehouse.code}`;
+  const isAdmin = user?.role === 'admin';
 
   return (
     <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm h-18">
       <div className="flex items-center gap-4">
-         {/* 1. ปุ่มย้อนกลับ (Show only if not on root) */}
+         {/* 1. ปุ่มย้อนกลับ */}
          {!isRoot && (
            <Link 
              href={`/dashboard/${warehouse.code}`} 
@@ -40,23 +44,28 @@ export default function WarehouseHeader({ warehouse }: WarehouseHeaderProps) {
               {warehouse.name}
             </h2>
             <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">{warehouse.code}</span>
-                <span>•</span>
-                <span className={warehouse.is_active ? "text-emerald-500" : "text-rose-500"}>
-                  {warehouse.is_active ? 'Online' : 'Maintenance'}
+                <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">{warehouse.code}</span>
+                <span className="text-slate-300">•</span>
+                <span className={`flex items-center gap-1 ${warehouse.is_active ? "text-emerald-600" : "text-rose-600"}`}>
+                   <span className={`w-1.5 h-1.5 rounded-full ${warehouse.is_active ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`}></span>
+                   {warehouse.is_active ? 'Online' : 'Maintenance'}
                 </span>
             </div>
          </div>
       </div>
 
-      {/* Right Side */}
-      <div className="flex items-center gap-3">
+      {/* 3. Right Side: User Profile */}
+      <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
          <div className="text-right hidden md:block">
-            <div className="text-xs font-bold text-slate-400">Admin User</div>
-            <div className="text-xs text-slate-300">System Admin</div>
+            <div className="text-xs font-bold text-slate-700">{user?.email || 'Guest'}</div>
+            <div className={`text-[10px] font-bold uppercase tracking-wider ${isAdmin ? 'text-purple-600' : 'text-slate-400'}`}>
+                {isAdmin ? 'Administrator' : 'Staff Member'}
+            </div>
          </div>
-         <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-            <UserCircle size={24} />
+         <div className={`w-10 h-10 rounded-full flex items-center justify-center border shadow-sm ${
+             isAdmin ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-slate-50 text-slate-500 border-slate-200'
+         }`}>
+            {isAdmin ? <Shield size={20} /> : <UserCircle size={24} />}
          </div>
       </div>
     </header>
