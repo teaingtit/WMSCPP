@@ -23,7 +23,17 @@ interface InboundFormData {
   attributes: any; 
 }
 
-// --- Getters (ดึงข้อมูล) ---
+// --- Helper: Resolve Warehouse ID ---
+// ช่วยแปลง Code (WH-01) เป็น UUID ถ้าจำเป็น
+async function resolveWarehouseId(supabase: any, warehouseId: string) {
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(warehouseId);
+    if (isUUID) return warehouseId;
+    
+    const { data } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
+    return data ? data.id : null;
+}
+
+// --- 1. Basic Getters (ฟังก์ชันเดิมที่ต้องคงไว้ เพื่อให้หน้าเว็บโหลดได้) ---
 
 export async function getProductCategories() {
   const supabase = await createClient();
@@ -59,94 +69,111 @@ export async function getInboundOptions(warehouseId: string, categoryId: string)
     .eq('category_id', categoryId)
     .order('sku');
 
-  // 2. ดึง Warehouse ID จริง
-  // (เช็คว่าเป็น UUID หรือ Code ถ้าเป็น Code ให้หา ID ก่อน)
-  let targetWhId = warehouseId;
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(warehouseId);
-  
-  if (!isUUID) {
-     const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
-     if (wh) targetWhId = wh.id;
-  }
+  // 2. Resolve Warehouse ID
+  const targetWhId = await resolveWarehouseId(supabase, warehouseId);
 
-  // 3. ดึง Locations ของคลังนี้
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('id, code, type')
-    .eq('warehouse_id', targetWhId)
-    .eq('is_active', true)
-    .order('code', { ascending: true });
-  
   return { 
     products: products || [], 
-    locations: locations || [] 
+    targetWhId 
   };
 }
 
-// --- Main Action (บันทึกรับเข้า) ---
+// --- 2. Smart Cascading Selectors (High Performance Mode - ระบบใหม่) ---
+
+// Step A: ดึงรายการ Lot (ใช้ DISTINCT จาก DB ตรงๆ เร็วมาก)
+export async function getWarehouseLots(warehouseId: string) {
+  const supabase = await createClient();
+  const whId = await resolveWarehouseId(supabase, warehouseId);
+  if (!whId) return [];
+
+  const { data, error } = await supabase
+    .from('locations')
+    .select('lot')
+    .eq('warehouse_id', whId)
+    .eq('is_active', true)
+    .order('lot'); 
+
+  if (error || !data) return [];
+  
+  // กรองตัวซ้ำใน JS
+  const uniqueLots = Array.from(new Set(data.map(l => l.lot))).filter(Boolean);
+  return uniqueLots;
+}
+
+// Step B: ดึงรายการ Cart ตาม Lot
+export async function getCartsByLot(warehouseId: string, lot: string) {
+  const supabase = await createClient();
+  const whId = await resolveWarehouseId(supabase, warehouseId);
+  if (!whId) return [];
+
+  const { data } = await supabase
+    .from('locations')
+    .select('cart')
+    .eq('warehouse_id', whId)
+    .eq('lot', lot) // ✅ Query ตรงๆ เร็วมาก
+    .eq('is_active', true)
+    .order('cart');
+
+  if (!data) return [];
+  const uniqueCarts = Array.from(new Set(data.map(l => l.cart))).filter(Boolean);
+  return uniqueCarts;
+}
+
+// Step C: ดึงรายการ Level และ ID สุดท้าย
+export async function getLevelsByCart(warehouseId: string, lot: string, cart: string) {
+  const supabase = await createClient();
+  const whId = await resolveWarehouseId(supabase, warehouseId);
+  if (!whId) return [];
+
+  const { data } = await supabase
+    .from('locations')
+    .select('id, level, code, type')
+    .eq('warehouse_id', whId)
+    .eq('lot', lot)
+    .eq('cart', cart)
+    .eq('is_active', true)
+    .order('level');
+
+  return data || [];
+}
+
+// --- 3. Main Action: Submit Inbound ---
 
 export async function submitInbound(formData: InboundFormData) {
   const supabase = await createClient();
   
-  // 1. ตรวจสอบ Auth
+  // Check Auth
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Unauthenticated' };
 
-  const { 
-      warehouseId, locationId, 
-      productId, quantity, attributes 
-  } = formData;
+  const { warehouseId, locationId, productId, quantity, attributes } = formData;
 
   try {
-    if (!warehouseId || !locationId || !quantity) throw new Error("ข้อมูลไม่ครบถ้วน");
+    if (!locationId || !quantity || !productId) throw new Error("ข้อมูลไม่ครบถ้วน");
     const qtyNum = Number(quantity);
     if (qtyNum <= 0) throw new Error("จำนวนต้องมากกว่า 0");
 
-    // Resolve Warehouse ID
-    let whId = warehouseId;
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(warehouseId);
-    if (!isUUID) {
-       const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
-       if (!wh) throw new Error("Warehouse not found");
-       whId = wh.id;
-    }
+    const whId = await resolveWarehouseId(supabase, warehouseId);
+    if (!whId) throw new Error("Warehouse Not Found");
 
-    if (!productId) throw new Error("Product ID is required");
-
-    // 2. เรียก RPC: handle_inbound_stock
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('handle_inbound_stock', {
+    // Call RPC
+    const { error: rpcError } = await supabase.rpc('handle_inbound_stock', {
         p_warehouse_id: whId,
         p_location_id: locationId,
         p_product_id: productId,
         p_quantity: qtyNum,
         p_attributes: attributes || {},
-        p_user_id: user.id // ส่ง user_id ไปด้วย (ตามที่แก้ RPC ล่าสุด)
+        p_user_id: user.id
     });
 
-    if (rpcError) throw new Error(`Stock Update Failed: ${rpcError.message}`);
-    
-    // (Optional) ถ้า RPC ไม่ได้บันทึก Transaction ให้ เราบันทึกเองตรงนี้
-    // แต่ถ้า RPC บันทึกแล้ว (ตามโค้ดล่าสุด) ก็ไม่ต้องทำซ้ำ 
-    // ในที่นี้สมมติว่า RPC จัดการ Stocks อย่างเดียว หรือเราอยาก Log เพิ่มเติม
-    /* const { error: logError } = await supabase.from('transactions').insert({
-        type: 'INBOUND',
-        warehouse_id: whId,
-        product_id: productId,
-        to_location_id: locationId,
-        quantity: qtyNum,
-        attributes_snapshot: attributes,
-        user_id: user.id,
-        user_email: user.email
-    });
-    */
+    if (rpcError) throw new Error(rpcError.message);
 
-    revalidatePath(`/dashboard/${warehouseId}/history`);
     revalidatePath(`/dashboard/${warehouseId}/inventory`);
+    revalidatePath(`/dashboard/${warehouseId}/history`);
     
-    return { success: true, message: `รับสินค้าสำเร็จ (จำนวน ${qtyNum})` };
+    return { success: true, message: `✅ รับสินค้าสำเร็จ (${qtyNum})` };
 
   } catch (error: any) {
-    console.error("Inbound Error:", error);
     return { success: false, message: error.message };
   }
 }

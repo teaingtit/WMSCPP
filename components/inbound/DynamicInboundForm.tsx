@@ -2,284 +2,305 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { submitInbound } from '@/actions/inbound-actions';
-import { Loader2, Save, Search, X, Package, MapPin, Layers } from 'lucide-react';
+import { submitInbound, getWarehouseLots, getCartsByLot, getLevelsByCart } from '@/actions/inbound-actions';
+import { Loader2, Save, MapPin, Search, X, Package, CheckCircle2, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DynamicInboundFormProps {
   warehouseId: string;
   category: any;
   products: any[];
-  locations: any[];
 }
 
 export default function DynamicInboundForm({ 
-  warehouseId, category, products, locations 
+  warehouseId, category, products 
 }: DynamicInboundFormProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  
-  // Search & Select
+  const [submitting, setSubmitting] = useState(false);
+
+  // --- Product Logic ---
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-
-  // Form Data
-  const [formData, setFormData] = useState({
-    locationId: '',
-    quantity: '',
-  });
-
-  // Coordinates
-  const [lotInput, setLotInput] = useState('');
-  const [cartInput, setCartInput] = useState('');
-  const [levelInput, setLevelInput] = useState('');
-  
-  // Dynamic Attributes (LOT Scope Only)
-  const [attributes, setAttributes] = useState<Record<string, any>>({});
-
-  // ✅ FILTER: เอาเฉพาะที่เป็น Scope 'LOT'
-  const lotSchema = category.form_schema 
-      ? category.form_schema.filter((f: any) => f.scope === 'LOT')
-      : [];
 
   const filteredProducts = products.filter((p: any) => 
     (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) || 
     (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
   ).slice(0, 8);
 
-  // Select Product Handler
-  const selectExistingProduct = (product: any) => {
-    setSelectedProduct(product);
-    setSearchTerm(product.name); 
-    setShowDropdown(false);
-  };
+  // --- Attributes ---
+  const [attributes, setAttributes] = useState<Record<string, any>>({});
+  const lotSchema = category.form_schema 
+      ? category.form_schema.filter((f: any) => f.scope === 'LOT')
+      : [];
 
-  const resetSelection = () => {
-    setSelectedProduct(null);
-    setSearchTerm('');
-  };
+  // --- Coordinate Selector ---
+  const [lots, setLots] = useState<string[]>([]);
+  const [carts, setCarts] = useState<string[]>([]);
+  const [levels, setLevels] = useState<any[]>([]); 
 
-  // Location Matcher Logic
+  const [selectedLot, setSelectedLot] = useState('');
+  const [selectedCart, setSelectedCart] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [loadingLocs, setLoadingLocs] = useState(false);
+
+  const [quantity, setQuantity] = useState('');
+
+  // 1. Init Lots
   useEffect(() => {
-     if(lotInput && cartInput && levelInput) {
-        const lotStr = lotInput.padStart(2, '0');
-        const cartStr = cartInput.padStart(2, '0');
-        const levelStr = levelInput.padStart(2, '0');
-        
-        // Pattern: WH-Lxx-Cxx-LVxx (ต้องตรงกับ Database จริง)
-        const targetCode = `${warehouseId}-L${lotStr}-C${cartStr}-LV${levelStr}`;
+    const initLots = async () => {
+        const res = await getWarehouseLots(warehouseId);
+        setLots(res);
+    };
+    initLots();
+  }, [warehouseId]);
 
-        const foundLoc = locations.find((l: any) => l.code === targetCode);
-        setFormData(prev => ({ ...prev, locationId: foundLoc ? foundLoc.id : '' }));
-     } else {
-        setFormData(prev => ({ ...prev, locationId: '' }));
-     }
-  }, [lotInput, cartInput, levelInput, locations, warehouseId]);
+  // 2. Lot -> Carts
+  const handleLotChange = async (lot: string) => {
+      setSelectedLot(lot);
+      setSelectedCart('');
+      setSelectedLocation(null);
+      setCarts([]);
+      
+      if(lot) {
+          setLoadingLocs(true);
+          const res = await getCartsByLot(warehouseId, lot);
+          setCarts(res);
+          setLoadingLocs(false);
+      }
+  };
+
+  // 3. Cart -> Levels
+  const handleCartChange = async (cart: string) => {
+      setSelectedCart(cart);
+      setSelectedLocation(null);
+      setLevels([]);
+
+      if(cart && selectedLot) {
+          setLoadingLocs(true);
+          const res = await getLevelsByCart(warehouseId, selectedLot, cart);
+          setLevels(res);
+          setLoadingLocs(false);
+      }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.locationId) return toast.error("❌ พิกัด Lot/Cart ไม่ถูกต้อง หรือไม่มีในระบบ");
+    if (!selectedLocation?.id) return toast.error("❌ กรุณาระบุพิกัดให้ครบถ้วน");
     if (!selectedProduct) return toast.error("❌ กรุณาเลือกสินค้า");
 
-    setLoading(true);
-    
+    setSubmitting(true);
     const payload = {
         warehouseId,
-        locationId: formData.locationId,
-        quantity: formData.quantity,
+        locationId: selectedLocation.id,
+        quantity,
         isNewProduct: false,
         productId: selectedProduct?.id,
-        newProductData: undefined, 
-        attributes // ส่ง Lot Attributes ไปบันทึก
+        attributes
     };
 
     const result = await submitInbound(payload);
-    
     if (result.success) {
-        toast.success("บันทึกรับเข้าสำเร็จ!");
-        if(confirm("ต้องการรับสินค้าชิ้นต่อไปหรือไม่?")) {
-            setFormData(prev => ({ ...prev, quantity: '' }));
-            setAttributes({}); // Reset Attributes
-            resetSelection();
-            router.refresh();
-        } else {
-            router.push(`/dashboard/${warehouseId}/inventory`);
-        }
+        toast.success(result.message);
+        setQuantity('');
+        setAttributes({});
+        setSelectedLocation(null);
+        setSelectedCart('');
     } else {
         toast.error(result.message);
     }
-    setLoading(false);
+    setSubmitting(false);
   };
 
   return (
     <form onSubmit={handleSubmit} className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-       
-       {/* LEFT COLUMN */}
+       {/* Left Column: Product */}
        <div className="space-y-6">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[400px]">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[300px]">
                 <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
                     <Package className="text-indigo-600" /> ข้อมูลสินค้า (Product)
                 </h3>
 
                 {!selectedProduct ? (
                     <div className="relative">
-                        <label htmlFor="product-search" className="block text-sm font-bold text-slate-500 mb-2">ค้นหาสินค้า</label>
-                        <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={24} />
-                            <input 
-                                id="product-search"
-                                type="text"
-                                className="w-full pl-14 pr-4 py-4 text-lg bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm"
-                                placeholder="พิมพ์ชื่อสินค้า หรือ SKU..."
-                                value={searchTerm}
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value);
-                                    setShowDropdown(true);
-                                }}
-                                onFocus={() => setShowDropdown(true)}
-                                autoFocus
-                            />
-                        </div>
-
-                        {showDropdown && searchTerm && (
-                            <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden animate-in slide-in-from-top-2">
-                                {filteredProducts.length > 0 ? (
-                                    filteredProducts.map((p: any) => (
-                                        <div 
-                                            key={p.id}
-                                            onClick={() => selectExistingProduct(p)}
-                                            className="p-4 hover:bg-indigo-50 cursor-pointer border-b border-slate-50 flex justify-between items-center group transition-colors"
-                                        >
-                                            <div>
-                                                <div className="font-bold text-slate-700 group-hover:text-indigo-700">{p.name}</div>
-                                                <div className="text-xs text-slate-400 font-mono flex gap-2">
-                                                    <span className="bg-slate-100 px-1 rounded">{p.sku}</span>
-                                                    <span>• {p.uom}</span>
-                                                </div>
-                                            </div>
-                                            <span className="text-xs bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full font-bold opacity-0 group-hover:opacity-100 transition-opacity">เลือก</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-4 text-center text-slate-400">ไม่พบสินค้า</div>
-                                )}
+                        <label htmlFor="product-search" className="sr-only">ค้นหาสินค้า</label>
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <input 
+                            id="product-search"
+                            type="text"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                            placeholder="ค้นหาชื่อ หรือ Scan SKU..."
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }}
+                            onFocus={() => setShowDropdown(true)}
+                            autoComplete="off"
+                        />
+                         {showDropdown && searchTerm && (
+                            <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden max-h-[300px] overflow-y-auto">
+                                {filteredProducts.map((p: any) => (
+                                    <div key={p.id} onClick={() => { setSelectedProduct(p); setSearchTerm(p.name); setShowDropdown(false); }} className="p-3 hover:bg-indigo-50 cursor-pointer border-b border-slate-50">
+                                        <div className="font-bold text-slate-700">{p.name}</div>
+                                        <div className="text-xs text-slate-400">{p.sku}</div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
                 ) : (
-                    <div className="animate-in fade-in zoom-in-95">
-                        <div className="flex justify-between items-start mb-6 bg-slate-50 p-2 rounded-xl border border-slate-200">
-                            <div className="flex items-center gap-2 pl-2">
-                                <span className="px-3 py-1 rounded-lg text-xs font-bold shadow-sm bg-indigo-500 text-white">📦 สินค้าเดิม</span>
-                            </div>
-                           <button 
-    type="button" 
-    onClick={resetSelection} 
-    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-    aria-label="ยกเลิกการเลือกสินค้า"
-    title="ยกเลิกการเลือกสินค้า"
->
-    <X size={20} />
-</button>
+                    <div className="flex justify-between items-center bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                        <div>
+                            <div className="font-bold text-indigo-900">{selectedProduct.name}</div>
+                            <div className="text-xs text-indigo-500">{selectedProduct.sku}</div>
                         </div>
-                        <div className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 text-center">
-                            <div className="text-2xl font-black text-slate-800 mb-1">{selectedProduct.name}</div>
-                            <div className="inline-block bg-white px-3 py-1 rounded text-xs font-mono text-slate-500 shadow-sm border border-indigo-100">SKU: {selectedProduct.sku}</div>
+                        {/* ✅ FIX: เพิ่ม aria-label title เพื่อแก้ Accessibility Error */}
+                        <button 
+                            type="button" 
+                            onClick={() => setSelectedProduct(null)} 
+                            className="p-2 hover:bg-indigo-100 rounded-full text-indigo-600"
+                            aria-label="ยกเลิกการเลือกสินค้า"
+                            title="ยกเลิกการเลือกสินค้า"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {lotSchema.length > 0 && selectedProduct && (
+                <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 animate-in fade-in slide-in-from-bottom-2">
+                     <h4 className="font-bold text-emerald-700 mb-4 text-sm flex items-center gap-2"><Layers size={16}/> ข้อมูลล็อตสินค้า (Lot Data)</h4>
+                     <div className="grid gap-4">
+                        {lotSchema.map((field: any) => (
+                            <div key={field.key}>
+                                <label htmlFor={`attr-${field.key}`} className="block text-xs font-bold text-emerald-800 mb-1">
+                                    {field.label} {field.required && <span className="text-rose-500">*</span>}
+                                </label>
+                                <input 
+                                    id={`attr-${field.key}`}
+                                    type={field.type} 
+                                    required={field.required}
+                                    className="w-full p-2.5 bg-white border border-emerald-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                                    onChange={e => setAttributes({...attributes, [field.key]: e.target.value})}
+                                />
+                            </div>
+                        ))}
+                     </div>
+                </div>
+            )}
+       </div>
+
+       {/* Right Column: Location */}
+       <div className="space-y-6">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
+                    <MapPin className="text-indigo-600" /> ระบุพิกัด (Coordinates)
+                </h3>
+                
+                <div className="flex flex-col gap-4">
+                    {/* Step 1: LOT */}
+                    <div className="grid grid-cols-3 items-center gap-4">
+                        <label htmlFor="lot-select" className="font-bold text-slate-500 text-right">LOT (แถว)</label>
+                        <select 
+                            id="lot-select" 
+                            className="col-span-2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-lg outline-none focus:ring-2 ring-indigo-500/20 cursor-pointer"
+                            value={selectedLot}
+                            onChange={(e) => handleLotChange(e.target.value)}
+                        >
+                            <option value="">-- เลือก Lot --</option>
+                            {lots.map(l => <option key={l} value={l}>{l}</option>)}
+                        </select>
+                    </div>
+
+                    {/* Step 2: CART */}
+                    <div className={`grid grid-cols-3 items-center gap-4 transition-all duration-300 ${!selectedLot ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+                        <label htmlFor="cart-select" className="font-bold text-slate-500 text-right">CART (แคร่)</label>
+                        <select 
+                            id="cart-select"
+                            className="col-span-2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-lg outline-none focus:ring-2 ring-indigo-500/20 cursor-pointer"
+                            value={selectedCart}
+                            onChange={(e) => handleCartChange(e.target.value)}
+                            disabled={!selectedLot}
+                        >
+                            <option value="">-- เลือก Cart --</option>
+                            {carts.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+
+                    {/* Step 3: LEVEL */}
+                    <div className={`mt-4 transition-all duration-300 ${!selectedCart ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+                        <div className="block text-center text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">เลือกชั้น (Level)</div>
+                        {loadingLocs ? (
+                             <div className="flex justify-center p-6"><Loader2 className="animate-spin text-indigo-500" size={30}/></div>
+                        ) : (
+                            <div className="grid grid-cols-4 gap-3">
+                                {levels.map((loc: any) => (
+                                    <button
+                                        key={loc.id}
+                                        type="button"
+                                        onClick={() => setSelectedLocation(loc)}
+                                        className={`py-4 rounded-xl border-2 font-black text-xl transition-all flex flex-col items-center justify-center relative
+                                            ${selectedLocation?.id === loc.id 
+                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-lg scale-105 ring-2 ring-emerald-500/20' 
+                                                : 'border-slate-100 bg-white text-slate-600 hover:border-indigo-300 hover:bg-indigo-50'
+                                            }
+                                        `}
+                                    >
+                                        {loc.level}
+                                        {selectedLocation?.id === loc.id && (
+                                            <div className="absolute top-1 right-1 text-emerald-500"><CheckCircle2 size={16}/></div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                         {levels.length === 0 && selectedCart && !loadingLocs && (
+                            <div className="text-center text-rose-500 text-sm mt-4 p-2 bg-rose-50 rounded-lg border border-rose-100">
+                                ❌ ไม่พบชั้นวางในพิกัดนี้
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {selectedLocation && (
+                    <div className="mt-6 p-4 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-lg animate-in slide-in-from-bottom-2">
+                        <div>
+                            <div className="text-xs text-slate-400 font-bold uppercase">Target Location</div>
+                            <div className="text-xl font-bold font-mono tracking-wider">
+                                {selectedLot}-{selectedCart}-{selectedLocation.level}
+                            </div>
+                        </div>
+                        <div className="text-right">
+                             <div className="text-xs text-emerald-400 font-bold flex items-center gap-1 justify-end"><CheckCircle2 size={12}/> READY</div>
+                             <div className="text-[10px] text-slate-500 font-mono">{selectedLocation.code}</div>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* ✅ Dynamic Attributes (Lot Scope Only) */}
-            {lotSchema.length > 0 && selectedProduct && (
-                <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 animate-in fade-in slide-in-from-bottom-2 shadow-sm">
-                    <h4 className="font-bold text-emerald-700 mb-4 text-sm uppercase tracking-wider flex items-center gap-2">
-                        <Layers size={18}/> ข้อมูลล็อตสินค้า (Lot Data)
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                        {lotSchema.map((field: any) => (
-                            <div key={field.key}>
-                                <label htmlFor={`attr-${field.key}`} className="block text-xs font-bold text-emerald-800 mb-1.5">
-                                    {field.label} {field.required && <span className="text-rose-500">*</span>}
-                                </label>
-                                <input 
-                                    id={`attr-${field.key}`}
-                                    name={field.key}
-                                    type={field.type}
-                                    required={field.required}
-                                    className="w-full p-3 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
-                                    onChange={e => setAttributes({...attributes, [field.key]: e.target.value})}
-                                />
-                            </div>
-                        ))}
-                    </div>
+            <div className={`transition-all duration-500 ${selectedLocation ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-4 pointer-events-none blur-[1px]'}`}>
+                <label htmlFor="inbound-qty" className="block text-sm font-bold text-slate-700 mb-2">จำนวนรับเข้า (Quantity)</label>
+                <div className="relative">
+                    <input 
+                        id="inbound-qty"
+                        type="number" min="1"
+                        value={quantity}
+                        onChange={e => setQuantity(e.target.value)}
+                        disabled={!selectedLocation}
+                        className="w-full text-4xl font-black text-slate-900 pl-6 pr-20 py-6 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none disabled:bg-slate-100"
+                        placeholder="0"
+                    />
+                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold bg-white px-3 py-1 rounded border text-xs">
+                        {selectedProduct?.uom || 'UNIT'}
+                    </span>
                 </div>
-            )}
-       </div>
-
-       {/* RIGHT COLUMN */}
-       <div className="space-y-6">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
-                 <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
-                    <MapPin className="text-rose-500" /> พิกัด & จำนวน
-                 </h3>
-
-                 {/* Coordinates */}
-                <div className="flex gap-2 items-end mb-8">
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">LOT (แถว)</label>
-                        <input type="number" className="w-full text-center font-mono text-3xl font-black bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-indigo-500 outline-none h-20" placeholder="--" value={lotInput} onChange={e => setLotInput(e.target.value)} />
-                    </div>
-                    <div className="text-slate-200 pb-6 font-black text-xl">-</div>
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-slate-400 text-center mb-2 uppercase">CART (แคร่)</label>
-                        <input type="number" className="w-full text-center font-mono text-3xl font-black bg-slate-50 border-2 border-slate-100 rounded-xl focus:bg-white focus:border-indigo-500 outline-none h-20" placeholder="--" value={cartInput} onChange={e => setCartInput(e.target.value)} />
-                    </div>
-                    <div className="text-slate-200 pb-6 font-black text-xl">-</div>
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-indigo-500 text-center mb-2 uppercase">ชั้น (Level)</label>
-                        <input type="number" className="w-full text-center font-mono text-3xl font-black bg-indigo-50 border-2 border-indigo-100 rounded-xl focus:bg-white focus:border-indigo-500 outline-none h-20 text-indigo-700" placeholder="--" value={levelInput} onChange={e => setLevelInput(e.target.value)} />
-                    </div>
-                </div>
-
-                 {/* Feedback */}
-                 {formData.locationId ? (
-                     <div className="bg-emerald-50 text-emerald-700 px-4 py-3 rounded-xl text-sm font-bold text-center border border-emerald-100 mb-8 animate-in zoom-in-95">
-                         ✅ เจอพิกัด: {locations.find((l:any) => l.id === formData.locationId)?.code}
-                     </div>
-                 ) : (lotInput || cartInput) ? (
-                     <div className="bg-rose-50 text-rose-600 px-4 py-3 rounded-xl text-sm font-bold text-center border border-rose-100 mb-8 animate-in shake">
-                         ❌ ไม่พบพิกัดนี้ในคลัง
-                     </div>
-                 ) : null}
-
-                 {/* Quantity */}
-                 <div>
-                    <label htmlFor="inbound-qty" className="block text-sm font-bold text-slate-700 mb-2">จำนวนรับเข้า (Quantity)</label>
-                    <div className="relative">
-                        <input 
-                            id="inbound-qty"
-                            type="number" required min="1"
-                            className="w-full text-4xl font-black text-slate-900 pl-6 pr-24 py-6 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none"
-                            placeholder="0"
-                            value={formData.quantity}
-                            onChange={e => setFormData({...formData, quantity: e.target.value})}
-                        />
-                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm text-sm uppercase tracking-wide">
-                            {selectedProduct?.uom || 'UNIT'}
-                        </span>
-                    </div>
-                 </div>
             </div>
 
             <button 
                 type="submit" 
-                disabled={loading || !formData.locationId || !selectedProduct}
+                disabled={submitting || !selectedLocation || !selectedProduct || !quantity}
                 className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-                {loading ? <Loader2 className="animate-spin" /> : <Save size={24} className="group-hover:scale-110 transition-transform" />}
+                {submitting ? <Loader2 className="animate-spin" /> : <Save size={24} className="group-hover:scale-110 transition-transform"/>}
                 <span>บันทึกรับเข้า</span>
             </button>
        </div>
