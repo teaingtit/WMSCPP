@@ -1,4 +1,3 @@
-// actions/export-actions.ts
 'use server';
 
 import { createClient } from '@/lib/supabase-server';
@@ -57,12 +56,12 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
       return { success: false, error: 'ไม่พบสินค้าคงเหลือในคลังนี้' };
     }
 
-    // 3. ✅ Fetch Categories Schema (เพื่อแปล Key -> Label ภาษาไทย)
+    // 3. Fetch Categories Schema (เพื่อแปล Key -> Label ภาษาไทย)
     const { data: categories } = await supabase
       .from('product_categories')
       .select('form_schema');
 
-    // สร้าง Map สำหรับแปลภาษา: field_123 -> "วันหมดอายุ"
+    // สร้าง Map สำหรับแปลภาษา
     const keyLabelMap = new Map<string, string>();
     if (categories) {
       categories.forEach((cat: any) => {
@@ -76,16 +75,25 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
       });
     }
 
-    // 4. Scan Keys ที่มีอยู่จริงในข้อมูล
+    // 4. Scan Keys & Calculate Location Depth
+    let maxLocDepth = 1; 
     const stockAttrKeys = new Set<string>();
     const prodAttrKeys = new Set<string>();
 
     stocks.forEach((item: any) => {
-      // Keys ของ Lot (Stock Attributes)
+      // 4.1 คำนวณความลึกของ Location (แยกด้วยขีด -)
+      if (item.locations?.code) {
+        const parts = item.locations.code.split('-');
+        if (parts.length > maxLocDepth) {
+          maxLocDepth = parts.length;
+        }
+      }
+
+      // 4.2 Keys ของ Lot
       if (item.attributes) {
         Object.keys(item.attributes).forEach(k => stockAttrKeys.add(k));
       }
-      // Keys ของ Spec (Product Attributes)
+      // 4.3 Keys ของ Spec
       if (item.products?.attributes) {
         Object.keys(item.products.attributes).forEach(k => prodAttrKeys.add(k));
       }
@@ -95,37 +103,51 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
     const worksheet = workbook.addWorksheet('Stock Data');
 
     // 5. Define Columns
-    const columns: any[] = [
-      { header: 'Location', key: 'location', width: 15 },
+    const columns: any[] = [];
+
+    // ✅ 5.1 Dynamic Location Columns (Custom Headers)
+    // กำหนดชื่อคอลัมน์ตามลำดับที่คุณต้องการ
+    const locationHeaders = ['สถานที่', 'Lot', 'Cart', 'Level']; 
+
+    for (let i = 0; i < maxLocDepth; i++) {
+        // ถ้ามีความลึกเกิน 4 จะใช้ชื่อ Default "Location 5, 6..." แทน
+        const headerName = locationHeaders[i] || `Location ${i + 1}`;
+        
+        columns.push({
+            header: headerName, 
+            key: `loc_${i}`,
+            width: 15 // ปรับความกว้างให้พอดีกับข้อความ
+        });
+    }
+
+    // 5.2 Standard Columns
+    columns.push(
       { header: 'SKU', key: 'sku', width: 15 },
       { header: 'Product Name', key: 'name', width: 35 },
       { header: 'Category', key: 'category', width: 15 },
       { header: 'Qty', key: 'qty', width: 10 },
       { header: 'Unit', key: 'uom', width: 10 },
-    ];
+    );
 
-    // ✅ ปรับลำดับ: เอา Spec (คุณสมบัติ) ขึ้นก่อน Lot
-    
-    // 5.1 Product Attributes (Spec)
+    // 5.3 Product Attributes (Spec) - ตัด Prefix ออก
     prodAttrKeys.forEach(key => {
-        // ใช้ keyLabelMap แปลเป็นชื่อไทย (ถ้าหาไม่เจอใช้ key เดิม)
         const label = keyLabelMap.get(key) || key;
         columns.push({ 
-            header: `[คุณสมบัติ] ${label}`, 
+            header: label,
             key: `p_attr_${key}`, 
             width: 20,
-            style: { font: { color: { argb: 'FFC05621' } } } // สีส้ม
+            style: { font: { color: { argb: 'FFC05621' } } } 
         });
     });
 
-    // 5.2 Stock Attributes (Lot)
+    // 5.4 Stock Attributes (Lot) - ตัด Prefix ออก
     stockAttrKeys.forEach(key => {
         const label = keyLabelMap.get(key) || key;
         columns.push({ 
-            header: `[ล็อต] ${label}`, 
+            header: label,
             key: `s_attr_${key}`,   
             width: 20,
-            style: { font: { color: { argb: 'FF2F855A' } } } // สีเขียว
+            style: { font: { color: { argb: 'FF2F855A' } } }
         });
     });
 
@@ -137,9 +159,10 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
     // 6. Map Data
     stocks.forEach((item: any) => {
       const p = item.products;
+      const locCode = item.locations?.code || '-';
+      const locParts = locCode.split('-');
       
       const rowData: any = {
-        location: item.locations?.code || '-',
         sku: p?.sku || '-',
         name: p?.name || '-',
         category: p?.category_id || '-',
@@ -148,12 +171,17 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
         updated_at: item.updated_at ? new Date(item.updated_at).toLocaleString('th-TH') : '-'
       };
 
-      // ใส่ข้อมูล Spec
+      // 6.1 ใส่ข้อมูล Location
+      for (let i = 0; i < maxLocDepth; i++) {
+          rowData[`loc_${i}`] = locParts[i] || ''; 
+      }
+
+      // 6.2 ใส่ข้อมูล Spec
       prodAttrKeys.forEach(key => {
          rowData[`p_attr_${key}`] = p?.attributes?.[key] ?? '-';
       });
 
-      // ใส่ข้อมูล Lot
+      // 6.3 ใส่ข้อมูล Lot
       stockAttrKeys.forEach(key => {
          rowData[`s_attr_${key}`] = item.attributes?.[key] ?? '-';
       });
