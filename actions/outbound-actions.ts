@@ -4,7 +4,6 @@
 import { createClient } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
 
-// Interface เพื่อ Type Safety
 interface OutboundFormData {
   warehouseId: string;
   stockId: string;
@@ -12,9 +11,8 @@ interface OutboundFormData {
   note?: string;
 }
 
-// 1. ค้นหาสินค้า (ปรับปรุงให้อ่านง่ายขึ้น)
+// 1. ค้นหาสินค้า (Search)
 export async function searchStockForOutbound(warehouseId: string, query: string) {
-  // ... (Code เดิม) ...
   const supabase = await createClient();
   const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).maybeSingle();
   if (!wh) return [];
@@ -24,10 +22,10 @@ export async function searchStockForOutbound(warehouseId: string, query: string)
     .select(`
         id, quantity, attributes,
         products!inner(id, sku, name, uom),
-        locations!inner(id, code)
+        locations!inner(id, code, warehouse_id) 
     `)
-    // Note: เพิ่ม products!inner(id) และ locations!inner(id) เพื่อใช้ตอน Log
-    .eq('warehouse_id', wh.id)
+    // ✅ FIX: กรองจาก locations.warehouse_id แทน warehouse_id ของ stocks
+    .eq('locations.warehouse_id', wh.id) 
     .gt('quantity', 0)
     .or(`name.ilike.%${query}%,sku.ilike.%${query}%`, { foreignTable: 'products' })
     .order('quantity', { ascending: false })
@@ -37,11 +35,10 @@ export async function searchStockForOutbound(warehouseId: string, query: string)
   return stocks || [];
 }
 
-// 2. สั่งตัดสต็อก (Atomic Deduct via RPC)
+// 2. สั่งตัดสต็อก (Submit)
 export async function submitOutbound(formData: OutboundFormData) {
     const supabase = await createClient();
     
-    // ✅ 1. ดึง User
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, message: 'Unauthenticated' };
 
@@ -51,16 +48,20 @@ export async function submitOutbound(formData: OutboundFormData) {
     if (isNaN(deductQty) || deductQty <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
 
     try {
-        // ✅ 2. ดึงข้อมูล Stock เพื่อใช้บันทึก Log (ก่อนตัดสต็อก)
+        // ✅ FIX: ดึง warehouse_id ผ่าน locations เพื่อใช้ Log ให้ถูกต้อง
         const { data: stockInfo } = await supabase
             .from('stocks')
-            .select('warehouse_id, product_id, location_id')
+            .select(`
+                product_id, 
+                location_id,
+                locations (warehouse_id) 
+            `)
             .eq('id', stockId)
             .single();
 
         if (!stockInfo) throw new Error("ไม่พบข้อมูลสต็อก");
 
-        // ✅ 3. เรียก RPC ตัดสต็อก
+        // เรียก RPC ตัดสต็อก (Database Atomic)
         const { data: result, error } = await supabase.rpc('deduct_stock', {
             p_stock_id: stockId,
             p_deduct_qty: deductQty,
@@ -70,20 +71,23 @@ export async function submitOutbound(formData: OutboundFormData) {
         if (error) throw error;
         if (!result.success) return { success: false, message: result.message };
 
-        // ✅ 4. บันทึก Transaction Log แบบ Manual (เพื่อให้มี User Email)
+        // ✅ FIX: Log โดยใช้ warehouse_id จาก Location จริง
+        const realWarehouseId = (stockInfo.locations as any)?.warehouse_id;
+
         const { error: logError } = await supabase.from('transactions').insert({
             type: 'OUTBOUND',
-            warehouse_id: stockInfo.warehouse_id,
+            warehouse_id: realWarehouseId, // ใช้ ID ที่ถูกต้อง
             product_id: stockInfo.product_id,
-            from_location_id: stockInfo.location_id, // ระบุต้นทาง
+            from_location_id: stockInfo.location_id,
             quantity: deductQty,
             details: note,
-            user_id: user.id,          // ✅ ใส่ ID
-            user_email: user.email,    // ✅ ใส่ Email (แก้ปัญหาแสดง System)
+            user_id: user.id,
+            user_email: user.email,
             created_at: new Date().toISOString()
         });
 
         if (logError) console.error("Log Error:", logError);
+        
         revalidatePath(`/dashboard/${warehouseId}/history`);
         revalidatePath(`/dashboard/${warehouseId}`);
         revalidatePath(`/dashboard/${warehouseId}/inventory`);

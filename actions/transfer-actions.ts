@@ -1,27 +1,46 @@
-// actions/transfer-actions.ts
 'use server';
 
 import { createClient } from '@/lib/supabase-server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 
-// 1. ค้นหาสต็อกต้นทาง
+// --- Type Definitions (คงเดิม) ---
+interface InternalTransferParams {
+  warehouseId: string;
+  stockId: string;
+  targetLot: string;
+  targetCart: string;
+  targetLevel: string;
+  transferQty: string;
+}
+
+interface CrossTransferParams {
+  sourceWarehouseId: string;
+  targetWarehouseId: string;
+  stockId: string;
+  targetLot: string;
+  targetCart: string;
+  targetLevel: string;
+  transferQty: string;
+}
+
+// --------------------------------------------------------
+// 1. ค้นหาสต็อก (Search) - (คงเดิม)
+// --------------------------------------------------------
 export async function searchStockForTransfer(warehouseId: string, query: string) {
   const supabase = await createClient();
-  
   const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).maybeSingle();
   if (!wh) return [];
 
-  // MVP Search: Limit 20 เพื่อความเร็ว
   const { data: stocks, error } = await supabase
     .from('stocks')
     .select(`
         id, quantity, attributes,
         products!inner(sku, name, uom),
-        locations!inner(code)
+        locations!inner(code, warehouse_id)
     `)
-    .eq('warehouse_id', wh.id)
+    .eq('locations.warehouse_id', wh.id)
     .gt('quantity', 0)
-    // การ search ข้าม table (products)
     .or(`name.ilike.%${query}%,sku.ilike.%${query}%`, { foreignTable: 'products' }) 
     .limit(20);
 
@@ -29,15 +48,14 @@ export async function searchStockForTransfer(warehouseId: string, query: string)
       console.error("Search Transfer Error:", error);
       return [];
   }
-
   return stocks || [];
 }
 
-// 2. สั่งย้ายของ (Atomic Move via RPC)
-export async function submitTransfer(formData: any) {
+// --------------------------------------------------------
+// 2. ย้ายภายใน (Internal) - ปรับปรุงให้สร้าง Location อัตโนมัติ ✅
+// --------------------------------------------------------
+export async function submitTransfer(formData: InternalTransferParams) {
     const supabase = await createClient();
-    
-    // ✅ 1. ดึง User
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, message: 'Unauthenticated' };
 
@@ -47,7 +65,6 @@ export async function submitTransfer(formData: any) {
     if (isNaN(qtyNum) || qtyNum <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
 
     try {
-        // ... (Logic หา Location ปลายทาง คงเดิม) ...
         const lotStr = targetLot.toString().padStart(2, '0');
         const cartStr = targetCart.toString().padStart(2, '0');
         const levelStr = targetLevel.toString().padStart(2, '0');
@@ -56,45 +73,105 @@ export async function submitTransfer(formData: any) {
         const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
         if(!wh) throw new Error("Warehouse Not Found");
 
-        const { data: targetLoc } = await supabase.from('locations').select('id').eq('code', targetCode).eq('warehouse_id', wh.id).single();
-        if (!targetLoc) throw new Error(`ไม่พบพิกัดปลายทาง ${targetCode}`);
+        // ✅ FIX 1: Auto-create Location for Internal Transfer
+        let { data: targetLoc } = await supabase.from('locations').select('id').eq('code', targetCode).eq('warehouse_id', wh.id).maybeSingle();
+        
+        if (!targetLoc) {
+             // ใช้ admin สร้าง Location หาก User ไม่มีสิทธิ์สร้าง
+             const { data: newLoc, error: createError } = await supabaseAdmin
+                .from('locations')
+                .insert({ warehouse_id: wh.id, code: targetCode })
+                .select('id')
+                .single();
+             if (createError) throw new Error(`สร้าง Location ไม่สำเร็จ: ${createError.message}`);
+             targetLoc = newLoc;
+        }
 
-        // ✅ 2. ดึงข้อมูล Stock ต้นทาง เพื่อบันทึก Log
         const { data: sourceStock } = await supabase.from('stocks').select('product_id, location_id').eq('id', stockId).single();
         if (!sourceStock) throw new Error("ไม่พบสต็อกต้นทาง");
 
-        // ✅ 3. Call RPC
+        // Use Existing RPC (Internal)
         const { data: result, error: rpcError } = await supabase.rpc('transfer_stock', {
             p_source_stock_id: stockId,
-            p_target_location_id: targetLoc.id,
+            p_target_location_id: targetLoc!.id, // มั่นใจว่ามีค่าแล้ว
             p_qty: qtyNum
         });
 
         if (rpcError) throw rpcError;
         if (!result.success) return { success: false, message: result.message };
 
-        // ✅ 4. บันทึก Transaction Log
-        const { error: logError } = await supabase.from('transactions').insert({
+        // Log Transaction
+        await supabase.from('transactions').insert({
             type: 'TRANSFER',
             warehouse_id: wh.id,
             product_id: sourceStock.product_id,
-            from_location_id: sourceStock.location_id, // ต้นทาง
-            to_location_id: targetLoc.id,            // ปลายทาง
+            from_location_id: sourceStock.location_id,
+            to_location_id: targetLoc!.id,
             quantity: qtyNum,
-            user_id: user.id,        // ✅ ใส่ User
-            user_email: user.email,  // ✅ ใส่ User Email
-            created_at: new Date().toISOString()
+            user_id: user.id,
+            user_email: user.email
         });
 
-        if (logError) console.error("Transfer Log Error:", logError);
-        revalidatePath(`/dashboard/${warehouseId}/history`);
         revalidatePath(`/dashboard/${warehouseId}`);
-        revalidatePath(`/dashboard/${warehouseId}/inventory`);
-        
-        return { success: true, message: `ย้ายของไปที่ ${targetCode} สำเร็จ` };
+        return { success: true, message: `ย้ายภายในไปที่ ${targetCode} สำเร็จ` };
 
     } catch (error: any) {
-        console.error("Transfer Error:", error);
-        return { success: false, message: error.message || "เกิดข้อผิดพลาด" };
+        console.error("Internal Transfer Error:", error);
+        return { success: false, message: error.message };
     }
+}
+
+// --------------------------------------------------------
+// 3. ย้ายข้ามคลัง (Cross-Warehouse) - ✅ ใช้ RPC ใหม่ ตัดปัญหา Race Condition
+// --------------------------------------------------------
+export async function submitCrossTransfer(formData: CrossTransferParams) {
+  const supabase = await createClient(); 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: 'Unauthenticated' };
+
+  const { sourceWarehouseId, targetWarehouseId, stockId, targetLot, targetCart, targetLevel, transferQty } = formData;
+  const qtyNum = Number(transferQty);
+
+  if (isNaN(qtyNum) || qtyNum <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
+
+  try {
+    // 1. Prepare Target Code
+    // เราต้องดึง Code ของคลังปลายทางก่อนเพื่อสร้าง Prefix
+    const { data: targetWh } = await supabaseAdmin
+        .from('warehouses')
+        .select('code, name')
+        .eq('id', targetWarehouseId)
+        .single();
+    
+    if (!targetWh) throw new Error("ไม่พบข้อมูลคลังปลายทาง");
+
+    const lotStr = targetLot.toString().padStart(2, '0');
+    const cartStr = targetCart.toString().padStart(2, '0');
+    const levelStr = targetLevel.toString().padStart(2, '0');
+    const targetCode = `${targetWh.code}-L${lotStr}-C${cartStr}-LV${levelStr}`;
+
+    // 2. ✅ CALL RPC (The Atomic Transaction)
+    // ส่งภาระทั้งหมดให้ Database จัดการ
+    const { data: result, error: rpcError } = await supabaseAdmin.rpc('transfer_cross_stock', {
+        p_stock_id: stockId,
+        p_target_warehouse_id: targetWarehouseId,
+        p_target_code: targetCode,
+        p_qty: qtyNum,
+        p_user_id: user.id,
+        p_user_email: user.email
+    });
+
+    if (rpcError) throw new Error(rpcError.message);
+    if (!result.success) return { success: false, message: result.message };
+
+    // 3. Revalidate
+    revalidatePath(`/dashboard/${sourceWarehouseId}`);
+    // revalidatePath สำหรับคลังปลายทางอาจจะไม่ทำงานถ้าอยู่คนละ Route แต่ใส่ไว้ไม่เสียหาย
+    
+    return { success: true, message: `ย้ายสินค้าไปยัง ${targetWh.name} (Location: ${targetCode}) สำเร็จ` };
+
+  } catch (error: any) {
+    console.error("Cross Transfer Error:", error);
+    return { success: false, message: error.message || 'เกิดข้อผิดพลาดในการย้ายข้ามคลัง' };
+  }
 }

@@ -3,7 +3,7 @@
 
 import { createClient } from '@/lib/supabase-server';
 
-// --- Function 1: สำหรับหน้า Dashboard รวม (เลือกคลัง) ---
+// --- Function 1: สำหรับหน้า Dashboard รวม (คงเดิม) ---
 export async function getDashboardWarehouses() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -44,8 +44,7 @@ export async function getDashboardWarehouses() {
   }
 }
 
-// --- Function 2: สำหรับหน้า Dashboard รายคลัง (ดู Stats) ---
-// ✅ คืนค่าฟังก์ชันนี้กลับมา เพื่อให้ page.tsx เรียกใช้ได้
+// --- Function 2: สำหรับหน้า Dashboard รายคลัง (แก้ไข Query) ---
 export async function getDashboardStats(warehouseCode: string) {
   const supabase = await createClient();
 
@@ -53,17 +52,33 @@ export async function getDashboardStats(warehouseCode: string) {
     const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseCode).single();
     if (!wh) throw new Error("Warehouse not found");
 
-    const { data: stocks } = await supabase
+    // ✅ FIX: Query ผ่าน locations เพื่อกรองตาม warehouse_id ที่แท้จริง
+    const { data: stocks, error: stockError } = await supabase
         .from('stocks')
-        .select('quantity, products(min_stock)')
-        .eq('warehouse_id', wh.id);
+        .select(`
+            quantity, 
+            products!inner(min_stock),
+            locations!inner(warehouse_id) 
+        `)
+        .eq('locations.warehouse_id', wh.id); // กรองจาก Location ที่ผูกกับ Warehouse นี้
+
+    if (stockError) {
+        console.error("Stock Query Error:", stockError);
+    }
 
     const totalItems = stocks?.length || 0;
-    const totalQty = stocks?.reduce((sum, item) => sum + Number(item.quantity), 0) || 0;
-    const lowStockCount = stocks?.filter((item: any) => 
-        item.quantity <= (item.products?.min_stock || 0)
-    ).length || 0;
+    
+    // คำนวณยอดรวม (Handle null/undefined safely)
+    const totalQty = stocks?.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) || 0;
+    
+    // คำนวณสินค้าใกล้หมด
+    const lowStockCount = stocks?.filter((item: any) => {
+        // products อาจจะเป็น array หรือ object ขึ้นอยู่กับ relationship แต่ปกติจะเป็น object
+        const minStock = item.products?.min_stock || 0; 
+        return (Number(item.quantity) || 0) <= minStock;
+    }).length || 0;
 
+    // ส่วนของ Recent Logs (คงเดิม หรือปรับให้ชัวร์)
     const { data: recentLogs } = await supabase
         .from('transactions')
         .select(`

@@ -5,7 +5,7 @@ import { Package } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
 import PaginationControls from '@/components/ui/PaginationControls';
 import InventoryCard from '@/components/inventory/InventoryCard';
-import ExportButton from '@/components/inventory/ExportButton'; // ✅ Import ปุ่มเข้ามา
+import ExportButton from '@/components/inventory/ExportButton';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -16,7 +16,7 @@ export default async function InventoryPage({
   params: Promise<{ warehouseId: string }>;
   searchParams?: { q?: string; page?: string };
 }) {
-  const { warehouseId } = await params; // warehouseId นี้จะเป็น Code หรือ UUID ตาม URL
+  const { warehouseId } = await params; 
   const query = searchParams?.q || '';
   const currentPage = Number(searchParams?.page) || 1;
   
@@ -25,16 +25,24 @@ export default async function InventoryPage({
 
   const supabase = await createClient();
 
-  // ... (Query Logic เดิม) ...
+  // ✅ FIX 1: ดึง Warehouse ID ที่แท้จริงมาก่อน
+  const { data: wh } = await supabase
+    .from('warehouses')
+    .select('id')
+    .eq('code', warehouseId)
+    .single();
+
+  if (!wh) return <div>Warehouse Not Found</div>;
+
+  // ✅ FIX 2: Query ผ่าน locations!inner โดยใช้ wh.id ที่ได้มา
   let dbQuery = supabase
     .from('stocks')
     .select(`
       id, quantity, updated_at,
       products!inner (sku, name, uom, category_id, min_stock), 
-      locations (code),
-      warehouses!inner (code)
+      locations!inner (code, warehouse_id) 
     `, { count: 'exact' })
-    .eq('warehouses.code', warehouseId)
+    .eq('locations.warehouse_id', wh.id) // กรองจาก Location ของคลังนี้
     .gt('quantity', 0);
 
   if (query) {
@@ -45,14 +53,16 @@ export default async function InventoryPage({
     .order('updated_at', { ascending: false })
     .range(from, to);
 
-  if (error) return <div>Error loading data</div>;
+  if (error) {
+      console.error(error);
+      return <div>Error loading data</div>;
+  }
   
   const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE);
 
   return (
     <div className="pb-20 p-4 md:p-8 space-y-6">
-      
-      {/* Header */}
+      {/* Header Section (คงเดิม) */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200 pb-4">
          <div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-3">
@@ -64,18 +74,15 @@ export default async function InventoryPage({
             <p className="text-slate-500 mt-1 text-sm md:text-base">จัดการสต็อกสินค้าในคลัง <span className="font-bold text-indigo-600">{warehouseId}</span></p>
          </div>
          
-         {/* ✅ ปรับ Layout Header ขวาให้มีปุ่ม Export */}
          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
              <div className="w-full sm:w-64">
                 <SearchInput placeholder="ค้นหาชื่อสินค้า..." />
              </div>
-             
-             {/* ปุ่ม Export วางตรงนี้ */}
              <ExportButton warehouseId={warehouseId} />
          </div>
       </div>
 
-      {/* Grid Layout */}
+      {/* Grid Layout (คงเดิม) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {stocks?.map((item: any) => (
             <InventoryCard key={item.id} item={item} />
