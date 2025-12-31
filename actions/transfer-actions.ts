@@ -39,7 +39,7 @@ export async function searchStockForTransfer(warehouseId: string, query: string)
   return stocks || [];
 }
 
-// --- Internal Transfer ---
+// --- Internal Transfer (แก้ไข: Strict Location Check) ---
 export async function submitTransfer(formData: any) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -53,21 +53,21 @@ export async function submitTransfer(formData: any) {
         const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
         if (!wh) throw new Error("Warehouse Not Found");
 
-        // 1. Prepare Target Location
+        // 1. Prepare Target Location Code
         const locData = generate3DCode(targetLot, targetCart, targetLevel);
         
-        // 2. Auto-Create Location if missing
-        let { data: targetLoc } = await supabase.from('locations').select('id').eq('code', locData.code).eq('warehouse_id', wh.id).maybeSingle();
+        // 2. ✅ FIX: ตรวจสอบพิกัดอย่างเคร่งครัด (Strict Check)
+        const { data: targetLoc } = await supabase
+            .from('locations')
+            .select('id')
+            .eq('code', locData.code)
+            .eq('warehouse_id', wh.id)
+            .eq('is_active', true) 
+            .maybeSingle();
+
+        // ❌ ไม่มีการ Auto-Create แล้ว ถ้าไม่เจอคือ Error เลย
         if (!targetLoc) {
-             const { data: newLoc, error: createError } = await supabaseAdmin.from('locations')
-                .insert({ 
-                    warehouse_id: wh.id, code: locData.code,
-                    lot: locData.lot, cart: locData.cart, level: locData.level, // Insert L-P-Z columns
-                    type: 'CART_SLOT', max_capacity: 1
-                })
-                .select('id').single();
-             if (createError) throw new Error(`สร้าง Location ไม่สำเร็จ: ${createError.message}`);
-             targetLoc = newLoc;
+             throw new Error(`❌ ไม่พบพิกัดปลายทาง: ${locData.code} ในระบบ กรุณาตรวจสอบ`);
         }
 
         const { data: sourceStock } = await supabase.from('stocks').select('product_id, location_id').eq('id', stockId).single();
@@ -75,19 +75,19 @@ export async function submitTransfer(formData: any) {
 
         // 3. RPC Transfer
         const { data: result, error: rpcError } = await supabase.rpc('transfer_stock', {
-            p_source_stock_id: stockId, p_target_location_id: targetLoc!.id, p_qty: qty
+            p_source_stock_id: stockId, p_target_location_id: targetLoc.id, p_qty: qty
         });
 
         if (rpcError) throw rpcError;
         if (!result.success) return { success: false, message: result.message };
 
-        // 4. Log Transaction (Explicitly with Email)
+        // 4. Log Transaction
         await supabase.from('transactions').insert({
             type: 'TRANSFER', warehouse_id: wh.id,
             product_id: sourceStock.product_id,
-            from_location_id: sourceStock.location_id, to_location_id: targetLoc!.id,
+            from_location_id: sourceStock.location_id, to_location_id: targetLoc.id,
             quantity: qty, user_id: user.id, 
-            user_email: user.email // ✅ บันทึก Email
+            user_email: user.email 
         });
 
         revalidatePath(`/dashboard/${warehouseId}`);
@@ -99,7 +99,7 @@ export async function submitTransfer(formData: any) {
     }
 }
 
-// --- Cross Transfer ---
+// --- Cross Transfer (แก้ไข: คืนค่า sourceStock และ Strict Check) ---
 export async function submitCrossTransfer(formData: any) {
   const supabase = await createClient(); 
   const { data: { user } } = await supabase.auth.getUser();
@@ -119,28 +119,43 @@ export async function submitCrossTransfer(formData: any) {
     // 1. Prepare Target Code
     const locData = generate3DCode(targetLot, targetCart, targetLevel);
     
-    // 2. Get Source Info
+    // 2. ✅ Fix: Get Source Info (ต้องประกาศตรงนี้ เพื่อให้มีใช้ใน Transaction Log)
     const { data: sourceStock } = await supabase.from('stocks').select('product_id, location_id').eq('id', stockId).single();
     if(!sourceStock) throw new Error("Stock Source Not Found");
 
-    // 3. RPC Cross Transfer
+    // 3. ✅ Check: Pre-validate Target Location in Target Warehouse
+    const { data: targetLocExists } = await supabaseAdmin
+        .from('locations')
+        .select('id')
+        .eq('warehouse_id', targetWh.id)
+        .eq('code', locData.code)
+        .eq('is_active', true)
+        .maybeSingle();
+
+    if (!targetLocExists) {
+        throw new Error(`❌ คลังปลายทาง (${targetWh.name}) ไม่มีพิกัด ${locData.code}`);
+    }
+
+    // 4. RPC Cross Transfer
     const { data: result, error: rpcError } = await supabaseAdmin.rpc('transfer_cross_stock', {
         p_stock_id: stockId, p_target_warehouse_id: targetWarehouseId,
-        p_target_code: locData.code, p_qty: qty,
+        p_target_code: locData.code,
+        p_qty: qty,
         p_user_id: user.id, p_user_email: user.email
     });
 
     if (rpcError) throw new Error(rpcError.message);
     if (!result.success) return { success: false, message: result.message };
 
-    // 4. Log Transaction (Outbound Side)
+    // 5. Log Transaction (Outbound Side)
+    // ตรงนี้จะใช้ sourceStock ได้แล้ว เพราะประกาศไว้ในขั้นตอนที่ 2
     await supabase.from('transactions').insert({
         type: 'TRANSFER_OUT', warehouse_id: sourceWh.id,
         product_id: sourceStock.product_id,
         from_location_id: sourceStock.location_id,
         details: `To: ${targetWh.name} (${locData.code})`,
         quantity: qty, user_id: user.id, 
-        user_email: user.email // ✅ บันทึก Email
+        user_email: user.email 
     });
 
     revalidatePath(`/dashboard/${sourceWarehouseId}`);

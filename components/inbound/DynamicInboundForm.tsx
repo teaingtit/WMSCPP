@@ -5,11 +5,39 @@ import { useRouter } from 'next/navigation';
 import { submitInbound, getWarehouseLots, getCartsByLot, getLevelsByCart } from '@/actions/inbound-actions';
 import { Loader2, Save, MapPin, Search, X, Package, CheckCircle2, Layers } from 'lucide-react';
 import { toast } from 'sonner';
+// 1. นำเข้า Type ที่ถูกต้อง
+import { Product } from '@/types/inventory';
 
+// 2. สร้าง Interface สำหรับ Schema ของหมวดหมู่ (Category Form Schema)
+interface FormSchemaField {
+  key: string;
+  label: string;
+  type: string;
+  required: boolean;
+  scope: 'LOT' | 'PRODUCT'; // Scope ที่ใช้แยก attributes
+}
+
+// Interface สำหรับ Category
+interface Category {
+  id: string;
+  name: string;
+  form_schema?: FormSchemaField[]; // อาจจะเป็น undefined ได้ถ้าไม่มี schema
+  // เพิ่ม field อื่นๆ ของ Category ตามจริงถ้าจำเป็น
+}
+
+// Interface สำหรับ Location (ใช้อ้างอิงใน State)
+interface LocationData {
+  id: string;
+  level: string;
+  code: string;
+  type?: string;
+}
+
+// 3. ปรับ Props ให้เป็น Strict Type
 interface DynamicInboundFormProps {
   warehouseId: string;
-  category: any;
-  products: any[];
+  category: Category;      // เปลี่ยนจาก any เป็น Category
+  products: Product[];     // เปลี่ยนจาก any[] เป็น Product[]
 }
 
 export default function DynamicInboundForm({ 
@@ -21,27 +49,32 @@ export default function DynamicInboundForm({
   // --- Product Logic ---
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  
+  // 4. ระบุ Type ให้ State ของ Product (Product | null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const filteredProducts = products.filter((p: any) => 
+  // Filter สินค้าโดย TypeScript จะรู้จัก properties .sku และ .name แล้ว
+  const filteredProducts = products.filter((p) => 
     (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) || 
     (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
   ).slice(0, 8);
 
   // --- Attributes ---
   const [attributes, setAttributes] = useState<Record<string, any>>({});
+  
+  // ตรวจสอบว่ามี form_schema หรือไม่ ก่อน filter
   const lotSchema = category.form_schema 
-      ? category.form_schema.filter((f: any) => f.scope === 'LOT')
+      ? category.form_schema.filter((f) => f.scope === 'LOT')
       : [];
 
   // --- Coordinate Selector ---
   const [lots, setLots] = useState<string[]>([]);
-  const [positions, setPositions] = useState<string[]>([]); // เปลี่ยนจาก carts เป็น positions
-  const [levels, setLevels] = useState<any[]>([]); 
+  const [positions, setPositions] = useState<string[]>([]); 
+  const [levels, setLevels] = useState<LocationData[]>([]); // ใช้ Type LocationData
 
   const [selectedLot, setSelectedLot] = useState('');
-  const [selectedPos, setSelectedPos] = useState(''); // เปลี่ยนจาก selectedCart เป็น selectedPos
-  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [selectedPos, setSelectedPos] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   const [loadingLocs, setLoadingLocs] = useState(false);
 
   const [quantity, setQuantity] = useState('');
@@ -64,7 +97,7 @@ export default function DynamicInboundForm({
       
       if(lot) {
           setLoadingLocs(true);
-          const res = await getCartsByLot(warehouseId, lot); // Backend ยังใช้ชื่อ func เดิมได้
+          const res = await getCartsByLot(warehouseId, lot);
           setPositions(res);
           setLoadingLocs(false);
       }
@@ -79,7 +112,8 @@ export default function DynamicInboundForm({
       if(pos && selectedLot) {
           setLoadingLocs(true);
           const res = await getLevelsByCart(warehouseId, selectedLot, pos);
-          setLevels(res);
+          // Cast response ให้ตรงกับ LocationData หากจำเป็น หรือให้แน่ใจว่า backend ส่งมาตรง
+          setLevels(res as LocationData[]); 
           setLoadingLocs(false);
       }
   };
@@ -93,9 +127,9 @@ export default function DynamicInboundForm({
     const payload = {
         warehouseId,
         locationId: selectedLocation.id,
-        quantity,
+        quantity: Number(quantity), // แปลงเป็น number เพื่อความชัวร์
         isNewProduct: false,
-        productId: selectedProduct?.id,
+        productId: selectedProduct.id, // TypeScript มั่นใจว่ามีค่า เพราะ check !selectedProduct แล้ว
         attributes
     };
 
@@ -106,6 +140,9 @@ export default function DynamicInboundForm({
         setAttributes({});
         setSelectedLocation(null);
         setSelectedPos('');
+        // Optional: Reset Product selection
+        // setSelectedProduct(null);
+        // setSearchTerm('');
     } else {
         toast.error(result.message);
     }
@@ -137,7 +174,7 @@ export default function DynamicInboundForm({
                         />
                          {showDropdown && searchTerm && (
                             <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden max-h-[300px] overflow-y-auto">
-                                {filteredProducts.map((p: any) => (
+                                {filteredProducts.map((p) => (
                                     <div key={p.id} onClick={() => { setSelectedProduct(p); setSearchTerm(p.name); setShowDropdown(false); }} className="p-3 hover:bg-indigo-50 cursor-pointer border-b border-slate-50">
                                         <div className="font-bold text-slate-700">{p.name}</div>
                                         <div className="text-xs text-slate-400">{p.sku}</div>
@@ -165,11 +202,12 @@ export default function DynamicInboundForm({
                 )}
             </div>
 
+            {/* Render Dynamic Attributes based on Schema */}
             {lotSchema.length > 0 && selectedProduct && (
                 <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 animate-in fade-in slide-in-from-bottom-2">
                      <h4 className="font-bold text-emerald-700 mb-4 text-sm flex items-center gap-2"><Layers size={16}/> ข้อมูลล็อตสินค้า (Lot Data)</h4>
                      <div className="grid gap-4">
-                        {lotSchema.map((field: any) => (
+                        {lotSchema.map((field) => (
                             <div key={field.key}>
                                 <label htmlFor={`attr-${field.key}`} className="block text-xs font-bold text-emerald-800 mb-1">
                                     {field.label} {field.required && <span className="text-rose-500">*</span>}
@@ -210,7 +248,7 @@ export default function DynamicInboundForm({
                         </select>
                     </div>
 
-                    {/* Step 2: POSITION (แก้ไข Label) */}
+                    {/* Step 2: POSITION */}
                     <div className={`grid grid-cols-3 items-center gap-4 transition-all duration-300 ${!selectedLot ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
                         <label htmlFor="pos-select" className="font-bold text-slate-500 text-right">POSITION (ตำแหน่ง)</label>
                         <select 
@@ -232,7 +270,7 @@ export default function DynamicInboundForm({
                              <div className="flex justify-center p-6"><Loader2 className="animate-spin text-indigo-500" size={30}/></div>
                         ) : (
                             <div className="grid grid-cols-4 gap-3">
-                                {levels.map((loc: any) => (
+                                {levels.map((loc) => (
                                     <button
                                         key={loc.id}
                                         type="button"
@@ -289,6 +327,7 @@ export default function DynamicInboundForm({
                         placeholder="0"
                     />
                     <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold bg-white px-3 py-1 rounded border text-xs">
+                        {/* ใช้ Optional Chaining (?.) ได้อย่างปลอดภัย */}
                         {selectedProduct?.uom || 'UNIT'}
                     </span>
                 </div>
