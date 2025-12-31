@@ -1,4 +1,3 @@
-// actions/user-actions.ts
 'use server';
 
 import { createClient } from '@/lib/supabase-server';
@@ -6,19 +5,19 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-// Schema Validation (กำหนด message แทน errorMap เพื่อเลี่ยง TS Error)
-const createUserSchema = z.object({
+// --- 1. Schema Validation ---
+const baseUserSchema = z.object({
   email: z.string().email('รูปแบบอีเมลไม่ถูกต้อง'),
-  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
   role: z.enum(['admin', 'staff'], { 
     message: 'บทบาทต้องเป็น admin หรือ staff เท่านั้น' 
   }),
 });
 
+// --- 2. Getters ---
 export async function getUsers() {
   const supabase = await createClient();
   
-  // Security: ตรวจสอบว่าเป็น Admin
+  // Security Check
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
 
@@ -30,73 +29,113 @@ export async function getUsers() {
 
   if (myRole?.role !== 'admin') return [];
 
-  // ใช้ supabaseAdmin เพื่อดึง Users ทั้งหมด (Bypass RLS)
-  const { data: users, error } = await supabaseAdmin.auth.admin.listUsers();
+  // Fetch Users using Admin Client
+  const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
   
-  if (error || !users.users) return [];
+  if (error || !users) return [];
 
-  const { data: roles } = await supabase.from('user_roles').select('*');
+  // Fetch Extra Data
+  const { data: roles } = await supabaseAdmin
+    .from('user_roles')
+    .select('user_id, role, allowed_warehouses, is_active');
 
-  return users.users.map(u => {
+  // Map Data
+  const enrichedUsers = users.map(u => {
     const roleData = roles?.find(r => r.user_id === u.id);
+    const isActive = roleData?.is_active ?? true;
+    const isBannedInAuth = (u as any).banned_until !== null && (u as any).banned_until !== undefined;
     return {
       id: u.id,
       email: u.email,
+      created_at: u.created_at,
+      last_sign_in_at: u.last_sign_in_at,
       role: roleData?.role || 'staff',
       allowed_warehouses: roleData?.allowed_warehouses || [],
-      created_at: u.created_at
+      is_active: isActive,
+      is_banned: isBannedInAuth || !isActive // ถือว่าโดนแบนถ้า Inactive หรือติด Ban
     };
+  });
+
+  // Sort: Active first, then Newest
+  return enrichedUsers.sort((a, b) => {
+    if (a.is_active === b.is_active) {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    return (a.is_active === b.is_active) ? 0 : a.is_active ? -1 : 1;
   });
 }
 
-export async function createUser(formData: FormData) {
-  // 1. Validate
-  const rawData = {
-    email: formData.get('email'),
-    password: formData.get('password'),
-    role: formData.get('role'),
-  };
+// --- 3. Create User Mutation ---
+export async function createUser(prevState: any, formData: FormData) {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const role = formData.get('role') as string;
+  const verifyEmail = formData.get('verify_email') === 'on'; // Checkbox Value
 
-  const validatedFields = createUserSchema.safeParse(rawData);
-
+  // 1. Validate Email & Role
+  const validatedFields = baseUserSchema.safeParse({ email, role });
   if (!validatedFields.success) {
+    // ✅ FIX: ใส่ ?. และ || เพื่อป้องกัน undefined
     return { 
         success: false, 
-        message: validatedFields.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง' 
+        message: validatedFields.error.issues[0]?.message || 'ข้อมูลไม่ถูกต้อง' 
     };
   }
 
-  const { email, password, role } = validatedFields.data;
+  // 2. Validate Password (ถ้าไม่เลือกส่งอีเมล ต้องใส่รหัสผ่าน)
+  if (!verifyEmail) {
+    if (!password || password.length < 6) {
+        return { success: false, message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร (หรือเลือกส่งอีเมลยืนยัน)' };
+    }
+  }
+
   const warehouses = formData.getAll('warehouses') as string[];
 
   try {
-    // 2. Create User (Supabase Auth)
-    const { data, error } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true 
-    });
+    let userData;
 
-    if (error) throw error;
-    if (!data.user) throw new Error("User creation failed");
+    if (verifyEmail) {
+        // CASE A: Invite Flow (ส่งอีเมลให้ตั้งรหัสเอง)
+        const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+        if (error) throw error;
+        userData = data.user;
+    } else {
+        // CASE B: Manual Create (แอดมินตั้งรหัสให้)
+        const { data, error } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true 
+        });
+        if (error) throw error;
+        userData = data.user;
+    }
 
-    // 3. Create Role (DB)
+    if (!userData) throw new Error("User creation failed");
+
+    // 3. Create Role
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
-        user_id: data.user.id,
+        user_id: userData.id,
         role,
-        allowed_warehouses: role === 'admin' ? [] : warehouses 
+        allowed_warehouses: role === 'admin' ? [] : warehouses,
+        is_active: true
       });
 
     if (roleError) {
         // Rollback: ลบ User ทิ้งถ้าบันทึก Role ไม่ผ่าน
-        await supabaseAdmin.auth.admin.deleteUser(data.user.id);
+        await supabaseAdmin.auth.admin.deleteUser(userData.id);
         throw roleError;
     }
 
     revalidatePath('/dashboard/settings');
-    return { success: true, message: `สร้างผู้ใช้ ${email} สำเร็จ` };
+    
+    return { 
+        success: true, 
+        message: verifyEmail 
+            ? `ส่งอีเมลยืนยันไปยัง ${email} เรียบร้อยแล้ว` 
+            : `สร้างผู้ใช้ ${email} สำเร็จ (พร้อมใช้งาน)` 
+    };
 
   } catch (error: any) {
     if (error.message?.includes('already been registered')) {
@@ -106,14 +145,55 @@ export async function createUser(formData: FormData) {
   }
 }
 
+// --- 4. Delete & Reactivate ---
 export async function deleteUser(userId: string) {
   try {
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    if (error) throw error;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id === userId) return { success: false, message: 'ไม่สามารถลบบัญชีของตัวเองได้' };
 
-    revalidatePath('/dashboard/settings');
-    return { success: true, message: 'ลบผู้ใช้สำเร็จ' };
+    // เช็คประวัติการใช้งาน
+    const { count } = await supabaseAdmin
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+    const hasHistory = count && count > 0;
+
+    if (hasHistory) {
+        // Soft Delete (Ban + Inactive)
+        await supabaseAdmin.from('user_roles').update({ is_active: false }).eq('user_id', userId);
+        
+        const banDuration = 100 * 365 * 24 * 60 * 60 + 's'; // ~100 years
+        const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: banDuration });
+        
+        if (banError) throw banError;
+
+        revalidatePath('/dashboard/settings');
+        return { success: true, message: 'ระงับการใช้งานผู้ใช้เรียบร้อย (มีประวัติในระบบ)' };
+    } else {
+        // Hard Delete (ลบถาวร)
+        await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
+        const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        if (error) throw error;
+
+        revalidatePath('/dashboard/settings');
+        return { success: true, message: 'ลบผู้ใช้ถาวรเรียบร้อย' };
+    }
   } catch (error: any) {
     return { success: false, message: error.message };
   }
+}
+
+export async function reactivateUser(userId: string) {
+    try {
+        // ปลดแบน + Active
+        await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: '0s' });
+        await supabaseAdmin.from('user_roles').update({ is_active: true }).eq('user_id', userId);
+        
+        revalidatePath('/dashboard/settings');
+        return { success: true, message: 'เปิดใช้งานผู้ใช้ใหม่อีกครั้งสำเร็จ' };
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
 }

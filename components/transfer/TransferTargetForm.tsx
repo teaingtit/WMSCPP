@@ -22,27 +22,26 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
   const [targetWarehouseId, setTargetWarehouseId] = useState('');
   const [transferQty, setTransferQty] = useState('');
   
-  // ✅ เปลี่ยนจากเก็บ lots/pos/levels แยกกัน มาเก็บแค่ผลลัพธ์สุดท้าย
   const [selectedTargetLocation, setSelectedTargetLocation] = useState<LocationData | null>(null);
 
-  // Logic: คำนวณ Warehouse ปลายทาง
   const effectiveWhId = activeTab === 'INTERNAL' ? currentWarehouseId : targetWarehouseId;
 
   const handleSubmit = async () => {
      if (!sourceStock) return toast.error("กรุณาเลือกสินค้าต้นทาง");
-     
-     // ✅ ตรวจสอบจาก Object ที่ได้จาก Component ใหม่
      if (!selectedTargetLocation) return toast.error("กรุณาระบุพิกัดปลายทางให้ครบ");
      
      const qty = Number(transferQty);
      if (!qty || qty <= 0 || qty > sourceStock.quantity) return toast.error("จำนวนสินค้าไม่ถูกต้อง");
 
      setSubmitting(true);
+     
+     // ✅ เพิ่ม targetLocationId ลงใน payload
      const payload = {
         stockId: sourceStock.id,
+        targetLocationId: selectedTargetLocation.id, // ส่ง ID โดยตรง
         targetLot: selectedTargetLocation.lot,
         targetCart: selectedTargetLocation.cart,
-        targetLevel: selectedTargetLocation.level, // ส่ง Level string ไปตาม API เดิม
+        targetLevel: selectedTargetLocation.level,
         transferQty: qty
      };
 
@@ -72,7 +71,6 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
              <MapPin size={20} className="text-indigo-600" /> 2. ระบุปลายทาง
           </h3>
 
-          {/* Cross Warehouse Select */}
           {activeTab === 'CROSS' && (
              <div className="mb-6">
                 <label className="text-xs font-bold text-slate-400 mb-1 block">DESTINATION WAREHOUSE</label>
@@ -88,7 +86,6 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
              </div>
           )}
 
-          {/* ✅ เรียกใช้ LocationSelector (แทน Dropdowns 3 อันเดิม) */}
           <div className="mb-6">
             <LocationSelector 
                 warehouseId={effectiveWhId}
@@ -97,14 +94,12 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
             />
           </div>
           
-          {/* Summary Label */}
           {selectedTargetLocation && (
              <div className="mb-4 text-center text-emerald-600 bg-emerald-50 p-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 animate-in fade-in zoom-in">
                 <CheckCircle2 size={14}/> Target: {selectedTargetLocation.lot}-{selectedTargetLocation.cart}-{selectedTargetLocation.level}
              </div>
           )}
 
-          {/* Quantity Input */}
           <div>
              <label className="text-xs font-bold text-slate-700 mb-2 block">QUANTITY</label>
              <div className="relative">

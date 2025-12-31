@@ -2,9 +2,9 @@
 
 import { createClient } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod'; // ใช้ Zod สำหรับ Validation (ตาม Best Practice)
+import { z } from 'zod';
 
-// --- 1. Validation Schema & Interfaces ---
+// --- Validation Schema ---
 const InboundSchema = z.object({
   warehouseId: z.string().min(1),
   locationId: z.string().uuid("Invalid Location ID"),
@@ -13,7 +13,6 @@ const InboundSchema = z.object({
   attributes: z.record(z.string(), z.any()).optional().default({}),
 });
 
-// Helper: Resolve Warehouse Code to ID
 async function resolveWarehouseId(supabase: any, warehouseId: string) {
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(warehouseId);
     if (isUUID) return warehouseId;
@@ -21,9 +20,8 @@ async function resolveWarehouseId(supabase: any, warehouseId: string) {
     return data ? data.id : null;
 }
 
-// --- 2. Data Fetching Functions (Getters) ---
+// --- Data Fetching ---
 
-// ✅ ADD: ดึงหมวดหมู่สินค้าทั้งหมด (สำหรับหน้าเมนูหลัก)
 export async function getProductCategories() {
   const supabase = await createClient();
   try {
@@ -32,7 +30,6 @@ export async function getProductCategories() {
   } catch (error) { return []; }
 }
 
-// ✅ ADD: ดึงรายละเอียดหมวดหมู่ (สำหรับหน้า Form) - *Fixes Error*
 export async function getCategoryDetail(categoryId: string) {
   const supabase = await createClient();
   try {
@@ -41,31 +38,27 @@ export async function getCategoryDetail(categoryId: string) {
   } catch (error) { return null; }
 }
 
-// ✅ ADD: ดึงตัวเลือกสินค้าในหมวดหมู่นั้น (สำหรับ Dropdown) - *Fixes Error*
 export async function getInboundOptions(warehouseId: string, categoryId: string) {
   const supabase = await createClient();
   try {
-    // ดึงสินค้าเฉพาะใน Category ที่เลือก
-    const { data: products } = await supabase
-      .from('products')
-      .select('*')
-      .eq('category_id', categoryId)
-      .order('name');
-
-    return {
-      products: products || []
-    };
-  } catch (error) {
-    return { products: [] };
-  }
+    const { data: products } = await supabase.from('products').select('*').eq('category_id', categoryId).order('name');
+    return { products: products || [] };
+  } catch (error) { return { products: [] }; }
 }
 
-// --- 3. Location Selectors (สำหรับ Dynamic Form) ---
+// --- Location Selectors (จุดที่แก้ไข) ---
+
 export async function getWarehouseLots(warehouseId: string) {
     const supabase = await createClient();
     const whId = await resolveWarehouseId(supabase, warehouseId);
     if (!whId) return [];
-    const { data } = await supabase.from('locations').select('lot').eq('warehouse_id', whId).eq('is_active', true).order('lot'); 
+    
+    const { data } = await supabase.from('locations')
+        .select('lot')
+        .eq('warehouse_id', whId)
+        .eq('is_active', true)
+        .order('lot'); // เรียงตาม Lot
+        
     return data ? Array.from(new Set(data.map(l => l.lot))).filter(Boolean) : [];
 }
 
@@ -73,7 +66,14 @@ export async function getCartsByLot(warehouseId: string, lot: string) {
     const supabase = await createClient();
     const whId = await resolveWarehouseId(supabase, warehouseId);
     if (!whId) return [];
-    const { data } = await supabase.from('locations').select('cart').eq('warehouse_id', whId).eq('lot', lot).eq('is_active', true).order('cart');
+    
+    const { data } = await supabase.from('locations')
+        .select('cart')
+        .eq('warehouse_id', whId)
+        .eq('lot', lot)
+        .eq('is_active', true)
+        .order('cart'); // เรียงตาม Cart/Position
+        
     return data ? Array.from(new Set(data.map(l => l.cart))).filter(Boolean) : [];
 }
 
@@ -81,22 +81,28 @@ export async function getLevelsByCart(warehouseId: string, lot: string, cart: st
     const supabase = await createClient();
     const whId = await resolveWarehouseId(supabase, warehouseId);
     if (!whId) return [];
-    const { data } = await supabase.from('locations').select('id, level, code, type').eq('warehouse_id', whId).eq('lot', lot).eq('cart', cart).eq('is_active', true).order('level');
+    
+    // ✅ FIX: เพิ่ม .not('level', 'is', null) และ .order('level')
+    const { data } = await supabase.from('locations')
+        .select('id, level, code, type')
+        .eq('warehouse_id', whId)
+        .eq('lot', lot)
+        .eq('cart', cart)
+        .eq('is_active', true)
+        .not('level', 'is', null) // กรองค่า Null ออก
+        .order('level', { ascending: true }); // เรียงลำดับ Level ให้ถูกต้อง
+
     return data || [];
 }
 
-// --- 4. Main Action (Submit) ---
+// --- Submit Action ---
 export async function submitInbound(rawData: any) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
   if (!user || !user.email) return { success: false, message: 'Unauthenticated' };
 
-  // Validate Data
   const validated = InboundSchema.safeParse(rawData);
-  if (!validated.success) {
-    return { success: false, message: 'Invalid Data', errors: validated.error.flatten().fieldErrors };
-  }
+  if (!validated.success) return { success: false, message: 'Invalid Data', errors: validated.error.flatten().fieldErrors };
 
   const { warehouseId, locationId, productId, quantity, attributes } = validated.data;
 
@@ -104,7 +110,6 @@ export async function submitInbound(rawData: any) {
     const whId = await resolveWarehouseId(supabase, warehouseId);
     if (!whId) throw new Error("Warehouse Not Found");
 
-    // Atomic RPC Call (ตัดสต็อก + บันทึก Log พร้อมกัน)
     const { data: rpcResult, error: rpcError } = await supabase.rpc('process_inbound_transaction', {
         p_warehouse_id: whId,
         p_location_id: locationId,
@@ -120,7 +125,6 @@ export async function submitInbound(rawData: any) {
 
     revalidatePath(`/dashboard/${warehouseId}/inventory`);
     revalidatePath(`/dashboard/${warehouseId}/history`);
-    
     return { success: true, message: `✅ รับสินค้าสำเร็จ (${quantity})` };
 
   } catch (error: any) {

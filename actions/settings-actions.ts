@@ -3,25 +3,38 @@
 import { createClient } from '@/lib/supabase-server';
 import { revalidatePath } from 'next/cache';
 
-// --- 1. Getters ---
+// --- 1. Getters (ดึงเฉพาะ Active) ---
+
 export async function getAllWarehousesForAdmin() {
   const supabase = await createClient();
   try {
-    const { data } = await supabase.from('warehouses').select('*').order('is_active', { ascending: false }).order('created_at', { ascending: true });
+    // ✅ FIX: ดึงเฉพาะคลังที่เปิดใช้งาน
+    const { data } = await supabase.from('warehouses')
+        .select('*')
+        .eq('is_active', true) 
+        .order('is_active', { ascending: false })
+        .order('created_at', { ascending: true });
     return data || [];
   } catch (error) { return []; }
 }
+
 export async function getCategories() {
   const supabase = await createClient();
   try {
+    // หมวดหมู่มักไม่ต้อง Soft Delete ซับซ้อน แต่ถ้าต้องการก็เพิ่ม .eq('is_active', true) ได้
     const { data } = await supabase.from('product_categories').select('*').order('id', { ascending: true });
     return data || [];
   } catch (error) { return []; }
 }
+
 export async function getProducts() {
   const supabase = await createClient();
   try {
-    const { data } = await supabase.from('products').select('*, category:product_categories(name)').order('created_at', { ascending: false });
+    // ✅ FIX: ดึงเฉพาะสินค้าที่ยังไม่ถูกลบ
+    const { data } = await supabase.from('products')
+        .select('*, category:product_categories(name)')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
     return data || [];
   } catch (error) { return []; }
 }
@@ -51,7 +64,8 @@ export async function createProduct(formData: FormData) {
       uom: formData.get('uom') as string || 'PCS',
       min_stock: Number(formData.get('min_stock')) || 0,
       image_url: formData.get('image_url') as string || null,
-      attributes: attributes
+      attributes: attributes,
+      is_active: true // ✅ Default เป็น True เสมอ
     });
 
     if (error) {
@@ -63,34 +77,73 @@ export async function createProduct(formData: FormData) {
   } catch (err: any) { return { success: false, message: err.message }; }
 }
 
+// ✅ RE-DESIGNED: Soft Delete Product
 export async function deleteProduct(formData: FormData) {
   const supabase = await createClient();
   const id = formData.get('id') as string;
+  
   try {
+    // 1. เช็คสินค้าคงเหลือ (ถ้ายังมีของอยู่ ห้ามลบเด็ดขาด!)
     const { count } = await supabase.from('stocks').select('*', { count: 'exact', head: true }).eq('product_id', id);
-    if (count && count > 0) return { success: false, message: '❌ ลบไม่ได้: มีสินค้าคงเหลือ' };
-    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (count && count > 0) return { success: false, message: '❌ ลบไม่ได้: มีสินค้าคงเหลือในสต็อก' };
+    
+    // 2. ดึงข้อมูลสินค้าเดิมเพื่อเอา SKU
+    const { data: product } = await supabase.from('products').select('sku').eq('id', id).single();
+    if (!product) return { success: false, message: 'ไม่พบสินค้า' };
+
+    // 3. ทำ Soft Delete + Rename SKU
+    // เราต้องแก้ชื่อ SKU เพื่อให้ User สามารถสร้างสินค้าใหม่ด้วย SKU เดิมได้ทันที
+    const archivedSku = `${product.sku}_DEL_${Date.now()}`; 
+
+    const { error } = await supabase.from('products')
+      .update({ 
+        is_active: false,
+        sku: archivedSku // เปลี่ยนชื่อ SKU เพื่อคืนค่าให้ระบบ
+      })
+      .eq('id', id);
+
     if (error) throw error;
+    
     revalidatePath('/dashboard/settings');
-    return { success: true, message: 'ลบสินค้าสำเร็จ' };
+    return { success: true, message: 'ลบสินค้าสำเร็จ (ย้ายไปถังขยะ)' };
+
   } catch (err: any) { return { success: false, message: err.message }; }
 }
 
-// ✅ UPDATED: Create Warehouse XYZ Grid
+// ✅ RE-DESIGNED: Soft Delete Warehouse
+export async function deleteWarehouse(formData: FormData) {
+  const supabase = await createClient();
+  const id = formData.get('id') as string;
+  try {
+    // 1. เช็คสินค้าคงเหลือ
+    const { count } = await supabase.from('stocks').select('*', { count: 'exact', head: true }).eq('warehouse_id', id);
+    if (count && count > 0) return { success: false, message: '❌ มีสินค้าคงเหลือ ลบไม่ได้' };
+    
+    // 2. Soft Delete (ปิดการใช้งาน)
+    const { error } = await supabase.from('warehouses')
+        .update({ is_active: false })
+        .eq('id', id);
+    
+    if (error) throw error;
+    
+    revalidatePath('/dashboard/settings');
+    revalidatePath('/dashboard');
+    return { success: true, message: 'ปิดใช้งานคลังสินค้าเรียบร้อย' };
+  } catch (err: any) { return { success: false, message: err.message }; }
+}
+
 export async function createWarehouse(formData: FormData) {
   const supabase = await createClient();
   
   const payload = {
     p_code: (formData.get('code') as string).trim().toUpperCase(),
     p_name: (formData.get('name') as string).trim(),
-    // รับค่าพิกัดใหม่
     p_axis_x: parseInt(formData.get('axis_x') as string) || 1, 
     p_axis_y: parseInt(formData.get('axis_y') as string) || 1, 
     p_axis_z: parseInt(formData.get('axis_z') as string) || 1, 
   };
 
   try {
-    // เรียก RPC ตัวใหม่ที่รองรับ Loop 3D
     const { data, error } = await supabase.rpc('create_warehouse_xyz_grid', payload);
 
     if (error) throw error;
@@ -107,24 +160,6 @@ export async function createWarehouse(formData: FormData) {
     console.error('RPC Error:', err);
     return { success: false, message: 'System Error: ' + err.message };
   }
-}
-
-export async function deleteWarehouse(formData: FormData) {
-  const supabase = await createClient();
-  const id = formData.get('id') as string;
-  try {
-    const { count } = await supabase.from('stocks').select('*', { count: 'exact', head: true }).eq('warehouse_id', id);
-    if (count && count > 0) return { success: false, message: '❌ มีสินค้าคงเหลือ ลบไม่ได้' };
-    
-    // ลบ Locations ก่อน
-    await supabase.from('locations').delete().eq('warehouse_id', id);
-    const { error } = await supabase.from('warehouses').delete().eq('id', id);
-    
-    if (error) throw error;
-    revalidatePath('/dashboard/settings');
-    revalidatePath('/dashboard');
-    return { success: true, message: 'ลบคลังสินค้าเรียบร้อย' };
-  } catch (err: any) { return { success: false, message: err.message }; }
 }
 
 export async function createCategory(formData: FormData) {

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { createUser, deleteUser } from '@/actions/user-actions';
+import { useState, useRef } from 'react';
+import { createUser, deleteUser, reactivateUser } from '@/actions/user-actions';
 import { Button } from '@/components/ui/button';
-import { Users, Trash2, Warehouse } from 'lucide-react';
+import { Users, Trash2, Warehouse, Mail, Lock, Unlock, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserManagerProps {
@@ -13,115 +13,215 @@ interface UserManagerProps {
 
 export default function UserManager({ users, warehouses }: UserManagerProps) {
   const [loading, setLoading] = useState(false);
+  const [inviteMode, setInviteMode] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleCreate(formData: FormData) {
     setLoading(true);
-    const result = await createUser(formData);
+    if (inviteMode) {
+        formData.set('verify_email', 'on');
+    }
+    
+    const result = await createUser(null, formData);
     setLoading(false);
     
     if (result.success) {
       toast.success(result.message);
-      // Reset Form (Simple way)
-      (document.getElementById('create-user-form') as HTMLFormElement).reset();
+      formRef.current?.reset();
+      setInviteMode(false);
     } else {
       toast.error(result.message);
     }
   }
 
   async function handleDelete(id: string) {
-    if(!confirm('ยืนยันที่จะลบผู้ใช้นี้?')) return;
+    if(!confirm('ยืนยันที่จะระงับ/ลบผู้ใช้นี้?')) return;
     
     const result = await deleteUser(id);
     if (result.success) toast.success(result.message);
     else toast.error(result.message);
   }
 
+  async function handleReactivate(id: string) {
+    if(!confirm('ยืนยันที่จะเปิดใช้งานผู้ใช้นี้อีกครั้ง?')) return;
+
+    const result = await reactivateUser(id);
+    if (result.success) toast.success(result.message);
+    else toast.error(result.message);
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
         
       {/* 1. Form สร้าง User */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Users size={20} className="text-indigo-600"/> เพิ่มผู้ใช้งานใหม่
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <Users className="text-indigo-600" size={20}/> เพิ่มผู้ใช้งานใหม่
         </h3>
         
-        <form id="create-user-form" action={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input name="email" type="email" placeholder="Email" required className="border p-2 rounded" />
-            <input name="password" type="password" placeholder="Password (min 6 chars)" required className="border p-2 rounded" />
-            
-           
-            <select 
-                name="role" 
-                aria-label="เลือกบทบาทผู้ใช้งาน"
-                className="border p-2 rounded focus:outline-indigo-500 bg-white" 
-                defaultValue="staff"
-            >    <option value="staff">Staff (Warehouse)</option>
-                <option value="admin">Admin (Full Access)</option>
-            </select>
+        <form ref={formRef} action={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Email */}
+            <div className="md:col-span-1">
+                <label htmlFor="email" className="block text-xs font-bold text-slate-500 mb-1">อีเมล (Email)</label>
+                <input 
+                    id="email"
+                    name="email" type="email" required 
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    placeholder="user@example.com"
+                />
+            </div>
 
-            {/* Checkbox เลือกคลัง (แสดงเฉพาะตอนเป็น Staff ก็ได้ แต่เพื่อความง่ายแสดงหมด) */}
-            <div className="md:col-span-2 border p-3 rounded bg-slate-50">
-                <p className="text-sm text-slate-500 mb-2 font-bold flex items-center gap-1">
-                    <Warehouse size={14}/> สิทธิ์เข้าถึงคลัง (สำหรับ Staff)
-                </p>
-                <div className="flex flex-wrap gap-3">
+            {/* Role */}
+            <div className="md:col-span-1">
+                <label htmlFor="role" className="block text-xs font-bold text-slate-500 mb-1">บทบาท (Role)</label>
+                <select 
+                    id="role"
+                    name="role" 
+                    aria-label="เลือกบทบาท" // ✅ FIX 1: เพิ่ม aria-label แก้ปัญหา A11y
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
+                >
+                    <option value="staff">Staff (พนักงานคลัง)</option>
+                    <option value="admin">Admin (ผู้ดูแลระบบ)</option>
+                </select>
+            </div>
+
+            {/* Password Section */}
+            <div className="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-100 transition-all">
+                <div className="flex items-center gap-3 mb-4">
+                    <input 
+                        type="checkbox" 
+                        id="verify_email" 
+                        name="verify_email"
+                        checked={inviteMode}
+                        onChange={(e) => setInviteMode(e.target.checked)}
+                        className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="verify_email" className="text-sm font-bold text-slate-700 cursor-pointer select-none">
+                        ส่งอีเมลเชิญ (ให้ User ตั้งรหัสผ่านเอง)
+                    </label>
+                </div>
+
+                {!inviteMode && (
+                    <div className="animate-in fade-in slide-in-from-top-2">
+                        <label htmlFor="password" className="block text-xs font-bold text-slate-500 mb-1">กำหนดรหัสผ่าน (Password)</label>
+                        <input 
+                            id="password"
+                            name="password" type="password" required={!inviteMode} minLength={6}
+                            className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            placeholder="ตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร..."
+                        />
+                        <p className="text-[10px] text-slate-400 mt-1">* หากไม่เลือกส่งอีเมล Admin ต้องแจ้งรหัสผ่านนี้ให้ผู้ใช้ทราบ</p>
+                    </div>
+                )}
+                
+                {inviteMode && (
+                    <div className="text-sm text-indigo-600 flex items-center gap-2 animate-in fade-in">
+                        <Mail size={16}/> ระบบจะส่งลิงก์ยืนยันตัวตนไปยังอีเมลที่ระบุ
+                    </div>
+                )}
+            </div>
+
+            {/* Warehouses */}
+            <div className="md:col-span-2">
+                {/* ✅ FIX 2: ลบ 'block' ออก เหลือแค่ 'flex' เพื่อแก้ CSS Conflict */}
+                <label className="text-xs font-bold text-slate-500 mb-2 flex items-center gap-2">
+                    <Warehouse size={14}/> คลังสินค้าที่เข้าถึงได้ (สำหรับ Staff)
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {warehouses.map(wh => (
-                        <label key={wh.id} className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="warehouses" value={wh.code} className="rounded text-indigo-600"/>
-                            <span className="text-sm">{wh.code} - {wh.name}</span>
+                        <label key={wh.id} className="flex items-center gap-2 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="checkbox" name="warehouses" value={wh.code} className="rounded text-indigo-600 focus:ring-indigo-500"/>
+                            <span className="text-sm font-medium text-slate-700">{wh.code}</span>
                         </label>
                     ))}
                 </div>
             </div>
 
             <div className="md:col-span-2">
-                <Button disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700">
-                    {loading ? 'Processing...' : '+ Create User'}
+                <Button disabled={loading} className="w-full py-6 text-lg font-bold bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200">
+                    {loading ? <RefreshCw className="animate-spin" /> : (inviteMode ? 'ส่งคำเชิญ (Send Invite)' : 'สร้างผู้ใช้ (Create User)')}
                 </Button>
             </div>
         </form>
       </div>
 
-      {/* 2. User List */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 border-b">
-                <tr>
-                    <th className="p-4 font-semibold">Email</th>
-                    <th className="p-4 font-semibold">Role</th>
-                    <th className="p-4 font-semibold">Warehouses</th>
-                    <th className="p-4 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y">
-                {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50">
-                        <td className="p-4 font-medium">{u.email}</td>
-                        <td className="p-4">
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>
-                                {u.role.toUpperCase()}
-                            </span>
-                        </td>
-                        <td className="p-4 text-slate-500">
-                            {u.role === 'admin' ? 'ALL' : u.allowed_warehouses.join(', ') || '-'}
-                        </td>
-                        <td className="p-4 text-right">
-                             <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => handleDelete(u.id)}
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                             >
-                                <Trash2 size={16}/>
-                             </Button>
-                        </td>
+      {/* 2. User List Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+             <h3 className="font-bold text-slate-800">รายชื่อผู้ใช้งาน ({users.length})</h3>
+        </div>
+        
+        <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+                    <tr>
+                        <th className="p-4">Email</th>
+                        <th className="p-4">Role</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4">Warehouses</th>
+                        <th className="p-4 text-right">Actions</th>
                     </tr>
-                ))}
-                {users.length === 0 && (
-                    <tr><td colSpan={4} className="p-8 text-center text-slate-400">ไม่พบข้อมูลผู้ใช้</td></tr>
-                )}
-            </tbody>
-        </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                    {users.map((u) => {
+                        const isBanned = u.is_banned || !u.is_active;
+                        return (
+                            <tr key={u.id} className={`hover:bg-slate-50 transition-colors ${isBanned ? 'bg-red-50/50 grayscale-[0.5]' : ''}`}>
+                                <td className="p-4 font-medium flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${isBanned ? 'bg-red-400' : 'bg-emerald-400'}`}></div>
+                                    {u.email}
+                                </td>
+                                <td className="p-4">
+                                    <span className={`px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>
+                                        {u.role.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td className="p-4">
+                                    {isBanned ? (
+                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-600">
+                                            <Lock size={12}/> Suspended
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-600">
+                                            Active
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="p-4 text-slate-500">
+                                    {u.role === 'admin' ? 'ALL' : u.allowed_warehouses.join(', ') || '-'}
+                                </td>
+                                <td className="p-4 text-right">
+                                     {isBanned ? (
+                                         <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => handleReactivate(u.id)}
+                                            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1 font-bold"
+                                            title="เปิดใช้งานอีกครั้ง"
+                                         >
+                                            <Unlock size={16}/> Reactivate
+                                         </Button>
+                                     ) : (
+                                         <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => handleDelete(u.id)}
+                                            className="text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                            title="ระงับการใช้งาน / ลบ"
+                                         >
+                                            <Trash2 size={16}/>
+                                         </Button>
+                                     )}
+                                </td>
+                            </tr>
+                        );
+                    })}
+                    {users.length === 0 && (
+                        <tr><td colSpan={5} className="p-8 text-center text-slate-400">ไม่พบข้อมูลผู้ใช้</td></tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
       </div>
 
     </div>

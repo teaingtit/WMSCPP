@@ -10,6 +10,9 @@ export interface Product {
   min_stock: number;
   image_url?: string;
   created_at?: string;
+  is_active: boolean;
+  attributes?: Record<string, any>;
+  category?: string;
 }
 
 export interface Location {
