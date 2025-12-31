@@ -3,28 +3,12 @@
 import React from 'react';
 import { X, ArrowRightLeft, Truck, Package, MapPin, Calendar, Ruler } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-interface StockData {
-  id: string;
-  quantity: number;
-  updated_at: string;
-  products: {
-    sku: string;
-    name: string;
-    uom: string;
-    category_id: string;
-    min_stock: number;
-  };
-  locations: {
-    code: string;
-  };
-}
+import { StockWithDetails } from '@/types/inventory'; // ✅ Import Type กลาง
 
 interface StockDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // 🟢 เปลี่ยนจาก any เป็น Type ที่ถูกต้อง
-  item: StockData | null; 
+  item: StockWithDetails | null; // ✅ ใช้ Type ที่ถูกต้อง
   warehouseId: string;
 }
 

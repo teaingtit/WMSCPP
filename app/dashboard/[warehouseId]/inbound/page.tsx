@@ -1,7 +1,7 @@
 // app/dashboard/[warehouseId]/inbound/page.tsx
 import React from 'react';
 import Link from 'next/link';
-import { getProductCategories } from '@/actions/inbound-actions';
+import { getProductCategories } from '@/actions/inbound-actions'; // ✅ Import จะทำงานได้แล้ว
 import { Box, Container, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface PageProps {
@@ -9,10 +9,7 @@ interface PageProps {
 }
 
 export default async function InboundMenuPage({ params }: PageProps) {
-  // สำหรับ Next.js 14 params เป็น object ปกติ ไม่ต้อง await
   const { warehouseId } = params;
-
-  // เรียก Server Action
   const categories = await getProductCategories();
 
   return (

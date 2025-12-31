@@ -1,39 +1,22 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronRight, Truck, ArrowRightLeft, CheckSquare, Square, Package, ShoppingCart, Grid3X3 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Truck, ArrowRightLeft, CheckSquare, Square, Package, Grid3X3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import SearchInput from '@/components/ui/SearchInput';
 import ExportButton from './ExportButton';
-
-// --- Types ---
-interface StockItem {
-  id: string;
-  quantity: number;
-  products: {
-    sku: string;
-    name: string;
-    uom: string;
-  };
-  locations: {
-    code: string;
-    lot: string | null;
-    cart: string | null; // Database column name is 'cart', but conceptually 'position'
-  };
-}
+import { StockWithDetails } from '@/types/inventory'; // ✅ Import Type กลาง
 
 interface InventoryDashboardProps {
-  stocks: any[]; 
+  stocks: StockWithDetails[]; // ✅ ใช้ Type ที่ถูกต้อง
   warehouseId: string;
 }
 
-// --- Hierarchy Helper ---
-const buildHierarchy = (stocks: StockItem[]) => {
-  const hierarchy: Record<string, Record<string, StockItem[]>> = {};
+const buildHierarchy = (stocks: StockWithDetails[]) => {
+  const hierarchy: Record<string, Record<string, StockWithDetails[]>> = {};
 
   stocks.forEach(item => {
     const lotKey = item.locations.lot || 'Unassigned';
-    // Group by Position (stored in 'cart' column)
     const posKey = item.locations.cart || 'No Position';
 
     if (!hierarchy[lotKey]) hierarchy[lotKey] = {};
@@ -47,15 +30,13 @@ const buildHierarchy = (stocks: StockItem[]) => {
 
 export default function InventoryDashboard({ stocks, warehouseId }: InventoryDashboardProps) {
   const router = useRouter();
-  
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const initialHierarchy = useMemo(() => buildHierarchy(stocks as StockItem[]), [stocks]);
+  const initialHierarchy = useMemo(() => buildHierarchy(stocks), [stocks]);
   const [expandedLots, setExpandedLots] = useState<Set<string>>(new Set(Object.keys(initialHierarchy)));
 
   const hierarchy = initialHierarchy;
   const lotKeys = Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  // Fix: Explicitly return boolean
   const isLotSelected = (lot: string): boolean => {
     const positions = hierarchy[lot];
     if (!positions) return false;
@@ -153,7 +134,6 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
           
           return (
             <div key={lot} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              {/* Lot Header */}
               <div 
                 className="flex items-center gap-4 p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors select-none"
                 onClick={() => toggleExpand(lot)}
@@ -171,11 +151,9 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
                 </div>
               </div>
 
-              {/* Positions List */}
               {isExpanded && (
                 <div className="divide-y divide-slate-100">
                   {posKeys.map(pos => {
-                    // Safe access with default empty array
                     const itemsInPos = positions[pos] || [];
                     const firstItem = itemsInPos[0];
 
@@ -183,7 +161,6 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
                       <div key={pos} className="p-4 pl-12 bg-white">
                         <div className="flex items-center gap-3 mb-3">
                            <Checkbox checked={isPosSelected(lot, pos)} onClick={() => togglePos(lot, pos)} />
-                           {/* Position Icon */}
                            <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1 rounded-lg">
                                <Grid3X3 size={16} className="text-indigo-500" />
                                <span className="font-bold text-indigo-700">{pos}</span> 
@@ -226,7 +203,6 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
         })}
       </div>
 
-      {/* Action Bar */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-6 z-50">
            <div className="flex items-center gap-3">
