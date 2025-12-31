@@ -5,7 +5,8 @@ import { requireAdmin } from '@/lib/auth-service';
 import { getAllWarehousesForAdmin, getCategories, getProducts } from '@/actions/settings-actions';
 import { getUsers } from '@/actions/user-actions';
 
-import { WarehouseManager, CategoryManager } from '@/components/settings/SettingsForms';
+import { WarehouseManager } from '@/components/settings/WarehouseManager';
+import { CategoryManager } from '@/components/settings/CategoryManager';
 import UserManager from '@/components/settings/UserManager';
 import ProductManager from '@/components/settings/ProductManager'; // ✅ Component ใหม่
 import { Settings, Boxes, Tags, Users, Package } from 'lucide-react';

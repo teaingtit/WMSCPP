@@ -1,17 +1,20 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronRight, Truck, ArrowRightLeft, CheckSquare, Square, Package, Grid3X3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Package } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
 import ExportButton from './ExportButton';
-import { StockWithDetails } from '@/types/inventory'; // ✅ Import Type กลาง
+import { StockWithDetails } from '@/types/inventory';
+import { StockLotSection } from './dashboard/StockLotSection';
+import { BulkActionBar } from './dashboard/BulkActionBar';
 
 interface InventoryDashboardProps {
-  stocks: StockWithDetails[]; // ✅ ใช้ Type ที่ถูกต้อง
+  stocks: StockWithDetails[];
   warehouseId: string;
 }
 
+// Helper: จัดกลุ่มสินค้าตาม Lot -> Position
 const buildHierarchy = (stocks: StockWithDetails[]) => {
   const hierarchy: Record<string, Record<string, StockWithDetails[]>> = {};
 
@@ -31,30 +34,32 @@ const buildHierarchy = (stocks: StockWithDetails[]) => {
 export default function InventoryDashboard({ stocks, warehouseId }: InventoryDashboardProps) {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const initialHierarchy = useMemo(() => buildHierarchy(stocks), [stocks]);
-  const [expandedLots, setExpandedLots] = useState<Set<string>>(new Set(Object.keys(initialHierarchy)));
 
-  const hierarchy = initialHierarchy;
+  // 1. Prepare Data
+  const hierarchy = useMemo(() => buildHierarchy(stocks), [stocks]);
   const lotKeys = Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  const isLotSelected = (lot: string): boolean => {
+  // --- Toggle Logic Helpers ---
+  const isLotSelected = (lot: string) => {
     const positions = hierarchy[lot];
     if (!positions) return false;
     const allItems = Object.values(positions).flat();
     return allItems.length > 0 && allItems.every(item => selectedIds.has(item.id));
   };
 
-  const isPosSelected = (lot: string, pos: string): boolean => {
+  const isPosSelected = (lot: string, pos: string) => {
     const items = hierarchy[lot]?.[pos];
     return !!items && items.length > 0 && items.every(item => selectedIds.has(item.id));
   };
 
+  // --- Handlers ---
   const toggleLot = (lot: string) => {
     const positions = hierarchy[lot];
     if (!positions) return;
     const allItems = Object.values(positions).flat();
     const allIds = allItems.map(i => i.id);
     const isAll = isLotSelected(lot);
+
     const newSet = new Set(selectedIds);
     if (isAll) allIds.forEach(id => newSet.delete(id));
     else allIds.forEach(id => newSet.add(id));
@@ -66,6 +71,7 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
     if (!items) return;
     const ids = items.map(i => i.id);
     const isAll = isPosSelected(lot, pos);
+
     const newSet = new Set(selectedIds);
     if (isAll) ids.forEach(id => newSet.delete(id));
     else ids.forEach(id => newSet.add(id));
@@ -79,13 +85,6 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
     setSelectedIds(newSet);
   };
 
-  const toggleExpand = (lot: string) => {
-    const newSet = new Set(expandedLots);
-    if (newSet.has(lot)) newSet.delete(lot);
-    else newSet.add(lot);
-    setExpandedLots(newSet);
-  };
-
   const handleBulkAction = (action: 'transfer' | 'outbound') => {
     const idsArray = Array.from(selectedIds);
     if (idsArray.length === 0) return;
@@ -94,14 +93,9 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
     router.push(`/dashboard/${warehouseId}/${action}?${params.toString()}`);
   };
 
-  const Checkbox = ({ checked, onClick, className }: { checked: boolean, onClick: (e: React.MouseEvent) => void, className?: string }) => (
-    <div onClick={(e) => { e.stopPropagation(); onClick(e); }} className={`cursor-pointer transition-colors ${className}`}>
-      {checked ? <CheckSquare className="text-indigo-600" size={20} /> : <Square className="text-slate-300" size={20} />}
-    </div>
-  );
-
   return (
     <div className="space-y-6">
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
          <div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-3">
@@ -121,100 +115,30 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
          </div>
       </div>
 
+      {/* Main Content: Loop Render Lots */}
       <div className="space-y-4">
         {stocks.length === 0 && (
           <div className="text-center py-12 text-slate-400">ไม่พบรายการสินค้า</div>
         )}
 
-        {lotKeys.map(lot => {
-          const positions = hierarchy[lot] || {}; 
-          const posKeys = Object.keys(positions).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-          const isExpanded = expandedLots.has(lot);
-          const totalItemsInLot = Object.values(positions).flat().length;
-          
-          return (
-            <div key={lot} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div 
-                className="flex items-center gap-4 p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors select-none"
-                onClick={() => toggleExpand(lot)}
-              >
-                <button aria-label="Expand lot">
-                    {isExpanded ? <ChevronDown size={20} className="text-slate-400"/> : <ChevronRight size={20} className="text-slate-400"/>}
-                </button>
-                <Checkbox checked={isLotSelected(lot)} onClick={() => toggleLot(lot)} />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lot / Zone</div>
-                  <div className="font-bold text-lg text-slate-800">{lot}</div>
-                </div>
-                <div className="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200 text-slate-500">
-                   {totalItemsInLot} Items
-                </div>
-              </div>
-
-              {isExpanded && (
-                <div className="divide-y divide-slate-100">
-                  {posKeys.map(pos => {
-                    const itemsInPos = positions[pos] || [];
-                    const firstItem = itemsInPos[0];
-
-                    return (
-                      <div key={pos} className="p-4 pl-12 bg-white">
-                        <div className="flex items-center gap-3 mb-3">
-                           <Checkbox checked={isPosSelected(lot, pos)} onClick={() => togglePos(lot, pos)} />
-                           <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1 rounded-lg">
-                               <Grid3X3 size={16} className="text-indigo-500" />
-                               <span className="font-bold text-indigo-700">{pos}</span> 
-                           </div>
-                           
-                           {firstItem && (
-                             <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded ml-2 font-mono">
-                                Code: {firstItem.locations.code}
-                             </span>
-                           )}
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 ml-8">
-                           {itemsInPos.map(item => {
-                              const isSelected = selectedIds.has(item.id);
-                              return (
-                                <div 
-                                  key={item.id} 
-                                  onClick={() => toggleItem(item.id)}
-                                  className={`relative flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200' : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-sm'}`}
-                                >
-                                   <Checkbox checked={isSelected} onClick={() => toggleItem(item.id)} className="shrink-0" />
-                                   <div className="min-w-0">
-                                      <div className="text-xs font-bold text-slate-500 truncate">{item.products.sku}</div>
-                                      <div className="text-sm font-bold text-slate-800 truncate">{item.products.name}</div>
-                                      <div className="text-xs text-slate-400 mt-1">
-                                         Qty: <span className="text-indigo-600 font-bold">{item.quantity}</span> {item.products.uom}
-                                      </div>
-                                   </div>
-                                </div>
-                              );
-                           })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {lotKeys.map(lot => (
+            <StockLotSection 
+                key={lot}
+                lot={lot}
+                positions={hierarchy[lot] || {}} // ✅ แก้ไขตรงนี้: ใส่ || {} เพื่อกัน undefined
+                selectedIds={selectedIds}
+                onToggleLot={toggleLot}
+                onTogglePos={togglePos}
+                onToggleItem={toggleItem}
+            />
+        ))}
       </div>
 
-      {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-6 z-50">
-           <div className="flex items-center gap-3">
-              <div className="bg-indigo-500 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">{selectedIds.size}</div>
-              <div className="flex flex-col"><span className="font-bold text-sm">Selected Items</span><span className="text-xs text-slate-400">พร้อมดำเนินการ</span></div>
-           </div>
-           <div className="flex items-center gap-2">
-              <button onClick={() => handleBulkAction('transfer')} className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-bold text-sm transition-colors"><ArrowRightLeft size={16} /> Transfer</button>
-              <button onClick={() => handleBulkAction('outbound')} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold text-sm transition-colors shadow-lg shadow-indigo-900/50"><Truck size={16} /> Outbound</button>
-           </div>
-        </div>
-      )}
+      {/* Footer Action Bar */}
+      <BulkActionBar 
+        selectedCount={selectedIds.size} 
+        onAction={handleBulkAction} 
+      />
     </div>
   );
 }
