@@ -36,11 +36,11 @@ export default function DynamicInboundForm({
 
   // --- Coordinate Selector ---
   const [lots, setLots] = useState<string[]>([]);
-  const [carts, setCarts] = useState<string[]>([]);
+  const [positions, setPositions] = useState<string[]>([]); // เปลี่ยนจาก carts เป็น positions
   const [levels, setLevels] = useState<any[]>([]); 
 
   const [selectedLot, setSelectedLot] = useState('');
-  const [selectedCart, setSelectedCart] = useState('');
+  const [selectedPos, setSelectedPos] = useState(''); // เปลี่ยนจาก selectedCart เป็น selectedPos
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [loadingLocs, setLoadingLocs] = useState(false);
 
@@ -55,30 +55,30 @@ export default function DynamicInboundForm({
     initLots();
   }, [warehouseId]);
 
-  // 2. Lot -> Carts
+  // 2. Lot -> Positions
   const handleLotChange = async (lot: string) => {
       setSelectedLot(lot);
-      setSelectedCart('');
+      setSelectedPos('');
       setSelectedLocation(null);
-      setCarts([]);
+      setPositions([]);
       
       if(lot) {
           setLoadingLocs(true);
-          const res = await getCartsByLot(warehouseId, lot);
-          setCarts(res);
+          const res = await getCartsByLot(warehouseId, lot); // Backend ยังใช้ชื่อ func เดิมได้
+          setPositions(res);
           setLoadingLocs(false);
       }
   };
 
-  // 3. Cart -> Levels
-  const handleCartChange = async (cart: string) => {
-      setSelectedCart(cart);
+  // 3. Position -> Levels
+  const handlePosChange = async (pos: string) => {
+      setSelectedPos(pos);
       setSelectedLocation(null);
       setLevels([]);
 
-      if(cart && selectedLot) {
+      if(pos && selectedLot) {
           setLoadingLocs(true);
-          const res = await getLevelsByCart(warehouseId, selectedLot, cart);
+          const res = await getLevelsByCart(warehouseId, selectedLot, pos);
           setLevels(res);
           setLoadingLocs(false);
       }
@@ -105,7 +105,7 @@ export default function DynamicInboundForm({
         setQuantity('');
         setAttributes({});
         setSelectedLocation(null);
-        setSelectedCart('');
+        setSelectedPos('');
     } else {
         toast.error(result.message);
     }
@@ -152,7 +152,6 @@ export default function DynamicInboundForm({
                             <div className="font-bold text-indigo-900">{selectedProduct.name}</div>
                             <div className="text-xs text-indigo-500">{selectedProduct.sku}</div>
                         </div>
-                        {/* ✅ FIX: เพิ่ม aria-label title เพื่อแก้ Accessibility Error */}
                         <button 
                             type="button" 
                             onClick={() => setSelectedProduct(null)} 
@@ -199,7 +198,7 @@ export default function DynamicInboundForm({
                 <div className="flex flex-col gap-4">
                     {/* Step 1: LOT */}
                     <div className="grid grid-cols-3 items-center gap-4">
-                        <label htmlFor="lot-select" className="font-bold text-slate-500 text-right">LOT (แถว)</label>
+                        <label htmlFor="lot-select" className="font-bold text-slate-500 text-right">LOT (โซน)</label>
                         <select 
                             id="lot-select" 
                             className="col-span-2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-lg outline-none focus:ring-2 ring-indigo-500/20 cursor-pointer"
@@ -211,23 +210,23 @@ export default function DynamicInboundForm({
                         </select>
                     </div>
 
-                    {/* Step 2: CART */}
+                    {/* Step 2: POSITION (แก้ไข Label) */}
                     <div className={`grid grid-cols-3 items-center gap-4 transition-all duration-300 ${!selectedLot ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
-                        <label htmlFor="cart-select" className="font-bold text-slate-500 text-right">CART (แคร่)</label>
+                        <label htmlFor="pos-select" className="font-bold text-slate-500 text-right">POSITION (ตำแหน่ง)</label>
                         <select 
-                            id="cart-select"
+                            id="pos-select"
                             className="col-span-2 p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-lg outline-none focus:ring-2 ring-indigo-500/20 cursor-pointer"
-                            value={selectedCart}
-                            onChange={(e) => handleCartChange(e.target.value)}
+                            value={selectedPos}
+                            onChange={(e) => handlePosChange(e.target.value)}
                             disabled={!selectedLot}
                         >
-                            <option value="">-- เลือก Cart --</option>
-                            {carts.map(c => <option key={c} value={c}>{c}</option>)}
+                            <option value="">-- เลือก Position --</option>
+                            {positions.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
 
                     {/* Step 3: LEVEL */}
-                    <div className={`mt-4 transition-all duration-300 ${!selectedCart ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+                    <div className={`mt-4 transition-all duration-300 ${!selectedPos ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
                         <div className="block text-center text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">เลือกชั้น (Level)</div>
                         {loadingLocs ? (
                              <div className="flex justify-center p-6"><Loader2 className="animate-spin text-indigo-500" size={30}/></div>
@@ -253,7 +252,7 @@ export default function DynamicInboundForm({
                                 ))}
                             </div>
                         )}
-                         {levels.length === 0 && selectedCart && !loadingLocs && (
+                         {levels.length === 0 && selectedPos && !loadingLocs && (
                             <div className="text-center text-rose-500 text-sm mt-4 p-2 bg-rose-50 rounded-lg border border-rose-100">
                                 ❌ ไม่พบชั้นวางในพิกัดนี้
                             </div>
@@ -266,7 +265,7 @@ export default function DynamicInboundForm({
                         <div>
                             <div className="text-xs text-slate-400 font-bold uppercase">Target Location</div>
                             <div className="text-xl font-bold font-mono tracking-wider">
-                                {selectedLot}-{selectedCart}-{selectedLocation.level}
+                                {selectedLot}-{selectedPos}-{selectedLocation.level}
                             </div>
                         </div>
                         <div className="text-right">

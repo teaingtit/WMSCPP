@@ -1,21 +1,18 @@
-// components/settings/SettingsForms.tsx
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
 import { useFormState } from 'react-dom';
 import { createWarehouse, createCategory, deleteWarehouse, deleteCategory } from '@/actions/settings-actions';
-import { Save, Trash2, Building2, Plus, Box } from 'lucide-react';
+import { Save, Trash2, Building2, Plus, Grid3X3 } from 'lucide-react'; // ใช้ Grid3X3 ไอคอนใหม่
 import SchemaBuilder from './SchemaBuilder';
 import { SubmitButton } from '../SubmitButton';
 
-// Initial State
 const initialState = { success: false, message: '' };
 
 // --- Warehouse Manager ---
 export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
   const formRef = useRef<HTMLFormElement>(null);
 
-  // ✅ FIX: สร้าง Wrapper รับ (prevState, formData) เพื่อให้ตรงกับ Type ของ useFormState
   const [createState, createAction] = useFormState(async (_prev: any, formData: FormData) => {
     return await createWarehouse(formData);
   }, initialState);
@@ -24,7 +21,6 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
     return await deleteWarehouse(formData);
   }, initialState);
 
-  // Effect Handle Result
   useEffect(() => {
     if (createState.message) {
       if (createState.success) {
@@ -61,25 +57,30 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
             </div>
         </div>
 
-        {/* 3D Config */}
+        {/* 3D Config (แก้ไขใหม่) */}
         <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
              <h4 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                <Box size={16} className="text-indigo-500"/>
-                โครงสร้างพิกัด (Grid Structure)
+                <Grid3X3 size={16} className="text-indigo-500"/>
+                โครงสร้างพิกัด 3 มิติ (3D Grid Structure)
              </h4>
              <div className="grid grid-cols-3 gap-6">
                 <div>
-                   {/* ✅ FIX: เพิ่ม htmlFor และ id แก้ปัญหา Accessibility */}
-                   <label htmlFor="max_lots" className="block text-xs font-bold text-slate-400 mb-1 text-center">LOT (แถว)</label>
-                   <input id="max_lots" type="number" name="max_lots" defaultValue="5" min="1" max="50" required className="w-full p-3 border rounded-xl text-center font-bold text-slate-700" />
+                   {/* เปลี่ยน name เป็น axis_x */}
+                   <label htmlFor="axis_x" className="block text-xs font-bold text-slate-400 mb-1 text-center">แกน X (Lot/Zone)</label>
+                   <input id="axis_x" type="number" name="axis_x" defaultValue="5" min="1" max="50" required className="w-full p-3 border rounded-xl text-center font-bold text-slate-700 focus:ring-2 ring-indigo-500/20 outline-none" />
+                   <p className="text-[10px] text-slate-400 text-center mt-1">จำนวนแถว</p>
                 </div>
                 <div>
-                   <label htmlFor="max_carts" className="block text-xs font-bold text-slate-400 mb-1 text-center">CART (ตะกร้า)</label>
-                   <input id="max_carts" type="number" name="max_carts" defaultValue="10" min="1" max="100" required className="w-full p-3 border rounded-xl text-center font-bold text-slate-700" />
+                   {/* เปลี่ยน name เป็น axis_y */}
+                   <label htmlFor="axis_y" className="block text-xs font-bold text-slate-400 mb-1 text-center">แกน Y (Position)</label>
+                   <input id="axis_y" type="number" name="axis_y" defaultValue="10" min="1" max="100" required className="w-full p-3 border rounded-xl text-center font-bold text-slate-700 focus:ring-2 ring-emerald-500/20 outline-none" />
+                   <p className="text-[10px] text-slate-400 text-center mt-1">ความลึก (ช่องเก็บ)</p>
                 </div>
                 <div>
-                   <label htmlFor="max_levels" className="block text-xs font-bold text-indigo-500 mb-1 text-center">LEVEL (ชั้น)</label>
-                   <input id="max_levels" type="number" name="max_levels" defaultValue="3" min="1" max="10" required className="w-full p-3 border-2 border-indigo-100 bg-white rounded-xl text-center font-bold text-indigo-700 shadow-sm" />
+                   {/* เปลี่ยน name เป็น axis_z */}
+                   <label htmlFor="axis_z" className="block text-xs font-bold text-indigo-500 mb-1 text-center">แกน Z (Level)</label>
+                   <input id="axis_z" type="number" name="axis_z" defaultValue="3" min="1" max="10" required className="w-full p-3 border-2 border-indigo-100 bg-white rounded-xl text-center font-bold text-indigo-700 shadow-sm focus:ring-2 ring-indigo-500/20 outline-none" />
+                   <p className="text-[10px] text-slate-400 text-center mt-1">ความสูง (ชั้น)</p>
                 </div>
              </div>
         </div>
@@ -104,7 +105,17 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
                         </div>
                         <div>
                             <div className="font-bold text-slate-700">{wh.name}</div>
-                            <div className="text-xs text-slate-400 font-mono bg-slate-50 px-1.5 py-0.5 rounded inline-block mt-1 border border-slate-100">{wh.code}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-slate-400 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">{wh.code}</span>
+                                {/* แสดง Config Grid */}
+                                {wh.config && (
+                                    <span className="text-[10px] text-slate-400 flex gap-1 bg-slate-50 px-1 rounded">
+                                        <span>X:{wh.config.axis_x}</span>
+                                        <span>Y:{wh.config.axis_y}</span>
+                                        <span>Z:{wh.config.axis_z}</span>
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <form action={deleteAction}>
@@ -128,9 +139,8 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
   );
 };
 
-// --- Category Manager ---
+// --- Category Manager (เหมือนเดิม) ---
 export const CategoryManager = ({ categories }: { categories: any[] }) => {
-  // ✅ FIX: Wrapper เหมือนด้านบน
   const [createState, createAction] = useFormState(async (_prev: any, formData: FormData) => {
     return await createCategory(formData);
   }, initialState);

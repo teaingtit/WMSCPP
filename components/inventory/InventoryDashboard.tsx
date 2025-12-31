@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronRight, Truck, ArrowRightLeft, CheckSquare, Square, Package, ShoppingCart } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, Truck, ArrowRightLeft, CheckSquare, Square, Package, ShoppingCart, Grid3X3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import SearchInput from '@/components/ui/SearchInput';
-import ExportButton from './ExportButton'; // ✅ FIX 3: Import ปุ่ม Export
+import ExportButton from './ExportButton';
 
 // --- Types ---
 interface StockItem {
@@ -15,11 +15,10 @@ interface StockItem {
     name: string;
     uom: string;
   };
-  // ✅ FIX 4: อัปเดต Type ให้ตรงกับ Query ใหม่
   locations: {
     code: string;
     lot: string | null;
-    cart: string | null;
+    cart: string | null; // Database column name is 'cart', but conceptually 'position'
   };
 }
 
@@ -33,14 +32,14 @@ const buildHierarchy = (stocks: StockItem[]) => {
   const hierarchy: Record<string, Record<string, StockItem[]>> = {};
 
   stocks.forEach(item => {
-    // ✅ FIX 5: ดึงค่าจาก locations แทน stocks โดยตรง
-    const lotKey = item.locations.lot || 'Unassigned Lot';
-    const cartKey = item.locations.cart || 'No Cart';
+    const lotKey = item.locations.lot || 'Unassigned';
+    // Group by Position (stored in 'cart' column)
+    const posKey = item.locations.cart || 'No Position';
 
     if (!hierarchy[lotKey]) hierarchy[lotKey] = {};
-    if (!hierarchy[lotKey][cartKey]) hierarchy[lotKey][cartKey] = [];
+    if (!hierarchy[lotKey][posKey]) hierarchy[lotKey][posKey] = [];
     
-    hierarchy[lotKey][cartKey].push(item);
+    hierarchy[lotKey][posKey].push(item);
   });
 
   return hierarchy;
@@ -50,31 +49,29 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
   const router = useRouter();
   
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  // Fix initial state logic to handle generic type casting safely
   const initialHierarchy = useMemo(() => buildHierarchy(stocks as StockItem[]), [stocks]);
   const [expandedLots, setExpandedLots] = useState<Set<string>>(new Set(Object.keys(initialHierarchy)));
 
   const hierarchy = initialHierarchy;
   const lotKeys = Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  // ... (Selection Logic: isLotSelected, toggleLot, etc. ใช้โค้ดเดิมได้เลยครับ ไม่ต้องแก้ Logic) ...
-  const isLotSelected = (lot: string) => {
-    const carts = hierarchy[lot];
-    if (!carts) return false;
-    const allItems = Object.values(carts).flat();
+  // Fix: Explicitly return boolean
+  const isLotSelected = (lot: string): boolean => {
+    const positions = hierarchy[lot];
+    if (!positions) return false;
+    const allItems = Object.values(positions).flat();
     return allItems.length > 0 && allItems.every(item => selectedIds.has(item.id));
   };
 
-  const isCartSelected = (lot: string, cart: string) => {
-    const items = hierarchy[lot]?.[cart];
-    if (!items) return false;
-    return items.length > 0 && items.every(item => selectedIds.has(item.id));
+  const isPosSelected = (lot: string, pos: string): boolean => {
+    const items = hierarchy[lot]?.[pos];
+    return !!items && items.length > 0 && items.every(item => selectedIds.has(item.id));
   };
 
   const toggleLot = (lot: string) => {
-    const carts = hierarchy[lot];
-    if (!carts) return;
-    const allItems = Object.values(carts).flat();
+    const positions = hierarchy[lot];
+    if (!positions) return;
+    const allItems = Object.values(positions).flat();
     const allIds = allItems.map(i => i.id);
     const isAll = isLotSelected(lot);
     const newSet = new Set(selectedIds);
@@ -83,11 +80,11 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
     setSelectedIds(newSet);
   };
 
-  const toggleCart = (lot: string, cart: string) => {
-    const items = hierarchy[lot]?.[cart];
+  const togglePos = (lot: string, pos: string) => {
+    const items = hierarchy[lot]?.[pos];
     if (!items) return;
     const ids = items.map(i => i.id);
-    const isAll = isCartSelected(lot, cart);
+    const isAll = isPosSelected(lot, pos);
     const newSet = new Set(selectedIds);
     if (isAll) ids.forEach(id => newSet.delete(id));
     else ids.forEach(id => newSet.add(id));
@@ -132,13 +129,12 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
                 </span>
                 Inventory Management
             </h1>
-            <p className="text-slate-500 mt-1 text-sm">มุมมองแบบ <span className="font-bold text-indigo-600">Lot & Cart</span></p>
+            <p className="text-slate-500 mt-1 text-sm">มุมมองแบบ <span className="font-bold text-indigo-600">Lot & Position</span></p>
          </div>
          
-         {/* ✅ FIX 6: เพิ่ม Export Button และจัด Layout */}
          <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
             <div className="w-full md:w-64">
-                <SearchInput placeholder="ค้นหา Lot, Cart, SKU..." />
+                <SearchInput placeholder="ค้นหา Lot, Position, SKU..." />
             </div>
             <ExportButton warehouseId={warehouseId} />
          </div>
@@ -150,10 +146,10 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
         )}
 
         {lotKeys.map(lot => {
-          const carts = hierarchy[lot] || {}; 
-          const cartKeys = Object.keys(carts).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+          const positions = hierarchy[lot] || {}; 
+          const posKeys = Object.keys(positions).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
           const isExpanded = expandedLots.has(lot);
-          const totalItemsInLot = Object.values(carts).flat().length;
+          const totalItemsInLot = Object.values(positions).flat().length;
           
           return (
             <div key={lot} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -167,7 +163,7 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
                 </button>
                 <Checkbox checked={isLotSelected(lot)} onClick={() => toggleLot(lot)} />
                 <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lot / Batch</div>
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lot / Zone</div>
                   <div className="font-bold text-lg text-slate-800">{lot}</div>
                 </div>
                 <div className="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200 text-slate-500">
@@ -175,28 +171,32 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
                 </div>
               </div>
 
-              {/* Carts List */}
+              {/* Positions List */}
               {isExpanded && (
                 <div className="divide-y divide-slate-100">
-                  {cartKeys.map(cart => {
-                    const itemsInCart = carts[cart] || [];
-                    const firstItem = itemsInCart[0];
+                  {posKeys.map(pos => {
+                    // Safe access with default empty array
+                    const itemsInPos = positions[pos] || [];
+                    const firstItem = itemsInPos[0];
 
                     return (
-                      <div key={cart} className="p-4 pl-12 bg-white">
+                      <div key={pos} className="p-4 pl-12 bg-white">
                         <div className="flex items-center gap-3 mb-3">
-                           <Checkbox checked={isCartSelected(lot, cart)} onClick={() => toggleCart(lot, cart)} />
-                           <ShoppingCart size={18} className="text-indigo-500" />
-                           <span className="font-bold text-slate-700">{cart}</span>
-                           {/* ✅ FIX 7: แสดง Level หรือ Code เต็มเพื่อการตรวจสอบ */}
+                           <Checkbox checked={isPosSelected(lot, pos)} onClick={() => togglePos(lot, pos)} />
+                           {/* Position Icon */}
+                           <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1 rounded-lg">
+                               <Grid3X3 size={16} className="text-indigo-500" />
+                               <span className="font-bold text-indigo-700">{pos}</span> 
+                           </div>
+                           
                            {firstItem && (
                              <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded ml-2 font-mono">
-                                {firstItem.locations.code}
+                                Code: {firstItem.locations.code}
                              </span>
                            )}
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 ml-8">
-                           {itemsInCart.map(item => {
+                           {itemsInPos.map(item => {
                               const isSelected = selectedIds.has(item.id);
                               return (
                                 <div 
@@ -226,7 +226,7 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
         })}
       </div>
 
-      {/* Action Bar (เหมือนเดิม) */}
+      {/* Action Bar */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-6 z-50">
            <div className="flex items-center gap-3">
