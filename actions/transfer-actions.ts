@@ -52,11 +52,13 @@ export async function submitTransfer(formData: any) {
         const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
         if (!wh) throw new Error("Warehouse Not Found");
 
+        // Resolve Target Location
         let targetLocId = targetLocationId;
+        let targetLocCode = ''; // เก็บ Code ไว้แสดงผล
 
-        // ถ้าไม่มี ID ส่งมา (กรณีเรียกใช้แบบเก่า) ให้พยายามหาจาก Code
         if (!targetLocId) {
             const locData = generate3DCode(targetLot, targetCart, targetLevel);
+            targetLocCode = locData.code;
             const { data: targetLoc } = await supabase
                 .from('locations')
                 .select('id')
@@ -67,9 +69,19 @@ export async function submitTransfer(formData: any) {
             
             if (!targetLoc) throw new Error(`❌ ไม่พบพิกัดปลายทาง: ${locData.code}`);
             targetLocId = targetLoc.id;
+        } else {
+             // ถ้ามี ID หา Code กลับมาเพื่อแสดงผล
+             const { data: tLoc } = await supabase.from('locations').select('code').eq('id', targetLocId).single();
+             targetLocCode = tLoc?.code || '';
         }
 
-        const { data: sourceStock } = await supabase.from('stocks').select('product_id, location_id').eq('id', stockId).single();
+        // Get Source Info (ดึงมาเพื่อ Log และแสดงผล)
+        const { data: sourceStock } = await supabase
+            .from('stocks')
+            .select('product_id, location_id, products!inner(name, sku, uom), locations!inner(code)')
+            .eq('id', stockId)
+            .single();
+            
         if (!sourceStock) throw new Error("ไม่พบสต็อกต้นทาง");
 
         // RPC Transfer
@@ -90,7 +102,21 @@ export async function submitTransfer(formData: any) {
         });
 
         revalidatePath(`/dashboard/${warehouseId}`);
-        return { success: true, message: `ย้ายสินค้าสำเร็จ` };
+        
+        // ✅ Return Data Structure
+        return { 
+            success: true, 
+            message: `ย้ายสินค้าสำเร็จ`,
+            details: {
+                type: 'TRANSFER',
+                productName: (sourceStock.products as any)?.name,
+                fromLocation: (sourceStock.locations as any)?.code,
+                toLocation: targetLocCode,
+                quantity: qty,
+                uom: (sourceStock.products as any)?.uom,
+                timestamp: new Date().toISOString()
+            }
+        };
 
     } catch (error: any) {
         console.error("Internal Transfer Error:", error);
@@ -100,46 +126,43 @@ export async function submitTransfer(formData: any) {
 
 // --- Cross Transfer ---
 export async function submitCrossTransfer(formData: any) {
-  const supabase = await createClient(); 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, message: 'Unauthenticated' };
-
-  const { sourceWarehouseId, targetWarehouseId, stockId, targetLocationId, targetLot, targetCart, targetLevel, transferQty } = formData;
-  const qty = Number(transferQty);
-  if (isNaN(qty) || qty <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
+    // ... (logic check user เหมือนเดิม) ...
+    const supabase = await createClient(); 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, message: 'Unauthenticated' };
+  
+    const { sourceWarehouseId, targetWarehouseId, stockId, targetLocationId, targetLot, targetCart, targetLevel, transferQty } = formData;
+    const qty = Number(transferQty);
+    if (isNaN(qty) || qty <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
 
   try {
-    const { data: sourceWh } = await supabase.from('warehouses').select('id').eq('code', sourceWarehouseId).single();
-    if (!sourceWh) throw new Error("ไม่พบข้อมูลคลังต้นทาง");
-
+    const { data: sourceWh } = await supabase.from('warehouses').select('id, name').eq('code', sourceWarehouseId).single();
     const { data: targetWh } = await supabaseAdmin.from('warehouses').select('id, code, name').eq('id', targetWarehouseId).single();
-    if (!targetWh) throw new Error("ไม่พบข้อมูลคลังปลายทาง");
+    
+    if (!sourceWh || !targetWh) throw new Error("Warehouse Info Missing");
 
     let targetCode = '';
-    
-    // ✅ Logic ใหม่: ถ้ามี ID ให้ไปหา Code ของ ID นั้น (เพื่อใช้ใน RPC Cross Transfer)
     if (targetLocationId) {
-        const { data: loc } = await supabaseAdmin
-            .from('locations')
-            .select('code')
-            .eq('id', targetLocationId)
-            .single();
-        if (!loc) throw new Error("Invalid Target Location ID");
-        targetCode = loc.code;
+        const { data: loc } = await supabaseAdmin.from('locations').select('code').eq('id', targetLocationId).single();
+        targetCode = loc?.code || '';
     } else {
-        // Fallback Logic เดิม
         const locData = generate3DCode(targetLot, targetCart, targetLevel);
         targetCode = locData.code;
     }
 
     // Get Source Info
-    const { data: sourceStock } = await supabase.from('stocks').select('product_id, location_id').eq('id', stockId).single();
+    const { data: sourceStock } = await supabase
+        .from('stocks')
+        .select('product_id, location_id, products!inner(name, uom), locations!inner(code)')
+        .eq('id', stockId)
+        .single();
+        
     if(!sourceStock) throw new Error("Stock Source Not Found");
 
     // RPC Cross Transfer
     const { data: result, error: rpcError } = await supabaseAdmin.rpc('transfer_cross_stock', {
         p_stock_id: stockId, p_target_warehouse_id: targetWarehouseId,
-        p_target_code: targetCode, // ส่ง Code ที่ถูกต้องไป
+        p_target_code: targetCode,
         p_qty: qty,
         p_user_id: user.id, p_user_email: user.email
     });
@@ -158,10 +181,24 @@ export async function submitCrossTransfer(formData: any) {
     });
 
     revalidatePath(`/dashboard/${sourceWarehouseId}`);
-    return { success: true, message: `ย้ายไป ${targetWh.name} (${targetCode}) สำเร็จ` };
+    
+    // ✅ Return Data Structure
+    return { 
+        success: true, 
+        message: `ย้ายข้ามคลังสำเร็จ`,
+        details: {
+            type: 'CROSS_TRANSFER',
+            productName: (sourceStock.products as any)?.name,
+            fromLocation: `${(sourceStock.locations as any)?.code}`,
+            toWarehouse: targetWh.name,
+            toLocation: targetCode,
+            quantity: qty,
+            uom: (sourceStock.products as any)?.uom,
+            timestamp: new Date().toISOString()
+        }
+    };
 
   } catch (error: any) {
-    console.error("Cross Transfer Error:", error);
     return { success: false, message: error.message || 'เกิดข้อผิดพลาดในการย้ายข้ามคลัง' };
   }
 }

@@ -34,32 +34,43 @@ export async function submitOutbound(formData: OutboundFormData) {
     if (isNaN(deductQty) || deductQty <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
 
     try {
-        // เช็คก่อนว่ามี Stock ไหม (เพื่อความชัวร์)
+        // ✅ 1. ดึงข้อมูลสินค้าก่อนตัดสต็อก (เพื่อเอาไว้แสดงผล)
         const { data: stockInfo } = await supabase.from('stocks')
-            .select(`id`)
+            .select(`id, products!inner(name, sku, uom), locations!inner(code)`)
             .eq('id', stockId)
             .single();
 
         if (!stockInfo) throw new Error("ไม่พบข้อมูลสต็อก");
 
-        // ✅ เรียก RPC ตัวเดียว จบงาน (ตัดของ + บันทึก Log)
+        // 2. เรียก RPC ตัดของ
         const { data: result, error } = await supabase.rpc('deduct_stock', {
             p_stock_id: stockId, 
             p_deduct_qty: deductQty, 
             p_note: note || '',
-            p_user_id: user.id,       // ส่ง User ID
-            p_user_email: user.email  // ส่ง Email ไปบันทึกใน RPC
+            p_user_id: user.id,       
+            p_user_email: user.email  
         });
 
         if (error) throw error;
         if (!result.success) return { success: false, message: result.message };
 
-        // ❌ ลบส่วน Insert transactions ตรงนี้ทิ้งไปเลย (เพราะ RPC ทำแล้ว)
-        
         revalidatePath(`/dashboard/${warehouseId}/history`);
         revalidatePath(`/dashboard/${warehouseId}/inventory`);
         
-        return { success: true, message: result.message };
+        // ✅ 3. Return Data Structure
+        return { 
+            success: true, 
+            message: result.message,
+            details: {
+                type: 'OUTBOUND',
+                productName: (stockInfo.products as any).name,
+                locationCode: (stockInfo.locations as any).code,
+                quantity: deductQty,
+                uom: (stockInfo.products as any).uom,
+                note: note || '-',
+                timestamp: new Date().toISOString()
+            }
+        };
 
     } catch (error: any) {
         console.error("Outbound Error:", error);

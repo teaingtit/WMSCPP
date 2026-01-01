@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitInbound } from '@/actions/inbound-actions';
 import { Loader2, Save, MapPin, Package, CheckCircle2, Layers } from 'lucide-react';
@@ -10,6 +10,8 @@ import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 // Import Components ที่เราแยกออกมา
 import LocationSelector, { LocationData } from '@/components/shared/LocationSelector';
 import ProductAutocomplete from './ProductAutocomplete';
+import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal';
+import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
 
 // --- Interfaces ---
 interface FormSchemaField {
@@ -33,30 +35,76 @@ interface DynamicInboundFormProps {
 }
 
 export default function DynamicInboundForm({ warehouseId, category, products }: DynamicInboundFormProps) {
+  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-const { setIsLoading } = useGlobalLoading();
-  // 1. Product State (Clean!)
+  const { setIsLoading } = useGlobalLoading();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [formResetKey, setFormResetKey] = useState(Date.now());
+  // State สำหรับ Success Modal
+  const [successInfo, setSuccessInfo] = useState<{ data: SuccessData, redirect: boolean } | null>(null);
+
+  // 1. Product State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // 2. Location State (Clean!)
+  // 2. Location State
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
 
   // 3. Other States
   const [quantity, setQuantity] = useState('');
   const [attributes, setAttributes] = useState<Record<string, any>>({});
-  
-  // Extract Schema
-  const lotSchema = category.form_schema 
-      ? category.form_schema.filter((f) => f.scope === 'LOT')
-      : [];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Suggestion 1: Memoize schema extraction for performance and clarity.
+  const lotSchema = useMemo(() => 
+    category.form_schema?.filter((f) => f.scope === 'LOT') ?? []
+  , [category.form_schema]);
+
+  // Reset lot attributes when the selected product is cleared
+  useEffect(() => {
+    if (!selectedProduct) {
+        setAttributes({});
+    }
+  }, [selectedProduct]);
+
+  // Suggestion 2: Centralize form reset logic into a single function.
+  const resetForm = useCallback(() => {
+    setQuantity('');
+    setAttributes({});
+    setSelectedProduct(null);
+    setSelectedLocation(null);
+    // By changing the key, we force the LocationSelector to re-mount and clear its internal state.
+    setFormResetKey(Date.now());
+  }, []);
+
+  const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedLocation?.id) return toast.error("❌ กรุณาระบุพิกัดให้ครบถ้วน");
-    if (!selectedProduct) return toast.error("❌ กรุณาเลือกสินค้า");
-    if (!quantity) return toast.error("❌ กรุณาระบุจำนวนรับเข้า");
+    // Suggestion 3: Enhance validation for better user feedback.
+    if (!selectedLocation?.id) return toast.error("กรุณาระบุพิกัดให้ครบถ้วน");
+    if (!selectedProduct) return toast.error("กรุณาเลือกสินค้า");
+    const qty = Number(quantity);
+    if (!quantity || qty <= 0) return toast.error("กรุณาระบุจำนวนรับเข้าให้ถูกต้อง");
+
+    // Validate required dynamic attributes
+    for (const field of lotSchema) {
+        if (field.required && !attributes[field.key]) {
+            return toast.error(`กรุณากรอกข้อมูล: ${field.label}`);
+        }
+    }
+    
+    setShowConfirm(true); // Open confirmation modal
+  };
+  const processSubmit = async (redirect: boolean) => {
     setIsLoading(true);
     setSubmitting(true);
+    
+    
+    if (!selectedLocation || !selectedProduct) {
+      toast.error("ข้อมูลไม่ครบถ้วน ไม่สามารถบันทึกได้");
+      setSubmitting(false);
+      setIsLoading(false);
+      setShowConfirm(false);
+      return;
+    }
+
     const payload = {
         warehouseId,
         locationId: selectedLocation.id,
@@ -68,27 +116,39 @@ const { setIsLoading } = useGlobalLoading();
 
     try {
         const result = await submitInbound(payload);
-        
         if (result.success) {
-            toast.success(result.message);
-            setQuantity('');
-            setAttributes({});
-            setSelectedLocation(null);
+            // ปิด Confirmation Modal และเปิด Success Modal แทน
+            setShowConfirm(false);
+            setSuccessInfo({ data: result.details as SuccessData, redirect: redirect });
         } else {
             toast.error(result.message);
+            setShowConfirm(false); // ปิด Modal ยืนยันถ้าเกิด Error
         }
     } catch (error) {
         toast.error("เกิดข้อผิดพลาด");
+        setShowConfirm(false);
     } finally {
-        // 4. จบ Loading (สำคัญ)
         setIsLoading(false);
         setSubmitting(false);
-    };
+    }
+  };
+
+  // Function ที่จะถูกเรียกเมื่อปิด Success Modal
+  const handleSuccessModalClose = () => {
+    if (!successInfo) return;
+
+    if (successInfo.redirect) {
+        router.push(`/dashboard/${warehouseId}/inventory`);
+    } else {
+        // Use the centralized reset function for "Save & Continue"
+        resetForm();
+    }
+    setSuccessInfo(null); // Clear data and close modal
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4">
-       
+    <>
+      <form onSubmit={handlePreSubmit} className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4">
        {/* --- Left Column: Product & Attributes --- */}
        <div className="space-y-6">
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[200px]">
@@ -138,6 +198,7 @@ const { setIsLoading } = useGlobalLoading();
                 
                 {/* ✅ ใช้ Component ใหม่ (จัดการ Logic Dropdown ทั้งหมดในนี้) */}
                 <LocationSelector 
+                    key={formResetKey}
                     warehouseId={warehouseId}
                     onSelect={setSelectedLocation}
                 />
@@ -186,7 +247,41 @@ const { setIsLoading } = useGlobalLoading();
                 {submitting ? <Loader2 className="animate-spin" /> : <Save size={24} className="group-hover:scale-110 transition-transform"/>}
                 <span>บันทึกรับเข้า</span>
             </button>
-       </div>
-    </form>
+        </div>
+      </form>
+    {/* ✅ แทรก Modal ไว้ท้ายสุด */}
+      <TransactionConfirmModal 
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={() => processSubmit(true)} // Confirm -> Redirect
+        onSaveAndContinue={() => processSubmit(false)} // Save & Continue -> Reset
+        isLoading={submitting}
+        title="รับสินค้าเข้าคลัง (Inbound)"
+        type="INBOUND"
+        details={
+            <div className="space-y-3">
+                <div className="flex justify-between border-b border-emerald-200 pb-2">
+                    <span className="text-emerald-800 font-bold">สินค้า</span>
+                    <span className="text-emerald-900">{selectedProduct?.name}</span>
+                </div>
+                <div className="flex justify-between border-b border-emerald-200 pb-2">
+                    <span className="text-emerald-800 font-bold">พิกัดจัดเก็บ</span>
+                    <span className="font-mono text-emerald-900">{selectedLocation?.code}</span>
+                </div>
+                <div className="flex justify-between items-center pt-1">
+                    <span className="text-emerald-800 font-bold">จำนวน</span>
+                    <span className="text-2xl font-black text-emerald-600">{quantity} <span className="text-sm font-normal text-emerald-800">{selectedProduct?.uom}</span></span>
+                </div>
+            </div>
+        }
+      />
+
+      {/* ✅ แสดง Modal เมื่อทำรายการสำเร็จ */}
+      <SuccessReceiptModal 
+        isOpen={!!successInfo}
+        onClose={handleSuccessModalClose}
+        data={successInfo?.data || null}
+      />
+    </>
   );
 }

@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MapPin, Save, Loader2, CheckCircle2 } from 'lucide-react';
+import { MapPin, Save, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { submitTransfer, submitCrossTransfer } from '@/actions/transfer-actions';
 import { useRouter } from 'next/navigation';
 import LocationSelector, { LocationData } from '../shared/LocationSelector';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 import { StockWithDetails } from '@/types/inventory';
-
+import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal';
+import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
 // 1. เพิ่ม Type-safety เพื่อความชัดเจนและลดข้อผิดพลาด
 interface Warehouse {
   id: string;
@@ -27,6 +28,9 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
   const router = useRouter();
   const { setIsLoading } = useGlobalLoading();
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  // State for Success Modal
+  const [successInfo, setSuccessInfo] = useState<{ data: SuccessData, redirect: boolean } | null>(null);
 
   // State
   const [targetWarehouseId, setTargetWarehouseId] = useState('');
@@ -36,58 +40,73 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
 
   const effectiveWhId = activeTab === 'INTERNAL' ? currentWarehouseId : targetWarehouseId;
 
-  const handleSubmit = async () => {
+  const handlePreSubmit = () => {
      // --- 1. Validation (จัดกลุ่มการตรวจสอบให้ชัดเจน) ---
-     if (!sourceStock) {
-        return toast.error("กรุณาเลือกสินค้าต้นทาง");
-     }
-     if (activeTab === 'CROSS' && !targetWarehouseId) {
-        return toast.error("กรุณาเลือกคลังปลายทาง");
-     }
-     if (!selectedTargetLocation) {
-        return toast.error("กรุณาระบุพิกัดปลายทางให้ครบ");
+    if (!sourceStock) return toast.error("กรุณาเลือกสินค้าต้นทางก่อน");
+    if (!selectedTargetLocation) return toast.error("กรุณาระบุพิกัดปลายทาง");
+    const qty = Number(transferQty);
+    if (!transferQty || qty <= 0) return toast.error("กรุณาระบุจำนวนที่ต้องการย้ายให้ถูกต้อง");
+    if (qty > sourceStock.quantity) return toast.error("จำนวนที่ย้ายเกินกว่าสินค้าคงคลัง");
+
+     setShowConfirm(true);
+  };
+     
+  const processSubmit = async (redirect: boolean) => {
+     // Guard clauses to ensure data is present and valid
+     if (!sourceStock || !selectedTargetLocation) {
+        toast.error("ข้อมูลไม่ครบถ้วน ไม่สามารถดำเนินการได้");
+        setShowConfirm(false);
+        return;
      }
      const qty = Number(transferQty);
-     if (!qty || qty <= 0 || qty > sourceStock.quantity) {
-        return toast.error("จำนวนสินค้าไม่ถูกต้อง");
-     }
 
      // --- 2. Set Loading State ---
      setIsLoading(true);
      setSubmitting(true);
-
      try {
         // --- 3. Prepare Payload ---
         const payload = {
             stockId: sourceStock.id,
             targetLocationId: selectedTargetLocation.id,
-            targetLot: selectedTargetLocation.lot,
-            targetCart: selectedTargetLocation.cart,
-            targetLevel: selectedTargetLocation.level,
             transferQty: qty
         };
 
         // --- 4. Call Action ---
         const result = activeTab === 'INTERNAL'
-            ? await submitTransfer({ ...payload, warehouseId: currentWarehouseId })
-            : await submitCrossTransfer({ ...payload, sourceWarehouseId: currentWarehouseId, targetWarehouseId });
+            ? await submitTransfer({ warehouseId: currentWarehouseId, ...payload })
+            : await submitCrossTransfer({ sourceWarehouseId: currentWarehouseId, targetWarehouseId, ...payload });
 
         // --- 5. Handle Result ---
         if (result.success) {
-            toast.success(result.message);
-            router.push(`/dashboard/${currentWarehouseId}/inventory`);
+            setShowConfirm(false);
+            setSuccessInfo({ data: result.details as SuccessData, redirect: redirect });
         } else {
             toast.error(result.message);
+            setShowConfirm(false);
         }
-     } catch (err) {
-         console.error("Transfer failed:", err);
-         toast.error("เกิดข้อผิดพลาดในการย้ายสินค้า");
-     } finally {
-         // --- 6. BUG FIX: Reset Loading State ใน finally เสมอ เพื่อป้องกัน Loading ค้าง ---
-         setIsLoading(false);
-         setSubmitting(false);
      }
+     catch (error: any) {
+        console.error("Transfer Error:", error);
+        toast.error(error.message || "เกิดข้อผิดพลาดในการย้ายสินค้า");
+        setShowConfirm(false);
+     }
+     finally {
+        setIsLoading(false);
+        setSubmitting(false);
+     }
+  };
 
+  const handleSuccessModalClose = () => {
+    if (!successInfo) return;
+
+    if (successInfo.redirect) {
+        router.push(`/dashboard/${currentWarehouseId}/inventory`);
+    } else {
+        // For "Save & Continue", a page refresh is the safest way to ensure
+        // the source stock data is up-to-date for the next operation.
+        router.refresh();
+    }
+    setSuccessInfo(null); // Clear data and close modal
   };
 
   const isDisabled = !sourceStock;
@@ -155,7 +174,7 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
        </div>
 
        <button 
-          onClick={handleSubmit}
+          onClick={handlePreSubmit}
           disabled={submitting || !selectedTargetLocation || !transferQty}
           className={`w-full py-4 text-white rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed
              ${activeTab === 'INTERNAL' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-indigo-600 hover:bg-indigo-700'}`}
@@ -163,6 +182,41 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
           {submitting ? <Loader2 className="animate-spin" /> : <Save size={20} />}
           <span>ยืนยันการย้าย</span>
        </button>
+       <TransactionConfirmModal
+          isOpen={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={() => processSubmit(true)}
+          onSaveAndContinue={() => processSubmit(false)}
+          isLoading={submitting}
+          title={activeTab === 'INTERNAL' ? "ย้ายภายในคลัง (Internal Transfer)" : "ย้ายข้ามคลัง (Cross Dock)"}
+          type="TRANSFER"
+          confirmLabel="ยืนยันการย้าย"
+          details={
+            <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-center text-indigo-900">
+                <div className="text-center">
+                    <div className="text-xs opacity-70">จาก</div>
+                    <div className="font-bold bg-white/50 px-2 py-1 rounded">{sourceStock?.locations.code}</div>
+                </div>
+                <ArrowRight size={20} className="text-indigo-400"/>
+                <div className="text-center">
+                    <div className="text-xs opacity-70">ไป</div>
+                    <div className="font-bold bg-white/50 px-2 py-1 rounded">{selectedTargetLocation?.code}</div>
+                </div>
+                
+                <div className="col-span-3 mt-3 text-center pt-3 border-t border-indigo-200">
+                     <div className="text-xs uppercase font-bold opacity-70">จำนวนย้าย</div>
+                     <div className="text-2xl font-black">{transferQty} <span className="text-sm font-normal">{sourceStock?.products.uom}</span></div>
+                </div>
+            </div>
+          }
+       />
+
+       {/* Success Modal */}
+       <SuccessReceiptModal 
+            isOpen={!!successInfo}
+            onClose={handleSuccessModalClose}
+            data={successInfo?.data || null}
+       />
     </div>
   );
 }

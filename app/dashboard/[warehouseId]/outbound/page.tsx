@@ -1,15 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { searchStockForOutbound, submitOutbound } from '@/actions/outbound-actions';
 import { LogOut, Search, MapPin, Loader2, PackageCheck, AlertCircle } from 'lucide-react';
-
+import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
+import { useDebounce } from 'use-debounce';
+import { toast } from 'sonner';
+import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal';
+import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
 export default function OutboundPage() {
+ const { setIsLoading } = useGlobalLoading();
+ const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
   const params = useParams();
   const warehouseId = params.warehouseId as string;
-  
   // State
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -18,37 +23,41 @@ export default function OutboundPage() {
   
   const [pickQty, setPickQty] = useState('');
   const [note, setNote] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false); // Suggestion 3: Rename for consistency
+  // State for Success Modal
+  const [successInfo, setSuccessInfo] = useState<{ data: SuccessData, redirect: boolean } | null>(null);
 
-  // ✅ OPTIMIZATION: Debounce Search Effect
-  // ทำงานเมื่อ searchTerm เปลี่ยน และหยุดรอ 500ms ก่อนยิง API
+  // Suggestion 2: Use useDebounce hook for consistency and cleaner code
+  const [debouncedSearch] = useDebounce(searchTerm, 500);
+
   useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchTerm.length > 0 && !selectedStock) { // Search เมื่อมีคำค้นหา และยังไม่ได้เลือกของ
-        setIsSearching(true);
-        try {
-            const results = await searchStockForOutbound(warehouseId, searchTerm);
-            setSearchResults(results);
-        } catch (error) {
-            console.error(error);
-            setSearchResults([]);
-        } finally {
-            setIsSearching(false);
-        }
-      } else if (searchTerm.length === 0) {
+    // Don't search if a stock is already selected or the search term is empty
+    if (!debouncedSearch || selectedStock) {
+      setSearchResults([]);
+      return;
+    }
+    
+    const performSearch = async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchStockForOutbound(warehouseId, debouncedSearch);
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Search failed:", error);
         setSearchResults([]);
+      } finally {
+        setIsSearching(false);
       }
-    }, 500); // รอ 0.5 วินาทีหลังจากหยุดพิมพ์
+    };
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, warehouseId, selectedStock]);
+    performSearch();
+  }, [debouncedSearch, warehouseId, selectedStock]);
 
   // Handlers
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
     if (selectedStock) {
         setSelectedStock(null); // ถ้าพิมพ์ใหม่ ให้เคลียร์ค่าที่เลือกไว้
-        setSearchResults([]);
     }
   };
 
@@ -58,31 +67,61 @@ export default function OutboundPage() {
     setSearchTerm(stock.products.name); // เอาชื่อแปะเพื่อความสวยงาม
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if(!selectedStock) return alert("❌ กรุณาเลือกสินค้าที่จะเบิก");
+    if(!selectedStock) return toast.error("❌ กรุณาเลือกสินค้าที่จะเบิก");
     
     const qty = Number(pickQty);
-    if(!pickQty || qty <= 0) return alert("❌ ระบุจำนวนที่ถูกต้อง");
-    if(qty > selectedStock.quantity) return alert("❌ จำนวนที่เบิกเกินกว่าที่มีในสต็อก");
+    if(!pickQty || qty <= 0) return toast.error("❌ ระบุจำนวนที่ถูกต้อง");
+    if(qty > selectedStock.quantity) return toast.error("❌ จำนวนที่เบิกเกินกว่าที่มีในสต็อก");
 
-    if(!confirm(`ยืนยันการเบิก ${selectedStock.products.name} จำนวน ${pickQty} หน่วย?`)) return;
+    setShowConfirm(true);
+  };
+  const processSubmit = async (redirect: boolean) => {
+    setIsLoading(true);
+    setSubmitting(true);
+    try{
+        const result = await submitOutbound({
+            warehouseId: warehouseId,
+            stockId: selectedStock.id,
+            qty: pickQty,
+            note: note
+        });
 
-    setLoading(true);
-    const result = await submitOutbound({
-        warehouseId: warehouseId,
-        stockId: selectedStock.id,
-        qty: pickQty,
-        note: note
-    });
+        if(result.success) {
+            setShowConfirm(false);
+            setSuccessInfo({ data: result.details as SuccessData, redirect: redirect });
+        } else {
+            toast.error(result.message);
+            setShowConfirm(false);
+        }
+    } catch (error) {
+        toast.error("เกิดข้อผิดพลาด");
+        setShowConfirm(false);
+    } finally {
+        setIsLoading(false);
+        setSubmitting(false);
+    }
+  };
 
-    if(result.success) {
-        alert("✅ " + result.message);
+  // Suggestion 1: Centralize form reset logic
+  const resetForm = useCallback(() => {
+    setPickQty('');
+    setNote('');
+    setSelectedStock(null);
+    setSearchTerm('');
+    setSearchResults([]);
+  }, []);
+
+  const handleSuccessModalClose = () => {
+    if (!successInfo) return;
+
+    if (successInfo.redirect) {
         router.push(`/dashboard/${warehouseId}/inventory`);
     } else {
-        alert("❌ " + result.message);
+        resetForm();
     }
-    setLoading(false);
+    setSuccessInfo(null); // Clear data and close modal
   };
 
   return (
@@ -155,6 +194,7 @@ export default function OutboundPage() {
                                             <MapPin size={14} /> {stock.locations.code}
                                         </div>
                                     </div>
+                                    
                                 ))}
                             </div>
                         )}
@@ -242,13 +282,43 @@ export default function OutboundPage() {
             </div>
 
             <button 
-                onClick={handleSubmit}
-                disabled={loading || !pickQty || Number(pickQty) <= 0 || Number(pickQty) > (selectedStock?.quantity || 0)}
+                onClick={handlePreSubmit}
+                disabled={submitting || !pickQty || Number(pickQty) <= 0 || Number(pickQty) > (selectedStock?.quantity || 0)}
                 className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                {loading ? <Loader2 className="animate-spin"/> : <LogOut size={24}/>}
+                {submitting ? <Loader2 className="animate-spin"/> : <LogOut size={24}/>}
                 ยืนยันการเบิกสินค้า
             </button>
+           <TransactionConfirmModal
+                isOpen={showConfirm}
+                onClose={() => setShowConfirm(false)}
+                onConfirm={() => processSubmit(true)}
+                onSaveAndContinue={() => processSubmit(false)}
+                isLoading={submitting}
+                title="เบิกจ่ายสินค้า (Outbound)"
+                type="OUTBOUND"
+                confirmLabel="ยืนยันการเบิก"
+                details={
+                    <div className="space-y-2">
+                        <div className="font-bold text-rose-800 text-lg">{selectedStock?.products.name}</div>
+                        <div className="flex justify-between text-sm text-rose-900/70">
+                            <span>จากพิกัด: {selectedStock?.locations.code}</span>
+                            <span>คงเหลือ: {selectedStock?.quantity}</span>
+                        </div>
+                        <div className="mt-4 p-3 bg-white/50 rounded-xl flex justify-between items-center">
+                            <span className="font-bold text-rose-800">ยอดเบิก</span>
+                            <span className="text-3xl font-black text-rose-600">{pickQty} <span className="text-sm">{selectedStock?.products.uom}</span></span>
+                        </div>
+                    </div>
+                }
+            />
+
+            {/* Success Modal */}
+            <SuccessReceiptModal 
+                isOpen={!!successInfo}
+                onClose={handleSuccessModalClose}
+                data={successInfo?.data || null}
+            />
          </div>
 
       </div>

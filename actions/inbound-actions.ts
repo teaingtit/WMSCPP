@@ -27,7 +27,10 @@ export async function getProductCategories() {
   try {
     const { data } = await supabase.from('product_categories').select('*').order('id', { ascending: true });
     return data || [];
-  } catch (error) { return []; }
+  } catch (error) {
+    console.error("Error fetching product categories:", error);
+    return [];
+  }
 }
 
 export async function getCategoryDetail(categoryId: string) {
@@ -35,7 +38,10 @@ export async function getCategoryDetail(categoryId: string) {
   try {
     const { data } = await supabase.from('product_categories').select('*').eq('id', categoryId).single();
     return data;
-  } catch (error) { return null; }
+  } catch (error) {
+    console.error(`Error fetching category detail for ID ${categoryId}:`, error);
+    return null;
+  }
 }
 
 export async function getInboundOptions(warehouseId: string, categoryId: string) {
@@ -43,7 +49,10 @@ export async function getInboundOptions(warehouseId: string, categoryId: string)
   try {
     const { data: products } = await supabase.from('products').select('*').eq('category_id', categoryId).order('name');
     return { products: products || [] };
-  } catch (error) { return { products: [] }; }
+  } catch (error) {
+    console.error(`Error fetching inbound options for warehouse ${warehouseId}, category ${categoryId}:`, error);
+    return { products: [] };
+  }
 }
 
 // --- Location Selectors (จุดที่แก้ไข) ---
@@ -123,10 +132,33 @@ export async function submitInbound(rawData: any) {
     if (rpcError) throw new Error(rpcError.message);
     if (rpcResult && !rpcResult.success) throw new Error(rpcResult.message);
 
+    // --- Optimization: Fetch product and location details in parallel ---
+    // TODO: For further optimization, consider modifying the RPC function 
+    // to return these details directly, avoiding additional queries.
+    const [productRes, locationRes] = await Promise.all([
+      supabase.from('products').select('name, uom, sku').eq('id', productId).single(),
+      supabase.from('locations').select('code').eq('id', locationId).single()
+    ]);
+
+    const product = productRes.data;
+    const location = locationRes.data;
+
     revalidatePath(`/dashboard/${warehouseId}/inventory`);
     revalidatePath(`/dashboard/${warehouseId}/history`);
-    return { success: true, message: `✅ รับสินค้าสำเร็จ (${quantity})` };
 
+   return { 
+        success: true, 
+        message: 'รับสินค้าเข้าเรียบร้อย',
+        details: {
+            type: 'INBOUND',
+            productName: product?.name || 'Unknown Product',
+            sku: product?.sku,
+            locationCode: location?.code || 'Unknown Location',
+            quantity: quantity,
+            uom: product?.uom || 'UNIT',
+            timestamp: new Date().toISOString()
+        }
+    };
   } catch (error: any) {
     return { success: false, message: error.message };
   }
