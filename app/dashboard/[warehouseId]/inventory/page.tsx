@@ -1,15 +1,16 @@
 import React from 'react';
 import { createClient } from '@/lib/db/supabase-server';
 import InventoryDashboard from '@/components/inventory/InventoryDashboard';
+import { StockWithDetails } from '@/types/inventory';
 
 export default async function InventoryPage({ 
   params,
   searchParams 
 }: { 
-  params: Promise<{ warehouseId: string }>;
+  params: { warehouseId: string };
   searchParams?: { q?: string; page?: string };
 }) {
-  const { warehouseId } = await params; 
+  const { warehouseId } = params; 
   const query = searchParams?.q || '';
   
   const supabase = await createClient();
@@ -28,8 +29,8 @@ export default async function InventoryPage({
     .from('stocks')
     .select(`
       id, quantity, updated_at, 
-      products!inner (sku, name, uom, category_id), 
-      locations!inner (code, lot, cart) 
+      products!inner(*), 
+      locations!inner(*) 
     `)
     .eq('locations.warehouse_id', wh.id)
     .gt('quantity', 0);
@@ -41,19 +42,27 @@ export default async function InventoryPage({
 
   // ✅ FIX 2: เรียงลำดับตาม Location จริง
   const { data: stocks, error } = await dbQuery
-    .order('locations(lot)', { ascending: true })
-    .order('locations(cart)', { ascending: true })
-    .order('products(sku)', { ascending: true });
+    .order('lot', { foreignTable: 'locations', ascending: true })
+    .order('cart', { foreignTable: 'locations', ascending: true })
+    .order('sku', { foreignTable: 'products', ascending: true });
 
   if (error) {
       console.error(error);
       return <div className="p-8 text-center text-slate-500">Error loading data</div>;
   }
 
+  // The `StockWithDetails` type expects `id` as a string, but Supabase returns it as a number.
+  // We also need to handle the Supabase client's incorrect type inference for nested relations (`!inner`).
+  // This transformation ensures the data shape matches the component's props.
+  const formattedStocks: StockWithDetails[] = (stocks || []).map((stock: any) => ({
+    ...stock,
+    id: String(stock.id),
+  }));
+
   return (
     <div className="pb-32 p-4 md:p-8"> 
       <InventoryDashboard 
-        stocks={stocks || []} 
+        stocks={formattedStocks} 
         warehouseId={warehouseId} 
       />
     </div>

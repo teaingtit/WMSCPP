@@ -17,17 +17,26 @@ export default function StockDetailModal({ isOpen, onClose, item, warehouseId }:
 
   if (!isOpen || !item) return null;
 
+  // Note: When changing URL parameters, ensure the destination pages
+  // (`/transfer`, `/outbound`) are updated to expect the new parameter names.
   const handleAction = (action: 'transfer' | 'outbound') => {
     const params = new URLSearchParams({
       sku: item.products.sku,
-      batchId: item.id,
-      location: item.locations.code
+      // Suggestion 2 & 3: Use unique IDs for robustness and clearer naming.
+      stockId: item.id, // `item.id` is already a string from the page component.
+      locationId: String(item.locations.id) // `locations.id` is likely a number.
     });
     router.push(`/dashboard/${warehouseId}/${action}?${params.toString()}`);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      // Suggestion 1: Improve accessibility with ARIA roles for screen readers.
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="stock-detail-modal-title"
+    >
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
@@ -35,7 +44,7 @@ export default function StockDetailModal({ isOpen, onClose, item, warehouseId }:
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           <div className="relative z-10 text-center text-white">
              <Package size={48} className="mx-auto mb-2 opacity-90" />
-             <h2 className="text-xl font-bold">{item.products.sku}</h2>
+             <h2 id="stock-detail-modal-title" className="text-xl font-bold">{item.products.sku}</h2>
           </div>
           <button 
             onClick={onClose} 

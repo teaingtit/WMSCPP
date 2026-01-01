@@ -1,6 +1,9 @@
 // types/inventory.ts
 
-// 1. Base Entities (ตรงตาม Database Snake Case)
+/**
+ * Represents a product entity in the system.
+ * Corresponds to the 'products' table in the database.
+ */
 export interface Product {
   id: string;
   sku: string;
@@ -15,17 +18,24 @@ export interface Product {
   category?: string;
 }
 
+/**
+ * Represents a storage location within a warehouse.
+ * Corresponds to the 'locations' table in the database.
+ */
 export interface Location {
   id: string;
   code: string;
   warehouse_id: string;
   lot: string | null;
-  cart: string | null; // หรือใช้ position ตามความเข้าใจ
+  cart: string | null; // Represents the cart or specific position within the location.
   level: string | null;
   is_active: boolean;
 }
 
-// 2. ✅ FIX: Export Interface นี้เพื่อให้ Component เรียกใช้ได้
+/**
+ * Represents a stock item with its associated product and location details.
+ * This is a composite type, typically generated from a database join.
+ */
 export interface StockWithDetails {
   id: string;
   quantity: number;
@@ -35,7 +45,11 @@ export interface StockWithDetails {
   locations: Location; // Nested Object จากการ Join
 }
 
-// 3. Other Utility Types
+/**
+ * Represents a flattened inventory item structure.
+ * NOTE: This type seems to overlap with StockWithDetails.
+ * Consider using this for specific use cases like form submissions or API payloads, or remove if redundant.
+ */
 export interface InventoryItem {
   id: string;
   item_name: string;
