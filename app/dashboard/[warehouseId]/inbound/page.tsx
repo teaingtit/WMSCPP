@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/db/supabase-server';
 import { getProductCategories } from '@/actions/inbound-actions';
 import BulkInboundManager from '@/components/inbound/BulkInboundManager';
 import { Box, Container, ArrowRight } from 'lucide-react';

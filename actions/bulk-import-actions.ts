@@ -1,9 +1,9 @@
 'use server';
 
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/db/supabase-server';
 import { revalidatePath } from 'next/cache';
-import * as ExcelUtils from '@/lib/excel-utils';
-import { isValidUUID } from '@/lib/utils';
+import * as ExcelUtils from '@/lib/utils/excel-utils';
+import { isValidUUID } from '@/lib/utils/utils';
 
 interface ImportResult {
   success: boolean;

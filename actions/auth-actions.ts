@@ -1,10 +1,10 @@
 // actions/auth-actions.ts
 'use server';
 
-import { createClient } from '@/lib/supabase-server'; 
+import { createClient } from '@/lib/db/supabase-server'; 
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { loginSchema } from '@/lib/schemas/auth-schemas';
+import { loginSchema } from '@/lib/validations/auth-schemas';
 
 interface LoginState {
   success?: boolean;

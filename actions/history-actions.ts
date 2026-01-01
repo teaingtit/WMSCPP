@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/db/supabase-server';
 import { unstable_noStore as noStore } from 'next/cache';
 
 export async function getHistory(warehouseId: string, limit = 20) {

@@ -1,5 +1,5 @@
 // lib/auth-service.ts
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/db/supabase-server';
 import { redirect } from 'next/navigation';
 import { AppUser } from '@/types/auth';
 
@@ -12,10 +12,10 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     return null;
   }
 
-  // ดึง Role
+  // ดึง Role และสถานะ
   const { data: roleData, error: roleError } = await supabase
     .from('user_roles')
-    .select('role, allowed_warehouses')
+    .select('role, allowed_warehouses, is_active')
     .eq('user_id', user.id)
     .single();
 
@@ -26,12 +26,27 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     return null; 
   }
 
+  // ✅ SECURITY FIX 2: เช็คสถานะ Banned และ Inactive
+  // ถ้าโดนแบนใน Supabase Auth หรือถูกตั้งค่าเป็น Inactive ในระบบ -> ไม่อนุญาตให้เข้าระบบ
+  // The `banned_until` property might not exist on the `User` type in older library versions.
+  const isBanned = (user as any).banned_until != null && new Date((user as any).banned_until) > new Date();
+  const isActive = roleData.is_active;
+
+  if (isBanned || !isActive) {
+    console.warn(`Access Denied: User ${user.id} is ${isBanned ? 'banned' : 'inactive'}.`);
+    // เพื่อความปลอดภัยสูงสุด อาจพิจารณา signOut() user ออกจากระบบไปเลย
+    // await supabase.auth.signOut();
+    return null;
+  }
+
   return {
     id: user.id,
     email: user.email!,
     role: roleData.role as 'admin' | 'staff', // มั่นใจได้ว่าเป็นค่าที่ถูกต้อง
     allowed_warehouses: roleData.allowed_warehouses || [],
-    created_at: user.created_at
+    created_at: user.created_at,
+    is_active: isActive,
+    is_banned: isBanned,
   };
 }
 

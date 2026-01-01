@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Sarabun } from 'next/font/google';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/utils';
 import './globals.css';
 import { Toaster } from 'sonner';
 import GlobalLoadingProvider from '@/components/providers/GlobalLoadingProvider';

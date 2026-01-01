@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/db/supabase-server';
 import { revalidatePath } from 'next/cache';
 
 interface OutboundFormData { warehouseId: string; stockId: string; qty: string | number; note?: string; }

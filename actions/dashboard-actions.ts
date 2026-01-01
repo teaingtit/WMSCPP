@@ -1,7 +1,7 @@
 // actions/dashboard-actions.ts
 'use server';
 
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@/lib/db/supabase-server';
 
 // --- Function 1: สำหรับหน้า Dashboard รวม (คงเดิม) ---
 export async function getDashboardWarehouses() {
