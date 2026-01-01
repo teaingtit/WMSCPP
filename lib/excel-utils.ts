@@ -15,7 +15,7 @@ export async function generateProductTemplate(catName: string, schema: any[], uo
   // Dynamic Spec Columns
   schema.filter((f: any) => !f.scope || f.scope === 'PRODUCT').forEach((field: any) => {
       columns.push({ 
-          header: `${field.label} (${field.key})`, 
+          header: field.label, 
           key: `attr_${field.key}`, 
           width: 25,
           style: { font: { color: { argb: 'FF2F75B5' } } }
@@ -74,7 +74,7 @@ export async function generateInboundTemplate(whName: string, catName: string, h
   
     schema.forEach((field: any) => {
         columns.push({ 
-            header: `${field.label} (${field.key})`, 
+            header: field.label, 
             key: `attr_${field.key}`, 
             width: 20,
             style: { font: { color: { argb: 'FFC05621' } } }

@@ -5,6 +5,15 @@ import { revalidatePath } from 'next/cache';
 import * as ExcelUtils from '@/lib/excel-utils';
 import { isValidUUID } from '@/lib/utils';
 
+interface ImportResult {
+  success: boolean;
+  message: string;
+  report?: {
+    total: number;
+    success: number;
+    failed: number;
+    errors: string[]; // รายงาน Error รายบรรทัด
+}};
 // ==========================================
 // 1. MASTER DATA (Global)
 // ==========================================
@@ -117,11 +126,7 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
 // ==========================================
 
 export async function downloadInboundTemplate(warehouseId: string, categoryId: string) {
-    // Check UUID only for Warehouse ID
-    if (!isValidUUID(warehouseId)) {
-         throw new Error(`Invalid Warehouse ID format: ${warehouseId}`);
-    }
-    // Category ID can be anything
+    if (!isValidUUID(warehouseId)) throw new Error(`Invalid Warehouse ID: ${warehouseId}`);
 
     const supabase = await createClient();
     const { data: wh } = await supabase.from('warehouses').select('config, code').eq('id', warehouseId).single();
@@ -129,8 +134,11 @@ export async function downloadInboundTemplate(warehouseId: string, categoryId: s
     
     if (!wh || !cat) throw new Error('Data not found');
 
+    // เช็ค Config จริง
     const hasGrid = wh.config && (wh.config.axis_x || wh.config.axis_y);
-    const base64 = await ExcelUtils.generateInboundTemplate(wh.code, cat.name, hasGrid, cat.form_schema || []);
+    
+    // ส่ง hasGrid ไปสร้าง Template ที่ถูกต้อง
+    const base64 = await ExcelUtils.generateInboundTemplate(wh.code, cat.name, !!hasGrid, cat.form_schema || []);
     
     return { base64, fileName: `Inbound_${wh.code}_${cat.name}.xlsx` };
 }
@@ -140,77 +148,143 @@ export async function importInboundStock(formData: FormData) {
     const categoryId = formData.get('categoryId') as string;
     const userId = formData.get('userId') as string;
 
-    // Check UUID only for Warehouse ID
-    if (!isValidUUID(warehouseId)) {
-        return { success: false, message: 'Invalid Warehouse ID' };
-    }
+    if (!isValidUUID(warehouseId)) return { success: false, message: 'Invalid Warehouse ID' };
 
     const supabase = await createClient();
     const file = formData.get('file') as File;
-
-    if (!file) return { success: false, message: 'File missing' };
+    if (!file) return { success: false, message: 'ไม่พบไฟล์ Excel' };
 
     try {
         const worksheet = await ExcelUtils.parseExcel(file);
         
-        // Prepare Maps
-        const { data: products } = await supabase.from('products').select('id, sku').eq('category_id', categoryId);
-        const productMap = new Map(products?.map(p => [p.sku, p.id]));
+        // 1. ดึงข้อมูลจำเป็น (Parallel Fetching เพื่อความเร็ว)
+        const [productsRes, locsRes, whRes, catRes] = await Promise.all([
+            supabase.from('products').select('id, sku').eq('category_id', categoryId),
+            supabase.from('locations').select('id, code, lot, cart, level').eq('warehouse_id', warehouseId),
+            supabase.from('warehouses').select('config').eq('id', warehouseId).single(),
+            supabase.from('product_categories').select('form_schema').eq('id', categoryId).single()
+        ]);
+
+        const productMap = new Map(productsRes.data?.map(p => [p.sku, p.id]));
         
-        const { data: locations } = await supabase.from('locations').select('*').eq('warehouse_id', warehouseId);
-        const locMap = new Map();
-        locations?.forEach(l => {
-            if (l.lot && l.cart) locMap.set(`${l.lot}|${l.cart}|${l.level || ''}`.toUpperCase(), l.id);
-            locMap.set(l.code.toUpperCase(), l.id);
+        const whConfig = whRes.data?.config || {};
+        const isGridSystem = !!(whConfig.axis_x || whConfig.axis_y);
+
+        // Map Locations (Optimized)
+        const locMap = new Map<string, string>();
+        locsRes.data?.forEach(l => {
+            if (isGridSystem) {
+                // Key แบบ Grid: LOT|CART|LEVEL
+                locMap.set(`${l.lot}|${l.cart}|${l.level || ''}`.toUpperCase(), l.id);
+            } else {
+                // Key แบบ Code: LOCATION_CODE
+                locMap.set(l.code.toUpperCase(), l.id);
+            }
         });
 
-        const { data: cat } = await supabase.from('product_categories').select('form_schema').eq('id', categoryId).single();
-        const schemaKeys = Array.isArray(cat?.form_schema) ? cat.form_schema.map((f: any) => f.key) : [];
+        const schemaKeys = Array.isArray(catRes.data?.form_schema) 
+            ? catRes.data.form_schema.map((f: any) => f.key) 
+            : [];
 
+        // 2. Dynamic Header Parsing (อ่านหัวตารางเพื่อหา Index)
+        const headerMap = new Map<string, number>();
+        const headerRow = worksheet.getRow(1);
+        headerRow.eachCell((cell, colNumber) => {
+            const val = cell.text?.toLowerCase().trim();
+            if (!val) return;
+
+            // Keyword Matching
+            if (val.includes('sku') || val.includes('รหัสสินค้า')) headerMap.set('sku', colNumber);
+            if (val.includes('qty') || val.includes('จำนวน')) headerMap.set('qty', colNumber);
+            
+            if (val.includes('lot') || val.includes('โซน')) headerMap.set('lot', colNumber);
+            if (val.includes('cart') || val.includes('ตู้')) headerMap.set('cart', colNumber);
+            if (val.includes('level') || val.includes('ชั้น')) headerMap.set('level', colNumber);
+            
+            if (val.includes('location') || val.includes('รหัสตำแหน่ง')) headerMap.set('loc_code', colNumber);
+
+            // Attributes Mapping (หาจาก Key ในวงเล็บ หรือ ชื่อ Label)
+            schemaKeys.forEach(key => {
+                // เช่น "สี (color)" -> match "color"
+                if (val.includes(`(${key.toLowerCase()})`) || val === key.toLowerCase()) {
+                    headerMap.set(key, colNumber);
+                }
+            });
+        });
+
+        // Validate Template Structure
+        if (!headerMap.has('sku') || !headerMap.has('qty')) {
+            return { success: false, message: 'รูปแบบไฟล์ไม่ถูกต้อง: ไม่พบคอลัมน์ SKU หรือ Qty' };
+        }
+        if (isGridSystem && (!headerMap.has('lot') || !headerMap.has('cart'))) {
+             return { success: false, message: 'คลังสินค้านี้เป็นระบบ Grid: ไฟล์ต้องมีคอลัมน์ Lot และ Cart' };
+        }
+
+        // 3. Row Validation (Strict Mode)
         const txs: any[] = [];
         const errors: string[] = [];
-        
-        worksheet.eachRow((row, n) => {
-            if (n === 1) return;
-            
-            const sku = row.getCell(1).text?.trim().toUpperCase();
-            const qty = Number(row.getCell(2).value);
-            if (!sku || !qty) return;
 
+        worksheet.eachRow((row, n) => {
+            if (n === 1) return; // Skip Header
+
+            // อ่านค่าตาม Header Map
+            const skuCol = headerMap.get('sku');
+            const qtyCol = headerMap.get('qty');
+            
+            const sku = skuCol ? row.getCell(skuCol).text?.trim().toUpperCase() : null;
+            const qtyVal = qtyCol ? row.getCell(qtyCol).value : 0;
+            const qty = Number(qtyVal);
+
+            if (!sku && !qty) return; // ข้ามแถวว่าง
+
+            if (!sku) { errors.push(`Row ${n}: ไม่ระบุ SKU`); return; }
+            if (!qty || qty <= 0) { errors.push(`Row ${n}: จำนวนต้องมากกว่า 0`); return; }
+
+            // Validate Product
             if (!productMap.has(sku)) {
-                errors.push(`Row ${n}: SKU "${sku}" ไม่พบในหมวด ${categoryId}`);
+                errors.push(`Row ${n}: SKU "${sku}" ไม่พบในหมวดสินค้านี้`);
                 return;
             }
 
-            let locId = null;
-            // Column 3, 4, 5 for location
-            const val3 = row.getCell(3).text?.trim();
-            const val4 = row.getCell(4).text?.trim();
-            const val5 = row.getCell(5).text?.trim();
+            // Validate Location
+            let locId: string | undefined;
+            let locDebug = '';
 
-            if (val3 && val4) locId = locMap.get(`${val3}|${val4}|${val5 || ''}`.toUpperCase());
-            if (!locId && val3) locId = locMap.get(val3.toUpperCase());
+            if (isGridSystem) {
+                const lot = row.getCell(headerMap.get('lot')!).text?.trim();
+                const cart = row.getCell(headerMap.get('cart')!).text?.trim();
+                const level = headerMap.has('level') ? row.getCell(headerMap.get('level')!).text?.trim() : '';
+                
+                locDebug = `${lot}-${cart}-${level}`;
+                if (!lot || !cart) {
+                    errors.push(`Row ${n}: ระบุ Lot/Cart ไม่ครบ`);
+                    return;
+                }
+                locId = locMap.get(`${lot}|${cart}|${level}`.toUpperCase());
+            } else {
+                const code = row.getCell(headerMap.get('loc_code')!).text?.trim();
+                locDebug = code;
+                if (!code) {
+                    errors.push(`Row ${n}: ไม่ระบุ Location Code`);
+                    return;
+                }
+                locId = locMap.get(code.toUpperCase());
+            }
 
             if (!locId) {
-                errors.push(`Row ${n}: ไม่พบตำแหน่งจัดเก็บ "${val3} ${val4}"`);
+                errors.push(`Row ${n}: ไม่พบตำแหน่ง "${locDebug}" ในคลังสินค้านี้`);
                 return;
             }
 
+            // Extract Attributes
             const attributes: any = {};
-            // Attributes start after location columns (Logic to detect start col)
-            // Simplified: If grid (val4 exists), start 6. If code only, start 4?
-            // Better: Use fixed template structure.
-            // Assumption: Template generated has fixed columns.
-            // If Grid: Loc is 3,4,5 -> Attr starts 6
-            // If Code: Loc is 3 -> Attr starts 4
-            // Dynamic check:
-            const startCol = (val3 && val4) ? 6 : 4; 
-            
-            schemaKeys.forEach((key, index) => {
-                const val = row.getCell(startCol + index).value;
-                if (val !== null && val !== undefined) {
+            schemaKeys.forEach(key => {
+                const colIdx = headerMap.get(key);
+                if (colIdx) {
+                    const val = row.getCell(colIdx).value;
+                    // แปลง Date object เป็น string ถ้าจำเป็น
                     if (val instanceof Date) attributes[key] = val.toISOString().split('T')[0];
-                    else attributes[key] = val;
+                    else if (val !== null && val !== undefined) attributes[key] = val;
                 }
             });
 
@@ -225,16 +299,36 @@ export async function importInboundStock(formData: FormData) {
             });
         });
 
-        if (errors.length > 0) return { success: false, message: errors.slice(0, 5).join('\n') };
-
-        let successCount = 0;
-        for (const tx of txs) {
-            const { error } = await supabase.rpc('process_inbound_transaction', tx);
-            if (!error) successCount++;
+        // 4. Decision: ถ้ามี Error แม้แต่รายการเดียว -> Reject ทั้งหมด
+        if (errors.length > 0) {
+            return { 
+                success: false, 
+                message: `พบข้อผิดพลาด ${errors.length} รายการ (ยกเลิกการนำเข้าทั้งหมด)`,
+                report: { total: worksheet.rowCount - 1, failed: errors.length, errors }
+            };
         }
+
+        if (txs.length === 0) {
+            return { success: false, message: 'ไม่พบข้อมูลสินค้าในไฟล์' };
+        }
+
+        // 5. Batch Execution (Atomic Transaction)
+        // เรียก RPC ใหม่ที่สร้างไว้ใน Step 1
+        const { error } = await supabase.rpc('process_inbound_batch', { 
+            p_transactions: txs 
+        });
+
+        if (error) throw new Error(error.message);
         
         revalidatePath(`/dashboard/${warehouseId}/inventory`);
-        return { success: true, message: `นำเข้าสำเร็จ ${successCount} รายการ` };
+        return { 
+            success: true, 
+            message: `นำเข้าสำเร็จทั้งหมด ${txs.length} รายการ`,
+            report: { total: txs.length, failed: 0, errors: [] }
+        };
 
-    } catch (err: any) { return { success: false, message: err.message }; }
+    } catch (err: any) { 
+        console.error(err);
+        return { success: false, message: `System Error: ${err.message}` }; 
+    }
 }
