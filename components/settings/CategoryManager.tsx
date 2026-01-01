@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useFormState } from 'react-dom';
 import { deleteCategory } from '@/actions/settings-actions';
 import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-actions';
 import { Trash2, Download, Upload, Loader2, BookOpen, Package, ArrowLeft, Ruler } from 'lucide-react';
@@ -8,56 +9,67 @@ import { SubmitButton } from '@/components/SubmitButton';
 import ProductManager from './ProductManager';
 import CategoryForm from './CategoryForm';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
-export default function CategoryManager({ categories, products }: { categories: any[], products: any[] }) {
-  const [activeCategory, setActiveCategory] = useState<any | null>(null);
+interface Category {
+  id: string;
+  name: string;
+  uom: string;
+  form_schema?: any;
+}
+
+const deleteCategoryWrapper = async (_prevState: any, formData: FormData) => {
+    return await deleteCategory(formData);
+};
+
+export default function CategoryManager({ categories, products }: { categories: Category[], products: any[] }) {
+  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleteState, deleteAction] = useFormState(deleteCategoryWrapper, { success: false, message: '' });
 
-  // Download Template Handler
   const handleDownload = async () => {
     setLoading(true);
-    try {
-        const res = await downloadMasterTemplate('category');
-        if (res?.base64) {
-            const link = document.createElement('a');
-            link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
-            link.download = res.fileName;
-            link.click();
-            toast.success('ดาวน์โหลด Template สำเร็จ');
-        }
-    } catch (error) {
-        toast.error('เกิดข้อผิดพลาดในการดาวน์โหลด');
+    const res = await downloadMasterTemplate('category');
+    if (res?.base64) {
+        const link = document.createElement('a');
+        link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
+        link.download = res.fileName;
+        link.click();
     }
     setLoading(false);
   };
 
-  // Import Handler
+  useEffect(() => {
+    if (deleteState.message) {
+      if (deleteState.success) {
+          toast.success(deleteState.message);
+      } else toast.error(deleteState.message);
+    }
+  }, [deleteState]);
+
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
     setLoading(true);
     const formData = new FormData();
     formData.append('file', file);
-    
     const res = await importMasterData(formData, 'category');
     setLoading(false);
-    
-    if (res.success) toast.success(res.message); 
-    else toast.error(res.message);
+    if (res.success) toast.success(res.message); else toast.error(res.message);
     e.target.value = '';
   };
 
-  // --- VIEW 1: PRODUCT MANAGER (หน้ารายละเอียดสินค้าในหมวดหมู่) ---
+  // VIEW 1: PRODUCT MANAGER (หน้ารายละเอียดสินค้าในหมวดหมู่)
   if (activeCategory) {
     return (
         <div className="space-y-6 animate-in slide-in-from-right-4">
-            <button 
+            <Button
+                variant="ghost"
                 onClick={() => setActiveCategory(null)} 
-                className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors"
+                className="text-slate-500 hover:text-slate-800 font-bold text-sm"
             >
-                <ArrowLeft size={16}/> กลับไปหน้าหมวดหมู่
-            </button>
+                <ArrowLeft size={16} className="mr-2"/> กลับไปหน้าหมวดหมู่
+            </Button>
 
             <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center gap-3 shadow-sm">
                 <div className="p-2.5 bg-indigo-600 text-white rounded-lg shadow-sm">
@@ -66,24 +78,20 @@ export default function CategoryManager({ categories, products }: { categories: 
                 <div>
                     <h2 className="text-xl font-bold text-indigo-900">ทะเบียนสินค้า: {activeCategory.name}</h2>
                     <div className="flex items-center gap-3 text-sm text-indigo-600 mt-0.5">
-                        <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100 font-mono">ID: {activeCategory.id}</span>
-                        <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100 flex items-center gap-1 font-bold">
+                        <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100">ID: {activeCategory.id}</span>
+                        <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100 flex items-center gap-1">
                             <Ruler size={12}/> {activeCategory.uom || 'PCS'}
                         </span>
                     </div>
                 </div>
             </div>
 
-            {/* เรียก ProductManager โดยส่ง Category Context ไปด้วย */}
-            <ProductManager 
-                products={products.filter(p => p.category_id === activeCategory.id)} 
-                category={activeCategory} 
-            />
+            <ProductManager products={products.filter(p => p.category_id === activeCategory.id)} category={activeCategory} />
         </div>
     );
   }
 
-  // --- VIEW 2: CATEGORY LIST (หน้าหลักหมวดหมู่) ---
+  // VIEW 2: CATEGORY LIST (หน้าหลักหมวดหมู่)
   return (
     <div className="space-y-8">
       
@@ -94,32 +102,38 @@ export default function CategoryManager({ categories, products }: { categories: 
             <p className="text-xs text-slate-500">กำหนดโครงสร้าง (Structure) และหน่วยนับ (UOM)</p>
         </div>
         <div className="flex gap-2">
-             <button 
-                onClick={handleDownload} 
-                disabled={loading} 
-                className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-             >
-                <Download size={14}/> Template
-             </button>
+             <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                disabled={loading}
+            >
+                <Download size={14} className="mr-2"/> Template
+            </Button>
              <div className="relative">
                 <input 
                     type="file" 
                     onChange={handleImport} 
                     disabled={loading} 
-                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
                     accept=".xlsx" 
+                    title="Import Categories from Excel"
+                    aria-label="Import Categories from Excel"
                 />
-                <button 
-                    disabled={loading} 
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors"
+                <Button
+                    size="sm"
+                    disabled={loading}
+                    className="bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100"
+                    aria-hidden="true" // The input is the interactive element
                 >
-                    {loading ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14}/>} Import
-                </button>
+                    {loading ? <Loader2 size={14} className="animate-spin mr-2"/> : <Upload size={14} className="mr-2"/>}
+                    Import
+                </Button>
              </div>
         </div>
       </div>
 
-      {/* Info Guide Section (คำแนะนำ) */}
+      {/* ✅ ADDED: Info Guide Section (ส่วนที่หายไป) */}
       <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-5 shadow-sm animate-in fade-in slide-in-from-top-2">
          <div className="flex items-start gap-4">
             <div className="p-2 bg-white rounded-lg border border-blue-100 shadow-sm text-blue-600">
@@ -187,9 +201,16 @@ export default function CategoryManager({ categories, products }: { categories: 
                         <div className="h-8 w-px bg-slate-200 mx-1"></div>
 
                         {/* ปุ่มลบ */}
-                        <form action={deleteCategory.bind(null, new FormData())}> 
+                        <form 
+                            action={deleteAction}
+                            onSubmit={(e) => {
+                                if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบหมวดหมู่ "${cat.name}"?\nสินค้าทั้งหมดในหมวดหมู่นี้จะถูกลบไปด้วย และการกระทำนี้ไม่สามารถย้อนกลับได้`)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                        > 
                             <input type="hidden" name="id" value={cat.id} />
-                            <SubmitButton className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                            <SubmitButton className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title={`ลบหมวดหมู่ ${cat.name}`}>
                                 <Trash2 size={18} />
                             </SubmitButton>
                         </form>

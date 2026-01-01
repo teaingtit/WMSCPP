@@ -5,6 +5,7 @@ import { createUser, deleteUser, reactivateUser } from '@/actions/user-actions';
 import { Button } from '@/components/ui/button';
 import { Users, Trash2, Warehouse, Mail, Lock, Unlock, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 
 interface UserManagerProps {
   users: any[];
@@ -15,16 +16,16 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
   const [loading, setLoading] = useState(false);
   const [inviteMode, setInviteMode] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+const { setIsLoading } = useGlobalLoading();
 
   async function handleCreate(formData: FormData) {
-    setLoading(true);
+    setIsLoading(true);
+    try {
     if (inviteMode) {
         formData.set('verify_email', 'on');
     }
     
-    const result = await createUser(null, formData);
-    setLoading(false);
-    
+    const result = await createUser(null, formData);     
     if (result.success) {
       toast.success(result.message);
       formRef.current?.reset();
@@ -32,22 +33,33 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
     } else {
       toast.error(result.message);
     }
+    } finally {
+        setIsLoading(false); // Stop
+    }
   }
 
   async function handleDelete(id: string) {
     if(!confirm('ยืนยันที่จะระงับ/ลบผู้ใช้นี้?')) return;
-    
-    const result = await deleteUser(id);
-    if (result.success) toast.success(result.message);
-    else toast.error(result.message);
-  }
+    setIsLoading(true); // Start
+    try {
+        const result = await deleteUser(id);
+        if (result.success) toast.success(result.message);
+        else toast.error(result.message);
+    } finally {
+        setIsLoading(false); // Stop
+    };
+    }
 
   async function handleReactivate(id: string) {
     if(!confirm('ยืนยันที่จะเปิดใช้งานผู้ใช้นี้อีกครั้ง?')) return;
-
+setIsLoading(true); // Start
+try {
     const result = await reactivateUser(id);
     if (result.success) toast.success(result.message);
     else toast.error(result.message);
+    } finally {
+        setIsLoading(false); // Stop
+    };
   }
 
   return (

@@ -4,9 +4,9 @@
 import React, { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { login } from '@/actions/auth-actions';
-import { KeyRound, Loader2, AlertCircle } from 'lucide-react';
+import { KeyRound, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-
+import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 // 1. กำหนดค่าเริ่มต้นให้ตรงกับ Type (LoginState)
 const initialState = {
   success: false,
@@ -28,7 +28,7 @@ const SubmitButton = () => {
 
 export default function LoginForm() {
   const [state, formAction] = useFormState(login, initialState);
-
+const { setIsLoading } = useGlobalLoading();
   // ✅ ใช้ useEffect ดักจับ state เพื่อแสดง Toast
   useEffect(() => {
     if (state?.message) {

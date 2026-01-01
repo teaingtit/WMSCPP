@@ -6,7 +6,7 @@ import { submitInbound } from '@/actions/inbound-actions';
 import { Loader2, Save, MapPin, Package, CheckCircle2, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/types/inventory';
-
+import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 // Import Components ที่เราแยกออกมา
 import LocationSelector, { LocationData } from '@/components/shared/LocationSelector';
 import ProductAutocomplete from './ProductAutocomplete';
@@ -33,9 +33,8 @@ interface DynamicInboundFormProps {
 }
 
 export default function DynamicInboundForm({ warehouseId, category, products }: DynamicInboundFormProps) {
-  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-
+const { setIsLoading } = useGlobalLoading();
   // 1. Product State (Clean!)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -55,7 +54,8 @@ export default function DynamicInboundForm({ warehouseId, category, products }: 
     e.preventDefault();
     if (!selectedLocation?.id) return toast.error("❌ กรุณาระบุพิกัดให้ครบถ้วน");
     if (!selectedProduct) return toast.error("❌ กรุณาเลือกสินค้า");
-
+    if (!quantity) return toast.error("❌ กรุณาระบุจำนวนรับเข้า");
+    setIsLoading(true);
     setSubmitting(true);
     const payload = {
         warehouseId,
@@ -66,17 +66,24 @@ export default function DynamicInboundForm({ warehouseId, category, products }: 
         attributes
     };
 
-    const result = await submitInbound(payload);
-    if (result.success) {
-        toast.success(result.message);
-        setQuantity('');
-        setAttributes({});
-        // Optional: Reset Location เพื่อความสะดวกในการยิงตัวต่อไปใน Lot เดิม (ถ้าต้องการ)
-        // setSelectedLocation(null); 
-    } else {
-        toast.error(result.message);
-    }
-    setSubmitting(false);
+    try {
+        const result = await submitInbound(payload);
+        
+        if (result.success) {
+            toast.success(result.message);
+            setQuantity('');
+            setAttributes({});
+            setSelectedLocation(null);
+        } else {
+            toast.error(result.message);
+        }
+    } catch (error) {
+        toast.error("เกิดข้อผิดพลาด");
+    } finally {
+        // 4. จบ Loading (สำคัญ)
+        setIsLoading(false);
+        setSubmitting(false);
+    };
   };
 
   return (

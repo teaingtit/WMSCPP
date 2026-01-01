@@ -6,19 +6,29 @@ import { toast } from 'sonner';
 import { submitTransfer, submitCrossTransfer } from '@/actions/transfer-actions';
 import { useRouter } from 'next/navigation';
 import LocationSelector, { LocationData } from '../shared/LocationSelector';
+import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
+import { StockWithDetails } from '@/types/inventory';
+
+// 1. เพิ่ม Type-safety เพื่อความชัดเจนและลดข้อผิดพลาด
+interface Warehouse {
+  id: string;
+  code: string;
+  name: string;
+}
 
 interface Props {
-  sourceStock: any;
+  sourceStock: StockWithDetails | null; // ใช้ Type ที่ชัดเจนและอนุญาตให้เป็น null ได้
   currentWarehouseId: string;
   activeTab: 'INTERNAL' | 'CROSS';
-  warehouses: any[]; 
+  warehouses: Warehouse[]; // ใช้ Type ที่ชัดเจน
 }
 
 export default function TransferTargetForm({ sourceStock, currentWarehouseId, activeTab, warehouses }: Props) {
   const router = useRouter();
+  const { setIsLoading } = useGlobalLoading();
   const [submitting, setSubmitting] = useState(false);
-  
-  // State 
+
+  // State
   const [targetWarehouseId, setTargetWarehouseId] = useState('');
   const [transferQty, setTransferQty] = useState('');
   
@@ -27,39 +37,57 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
   const effectiveWhId = activeTab === 'INTERNAL' ? currentWarehouseId : targetWarehouseId;
 
   const handleSubmit = async () => {
-     if (!sourceStock) return toast.error("กรุณาเลือกสินค้าต้นทาง");
-     if (!selectedTargetLocation) return toast.error("กรุณาระบุพิกัดปลายทางให้ครบ");
-     
+     // --- 1. Validation (จัดกลุ่มการตรวจสอบให้ชัดเจน) ---
+     if (!sourceStock) {
+        return toast.error("กรุณาเลือกสินค้าต้นทาง");
+     }
+     if (activeTab === 'CROSS' && !targetWarehouseId) {
+        return toast.error("กรุณาเลือกคลังปลายทาง");
+     }
+     if (!selectedTargetLocation) {
+        return toast.error("กรุณาระบุพิกัดปลายทางให้ครบ");
+     }
      const qty = Number(transferQty);
-     if (!qty || qty <= 0 || qty > sourceStock.quantity) return toast.error("จำนวนสินค้าไม่ถูกต้อง");
+     if (!qty || qty <= 0 || qty > sourceStock.quantity) {
+        return toast.error("จำนวนสินค้าไม่ถูกต้อง");
+     }
 
+     // --- 2. Set Loading State ---
+     setIsLoading(true);
      setSubmitting(true);
-     
-     // ✅ เพิ่ม targetLocationId ลงใน payload
-     const payload = {
-        stockId: sourceStock.id,
-        targetLocationId: selectedTargetLocation.id, // ส่ง ID โดยตรง
-        targetLot: selectedTargetLocation.lot,
-        targetCart: selectedTargetLocation.cart,
-        targetLevel: selectedTargetLocation.level,
-        transferQty: qty
-     };
 
-     let result;
-     if (activeTab === 'INTERNAL') {
-        result = await submitTransfer({ ...payload, warehouseId: currentWarehouseId });
-     } else {
-        if (!targetWarehouseId) { setSubmitting(false); return toast.error("กรุณาเลือกคลังปลายทาง"); }
-        result = await submitCrossTransfer({ ...payload, sourceWarehouseId: currentWarehouseId, targetWarehouseId });
+     try {
+        // --- 3. Prepare Payload ---
+        const payload = {
+            stockId: sourceStock.id,
+            targetLocationId: selectedTargetLocation.id,
+            targetLot: selectedTargetLocation.lot,
+            targetCart: selectedTargetLocation.cart,
+            targetLevel: selectedTargetLocation.level,
+            transferQty: qty
+        };
+
+        // --- 4. Call Action ---
+        const result = activeTab === 'INTERNAL'
+            ? await submitTransfer({ ...payload, warehouseId: currentWarehouseId })
+            : await submitCrossTransfer({ ...payload, sourceWarehouseId: currentWarehouseId, targetWarehouseId });
+
+        // --- 5. Handle Result ---
+        if (result.success) {
+            toast.success(result.message);
+            router.push(`/dashboard/${currentWarehouseId}/inventory`);
+        } else {
+            toast.error(result.message);
+        }
+     } catch (err) {
+         console.error("Transfer failed:", err);
+         toast.error("เกิดข้อผิดพลาดในการย้ายสินค้า");
+     } finally {
+         // --- 6. BUG FIX: Reset Loading State ใน finally เสมอ เพื่อป้องกัน Loading ค้าง ---
+         setIsLoading(false);
+         setSubmitting(false);
      }
 
-     if (result.success) {
-        toast.success(result.message);
-        router.push(`/dashboard/${currentWarehouseId}/inventory`);
-     } else {
-        toast.error(result.message);
-     }
-     setSubmitting(false);
   };
 
   const isDisabled = !sourceStock;
@@ -78,10 +106,16 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
                    aria-label="เลือกคลังปลายทาง"
                    className="w-full p-3 bg-indigo-50 border border-indigo-200 rounded-xl font-bold text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-500/20"
                    value={targetWarehouseId}
-                   onChange={e => setTargetWarehouseId(e.target.value)}
+                   onChange={e => {
+                       setTargetWarehouseId(e.target.value);
+                       setSelectedTargetLocation(null); // 2. UX Improvement: Reset location เมื่อเปลี่ยนคลัง
+                   }}
                 >
                    <option value="">-- เลือกคลังสินค้า --</option>
-                   {warehouses.map(w => <option key={w.id} value={w.id}>{w.code} - {w.name}</option>)}
+                   {/* 3. UX Improvement: กรองคลังปัจจุบันออกเพื่อลดความสับสน */}
+                   {warehouses
+                    .filter(w => w.id !== currentWarehouseId)
+                    .map(w => <option key={w.id} value={w.id}>{w.code} - {w.name}</option>)}
                 </select>
              </div>
           )}
@@ -89,8 +123,9 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
           <div className="mb-6">
             <LocationSelector 
                 warehouseId={effectiveWhId}
-                onSelect={(loc) => setSelectedTargetLocation(loc)}
+                onSelect={setSelectedTargetLocation}
                 disabled={activeTab === 'CROSS' && !targetWarehouseId}
+                key={effectiveWhId} // 4. UX Improvement: ใช้ key เพื่อบังคับให้ component รีเซ็ต state เมื่อคลังเปลี่ยน
             />
           </div>
           
@@ -105,6 +140,8 @@ export default function TransferTargetForm({ sourceStock, currentWarehouseId, ac
              <div className="relative">
                 <input 
                    type="number"
+                   min="1" // 5. เพิ่ม min/max attribute เพื่อการ validation ที่ดีขึ้น
+                   max={sourceStock?.quantity}
                    className="w-full text-3xl font-black text-slate-800 pl-4 pr-16 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-indigo-500/10"
                    placeholder="0"
                    value={transferQty}

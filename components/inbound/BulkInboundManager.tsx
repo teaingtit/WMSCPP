@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { downloadInboundTemplate, importInboundStock } from '@/actions/bulk-import-actions';
 import { Button } from '@/components/ui/button';
-import { FileDown, Upload, Loader2, AlertCircle, FileSpreadsheet, CheckCircle2, XCircle } from 'lucide-react';
+import { FileDown, Upload, Loader2, FileSpreadsheet, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {

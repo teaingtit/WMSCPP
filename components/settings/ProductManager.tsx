@@ -6,20 +6,18 @@ import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-
 import { Button } from '@/components/ui/button';
 import { Trash2, Search, Save, Loader2, Tag, Download, FileSpreadsheet, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-
+import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 interface ProductManagerProps {
   products: any[];
   category: any;
 }
 
 export default function ProductManager({ products, category }: ProductManagerProps) {
-  // Safety Check
-  if (!category) {
-      return (
-        <div className="p-8 text-center text-rose-500 bg-rose-50 rounded-xl border border-rose-100 flex items-center justify-center gap-2">
-            <AlertCircle size={20}/> Error: Missing Category Context
-        </div>
-      );
+  
+  const { setIsLoading } = useGlobalLoading();
+
+ if (!category) {
+      return <div className="p-8 text-center text-rose-500 bg-rose-50 rounded-xl border border-rose-100 flex items-center justify-center gap-2"><AlertCircle/> Error: Missing Category Context</div>;
   }
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,17 +29,17 @@ export default function ProductManager({ products, category }: ProductManagerPro
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Filter เฉพาะ Spec ที่เป็น Product Scope
   const productSchema = (category.form_schema || []).filter((f: any) => !f.scope || f.scope === 'PRODUCT');
 
-  // ฟังก์ชันแปลง Key -> Label ภาษาไทย
+  // ✅ NEW LOGIC: ฟังก์ชันแปลง Key (field_xxx) -> Label (ทะเบียน)
   const getAttrLabel = (key: string) => {
       const field = (category.form_schema || []).find((f: any) => f.key === key);
-      return field ? field.label : key; 
+      return field ? field.label : key; // ถ้าเจอให้ใช้ Label, ถ้าไม่เจอใช้ Key เดิม
   };
 
   async function handleCreate(formData: FormData) {
-    setLoading(true);
+    setIsLoading(true);
+    try {
     formData.append('category_id', category.id);
     formData.append('uom', category.uom || 'PCS');
     
@@ -52,31 +50,38 @@ export default function ProductManager({ products, category }: ProductManagerPro
         toast.success(res.message);
         (document.getElementById('create-product-form') as HTMLFormElement).reset();
     } else toast.error(res.message);
+    } finally {
+       setIsLoading(false);
+    };
   }
 
   async function handleDelete(id: string) {
     if(!confirm('ยืนยันลบสินค้า?')) return;
+    setIsLoading(true);
+    try {
     const formData = new FormData();
     formData.append('id', id);
     const res = await deleteProduct(formData);
     if (res.success) toast.success(res.message); else toast.error(res.message);
+  } finally {
+    setIsLoading(false);
+  }
+  
   }
 
   const handleDownload = async () => {
-    setImportLoading(true);
+    setIsLoading(true);
     try {
-        const res = await downloadMasterTemplate('product', category.id);
-        if (res && res.base64) {
-            const link = document.createElement('a');
-            link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
-            link.download = res.fileName;
-            link.click();
-            toast.success('ดาวน์โหลด Template สำเร็จ');
-        }
-    } catch (e) {
-        toast.error('ดาวน์โหลดไม่สำเร็จ');
+    const res = await downloadMasterTemplate('product', category.id);
+    if (res && res.base64) {
+        const link = document.createElement('a');
+        link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
+        link.download = res.fileName;
+        link.click();
     }
-    setImportLoading(false);
+    } finally {
+      setIsLoading(false);
+    };
   };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,17 +89,21 @@ export default function ProductManager({ products, category }: ProductManagerPro
     if (!file) return;
     if (!confirm(`ยืนยัน Import สินค้าเข้าหมวด ${category.name}?`)) return;
 
-    setImportLoading(true);
+    setIsLoading(true);
+    try {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('categoryId', category.id);
     
     const res = await importMasterData(formData, 'product');
-    setImportLoading(false);
+    
     
     if (res.success) toast.success(res.message); else toast.error(res.message);
     e.target.value = '';
-  };
+    } finally {
+      setIsLoading(false);
+    };
+  }
 
   return (
     <div className="space-y-6">
@@ -117,6 +126,8 @@ export default function ProductManager({ products, category }: ProductManagerPro
                     className="absolute inset-0 opacity-0 cursor-pointer" 
                     accept=".xlsx"
                     disabled={importLoading}
+                    title="Import Excel"
+                    aria-label="Import Excel"
                 />
                 <Button size="sm" disabled={importLoading} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                     {importLoading ? <Loader2 className="animate-spin mr-2"/> : <FileSpreadsheet size={16} className="mr-2"/>}
@@ -144,7 +155,6 @@ export default function ProductManager({ products, category }: ProductManagerPro
                  </div>
             </div>
              
-             {/* Dynamic Fields */}
              {productSchema.length > 0 && (
               <div className="md:col-span-12 bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
                  <div className="text-xs font-bold text-indigo-700 mb-4 flex items-center gap-2">
@@ -153,8 +163,9 @@ export default function ProductManager({ products, category }: ProductManagerPro
                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {productSchema.map((field: any) => (
                         <div key={field.key}>
-                           <label className="text-xs font-bold text-slate-600 mb-1.5 block">{field.label}</label>
+                           <label htmlFor={field.key} className="text-xs font-bold text-slate-600 mb-1.5 block">{field.label}</label>
                            <input
+                              id={field.key}
                               name={field.key}
                               type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
                               className="w-full border border-indigo-200 p-2.5 rounded-lg text-sm bg-white outline-none focus:ring-2 ring-indigo-500/20"
@@ -207,7 +218,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                             <td className="p-4">
                                 {p.attributes && Object.keys(p.attributes).length > 0 ? (
                                     <div className="flex flex-wrap gap-1.5">
-                                        {/* ใช้ getAttrLabel เพื่อแสดงชื่อไทย */}
+                                        {/* ✅ UPDATE: ใช้ฟังก์ชัน getAttrLabel เพื่อแสดงชื่อไทย แทน field_xxx */}
                                         {Object.entries(p.attributes).map(([key, val]) => (
                                             <span key={key} className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium">
                                                 {getAttrLabel(key)}: <span className="text-slate-600 font-normal">{String(val)}</span>
@@ -217,11 +228,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                                 ) : <span className="text-slate-300">-</span>}
                             </td>
                             <td className="p-4 text-right">
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleDelete(p.id)} 
-                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                >
+                                <button type="button" onClick={() => handleDelete(p.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all" aria-label="Delete product">
                                     <Trash2 size={16}/>
                                 </button>
                             </td>

@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import { exportInventoryToExcel } from '@/actions/export-actions';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2, FileSpreadsheet } from 'lucide-react';
+import { Loader2, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
+import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
+
 
 export default function ExportButton({ warehouseId }: { warehouseId: string }) {
-  const [loading, setLoading] = useState(false);
-
+  const [loading] = useState(false);
+const { setIsLoading } = useGlobalLoading();
   const handleExport = async () => {
-    setLoading(true);
+    setIsLoading(true);
     const toastId = toast.loading('กำลังสร้างไฟล์ Excel...');
 
     try {
@@ -42,7 +44,7 @@ export default function ExportButton({ warehouseId }: { warehouseId: string }) {
       console.error(error);
       toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ', { id: toastId });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
