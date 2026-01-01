@@ -1,8 +1,9 @@
-// app/dashboard/[warehouseId]/inbound/page.tsx
 import React from 'react';
 import Link from 'next/link';
-import { getProductCategories } from '@/actions/inbound-actions'; // ✅ Import จะทำงานได้แล้ว
-import { Box, Container, ArrowRight, AlertCircle } from 'lucide-react';
+import { createClient } from '@/lib/supabase-server';
+import { getProductCategories } from '@/actions/inbound-actions';
+import BulkInboundManager from '@/components/inbound/BulkInboundManager';
+import { Box, Container, ArrowRight } from 'lucide-react';
 
 interface PageProps {
   params: { warehouseId: string };
@@ -11,12 +12,27 @@ interface PageProps {
 export default async function InboundMenuPage({ params }: PageProps) {
   const { warehouseId } = params;
   const categories = await getProductCategories();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="max-w-4xl mx-auto py-10">
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">รับสินค้าเข้าคลัง (Inbound)</h1>
-      <p className="text-slate-500 mb-8">กรุณาเลือกประเภทสินค้าที่ต้องการรับเข้า</p>
+    <div className="max-w-5xl mx-auto py-10 px-6">
+      <h1 className="text-2xl font-bold text-slate-900 mb-8">รับสินค้าเข้าคลัง (Inbound)</h1>
 
+      {/* 1. Bulk Import Section (Context-Aware) */}
+      <BulkInboundManager 
+         warehouseId={warehouseId} 
+         categories={categories} 
+         userId={user?.id || 'system'} 
+      />
+
+      <div className="relative flex items-center py-8">
+         <div className="flex-grow border-t border-slate-200"></div>
+         <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-bold uppercase tracking-wider">หรือรับเข้าทีละรายการ (Manual)</span>
+         <div className="flex-grow border-t border-slate-200"></div>
+      </div>
+
+      {/* 2. Manual Selection Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Array.isArray(categories) && categories.length > 0 ? (
           categories.map((cat: any) => (
@@ -36,7 +52,7 @@ export default async function InboundMenuPage({ params }: PageProps) {
                       {cat.name}
                   </h3>
                   <p className="text-sm text-slate-400">
-                      ID: {cat.id}
+                      Manual Entry
                   </p>
               </div>
               
@@ -44,9 +60,8 @@ export default async function InboundMenuPage({ params }: PageProps) {
             </Link>
           ))
         ) : (
-          <div className="col-span-2 p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-slate-400 flex flex-col items-center gap-2">
-            <AlertCircle size={32} />
-            <p>ยังไม่มีประเภทสินค้าในระบบ กรุณาเพิ่มในหน้า Settings ก่อน</p>
+          <div className="col-span-2 p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+            <p className="text-slate-400">ยังไม่มีหมวดหมู่สินค้าในระบบ</p>
           </div>
         )}
       </div>

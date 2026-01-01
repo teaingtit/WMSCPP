@@ -1,93 +1,202 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
-import { useFormState } from 'react-dom';
-import { createCategory, deleteCategory } from '@/actions/settings-actions';
-import { Plus, Trash2 } from 'lucide-react';
-import SchemaBuilder from './SchemaBuilder';
+import { useState } from 'react';
+import { deleteCategory } from '@/actions/settings-actions';
+import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-actions';
+import { Trash2, Download, Upload, Loader2, BookOpen, Package, ArrowLeft, Ruler } from 'lucide-react';
 import { SubmitButton } from '@/components/SubmitButton';
+import ProductManager from './ProductManager';
+import CategoryForm from './CategoryForm';
+import { toast } from 'sonner';
 
-const initialState = { success: false, message: '' };
+export default function CategoryManager({ categories, products }: { categories: any[], products: any[] }) {
+  const [activeCategory, setActiveCategory] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
 
-export const CategoryManager = ({ categories }: { categories: any[] }) => {
-  const formRef = useRef<HTMLFormElement>(null);
-  const [schemaJson, setSchemaJson] = useState('[]'); 
-
-  const [createState, createAction] = useFormState(async (_prev: any, formData: FormData) => {
-    return await createCategory(formData);
-  }, initialState);
-
-  const [deleteState, deleteAction] = useFormState(async (_prev: any, formData: FormData) => {
-    return await deleteCategory(formData);
-  }, initialState);
-
-  useEffect(() => {
-    if (createState.message) {
-      if(createState.success) {
-        alert(`✅ ${createState.message}`);
-        formRef.current?.reset();
-        setSchemaJson('[]');
-      } else {
-        alert(`❌ ${createState.message}`);
-      }
+  // Download Template Handler
+  const handleDownload = async () => {
+    setLoading(true);
+    try {
+        const res = await downloadMasterTemplate('category');
+        if (res?.base64) {
+            const link = document.createElement('a');
+            link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
+            link.download = res.fileName;
+            link.click();
+            toast.success('ดาวน์โหลด Template สำเร็จ');
+        }
+    } catch (error) {
+        toast.error('เกิดข้อผิดพลาดในการดาวน์โหลด');
     }
-  }, [createState]);
+    setLoading(false);
+  };
 
-  useEffect(() => {
-    if (deleteState.message) {
-        alert(deleteState.success ? `✅ ${deleteState.message}` : `❌ ${deleteState.message}`);
-    }
-  }, [deleteState]);
+  // Import Handler
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const res = await importMasterData(formData, 'category');
+    setLoading(false);
+    
+    if (res.success) toast.success(res.message); 
+    else toast.error(res.message);
+    e.target.value = '';
+  };
 
+  // --- VIEW 1: PRODUCT MANAGER (หน้ารายละเอียดสินค้าในหมวดหมู่) ---
+  if (activeCategory) {
+    return (
+        <div className="space-y-6 animate-in slide-in-from-right-4">
+            <button 
+                onClick={() => setActiveCategory(null)} 
+                className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold text-sm transition-colors"
+            >
+                <ArrowLeft size={16}/> กลับไปหน้าหมวดหมู่
+            </button>
+
+            <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center gap-3 shadow-sm">
+                <div className="p-2.5 bg-indigo-600 text-white rounded-lg shadow-sm">
+                    <Package size={24} />
+                </div>
+                <div>
+                    <h2 className="text-xl font-bold text-indigo-900">ทะเบียนสินค้า: {activeCategory.name}</h2>
+                    <div className="flex items-center gap-3 text-sm text-indigo-600 mt-0.5">
+                        <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100 font-mono">ID: {activeCategory.id}</span>
+                        <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100 flex items-center gap-1 font-bold">
+                            <Ruler size={12}/> {activeCategory.uom || 'PCS'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* เรียก ProductManager โดยส่ง Category Context ไปด้วย */}
+            <ProductManager 
+                products={products.filter(p => p.category_id === activeCategory.id)} 
+                category={activeCategory} 
+            />
+        </div>
+    );
+  }
+
+  // --- VIEW 2: CATEGORY LIST (หน้าหลักหมวดหมู่) ---
   return (
     <div className="space-y-8">
-      <form ref={formRef} action={createAction} className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-        <div className="grid grid-cols-3 gap-4">
-           <div className="col-span-1">
-                <label htmlFor="cat-id" className="text-xs font-bold text-slate-500 mb-1 block">ID (เช่น RAW, FG)</label>
-                <input id="cat-id" name="id" required className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 uppercase font-bold text-indigo-900 focus:ring-2 ring-indigo-500/20 outline-none" placeholder="RAW" />
-           </div>
-           <div className="col-span-2">
-                <label htmlFor="cat-name" className="text-xs font-bold text-slate-500 mb-1 block">ชื่อประเภท</label>
-                <input id="cat-name" name="name" required className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 ring-indigo-500/20 outline-none" placeholder="วัตถุดิบ..." />
-           </div>
+      
+      {/* Header & Tools */}
+      <div className="flex justify-between items-end border-b border-slate-100 pb-4">
+        <div>
+            <h3 className="font-bold text-slate-800">จัดการหมวดหมู่สินค้า</h3>
+            <p className="text-xs text-slate-500">กำหนดโครงสร้าง (Structure) และหน่วยนับ (UOM)</p>
         </div>
-        
-        <input type="hidden" name="schema" value={schemaJson} />
-        
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <h4 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">Dynamic Fields (Schema)</h4>
-            <SchemaBuilder onSchemaChange={setSchemaJson} />
+        <div className="flex gap-2">
+             <button 
+                onClick={handleDownload} 
+                disabled={loading} 
+                className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+             >
+                <Download size={14}/> Template
+             </button>
+             <div className="relative">
+                <input 
+                    type="file" 
+                    onChange={handleImport} 
+                    disabled={loading} 
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                    accept=".xlsx" 
+                />
+                <button 
+                    disabled={loading} 
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors"
+                >
+                    {loading ? <Loader2 size={14} className="animate-spin"/> : <Upload size={14}/>} Import
+                </button>
+             </div>
         </div>
+      </div>
 
-        <SubmitButton className="w-full bg-indigo-600 text-white px-4 py-4 rounded-xl font-bold hover:bg-indigo-700 flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200 active:scale-[0.98]">
-            <Plus size={18} strokeWidth={3} /> สร้างประเภทสินค้า
-        </SubmitButton>
-      </form>
-
-      {/* List Categories */}
-      <div className="border-t border-slate-100 pt-6">
-        <h3 className="font-bold text-slate-800 mb-4 text-sm flex items-center justify-between">
-            <span>ประเภทสินค้า</span>
-            <span className="bg-indigo-50 text-indigo-600 text-xs px-2 py-1 rounded-md font-bold">{categories.length}</span>
-        </h3>
-        <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
-            {categories.map((cat) => (
-                <div key={cat.id} className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 transition-all">
-                    <div>
-                        <div className="font-bold text-slate-700">{cat.name}</div>
-                        <div className="text-xs text-slate-400 font-mono mt-0.5">ID: {cat.id}</div>
+      {/* Info Guide Section (คำแนะนำ) */}
+      <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-5 shadow-sm animate-in fade-in slide-in-from-top-2">
+         <div className="flex items-start gap-4">
+            <div className="p-2 bg-white rounded-lg border border-blue-100 shadow-sm text-blue-600">
+                <BookOpen size={20} />
+            </div>
+            <div className="space-y-3 flex-1">
+                <h4 className="text-sm font-bold text-blue-900">คำแนะนำการกำหนดโครงสร้างข้อมูล (Data Structure Guide)</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded border border-indigo-200">Spec</span>
+                            <span className="text-xs font-bold text-slate-700">รายละเอียดคงที่ (Static)</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                             ข้อมูลที่ไม่เปลี่ยนแปลงของสินค้านั้นๆ เช่น ขนาด, วัสดุ, แรงดันไฟ (ใช้สำหรับ Product Scope)
+                        </p>
                     </div>
-                    <form action={deleteAction}>
-                        <input type="hidden" name="id" value={cat.id} />
-                        <SubmitButton className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                            <Trash2 size={18} />
-                        </SubmitButton>
-                    </form>
+
+                    <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                         <div className="flex items-center gap-2 mb-1">
+                            <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">Inbound</span>
+                            <span className="text-xs font-bold text-slate-700">รายละเอียดผันแปร (Dynamic)</span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            ข้อมูลที่อาจเปลี่ยนแปลงได้ในการรับเข้าแต่ละครั้ง เช่น วันหมดอายุ, Serial No., Lot No. (ใช้สำหรับ Lot Scope)
+                        </p>
+                    </div>
+                </div>
+            </div>
+         </div>
+      </div>
+      
+      {/* Category Creation Form */}
+      <CategoryForm /> 
+
+      {/* Categories List */}
+      <div className="grid grid-cols-1 gap-3 pt-6 border-t border-slate-100">
+            {categories.map((cat) => (
+                <div key={cat.id} className="flex justify-between items-center p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-300 hover:shadow-md transition-all group">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 font-bold border border-indigo-100">
+                            {cat.id.substring(0,2)}
+                        </div>
+                        <div>
+                            <div className="font-bold text-slate-800 text-lg group-hover:text-indigo-700 transition-colors">{cat.name}</div>
+                            <div className="text-xs text-slate-400 font-mono mt-1 flex items-center gap-3">
+                                <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">ID: {cat.id}</span>
+                                <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded border border-orange-100 flex items-center gap-1">
+                                    <Ruler size={10}/> {cat.uom || 'PCS'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        {/* ปุ่มเปิดหน้าทะเบียนสินค้า */}
+                        <button 
+                            onClick={() => setActiveCategory(cat)} 
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-sm hover:shadow transition-all"
+                        >
+                            <Package size={16}/> ทะเบียนสินค้า
+                        </button>
+                        
+                        <div className="h-8 w-px bg-slate-200 mx-1"></div>
+
+                        {/* ปุ่มลบ */}
+                        <form action={deleteCategory.bind(null, new FormData())}> 
+                            <input type="hidden" name="id" value={cat.id} />
+                            <SubmitButton className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                                <Trash2 size={18} />
+                            </SubmitButton>
+                        </form>
+                    </div>
                 </div>
             ))}
-        </div>
       </div>
     </div>
   );
-};
+}
