@@ -115,4 +115,4 @@ export default function TransactionConfirmModal({
       </div>
     </div>
   );
-}const [showConfirm, setShowConfirm] = useState(false);
+}
