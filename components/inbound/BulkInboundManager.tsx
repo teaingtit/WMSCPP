@@ -35,8 +35,8 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
         } else {
             toast.error('ไม่สามารถสร้าง Template ได้');
         }
-    } catch (error) {
-        toast.error('เกิดข้อผิดพลาดในการดาวน์โหลด');
+    } catch (error: any) {
+        toast.error(error.message || 'เกิดข้อผิดพลาดในการดาวน์โหลด');
     } finally {
         setLoading(false);
     }

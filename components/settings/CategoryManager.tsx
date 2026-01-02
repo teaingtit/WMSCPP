@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useFormState } from 'react-dom';
 import { deleteCategory } from '@/actions/settings-actions';
 import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-actions';
-import { Trash2, Download, Upload, Loader2, BookOpen, Package, ArrowLeft, Ruler } from 'lucide-react';
+import { Trash2, Download, Upload, Loader2, BookOpen, Package, ArrowLeft } from 'lucide-react';
 import { SubmitButton } from '@/components/SubmitButton';
 import ProductManager from './ProductManager';
 import CategoryForm from './CategoryForm';
@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 interface Category {
   id: string;
   name: string;
-  uom: string;
   form_schema?: any;
 }
 
@@ -79,9 +78,6 @@ export default function CategoryManager({ categories, products }: { categories: 
                     <h2 className="text-xl font-bold text-indigo-900">ทะเบียนสินค้า: {activeCategory.name}</h2>
                     <div className="flex items-center gap-3 text-sm text-indigo-600 mt-0.5">
                         <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100">ID: {activeCategory.id}</span>
-                        <span className="bg-white/50 px-2 py-0.5 rounded border border-indigo-100 flex items-center gap-1">
-                            <Ruler size={12}/> {activeCategory.uom || 'PCS'}
-                        </span>
                     </div>
                 </div>
             </div>
@@ -99,7 +95,7 @@ export default function CategoryManager({ categories, products }: { categories: 
       <div className="flex justify-between items-end border-b border-slate-100 pb-4">
         <div>
             <h3 className="font-bold text-slate-800">จัดการหมวดหมู่สินค้า</h3>
-            <p className="text-xs text-slate-500">กำหนดโครงสร้าง (Structure) และหน่วยนับ (UOM)</p>
+            <p className="text-xs text-slate-500">กำหนดโครงสร้าง (Structure)</p>
         </div>
         <div className="flex gap-2">
              <Button
@@ -182,9 +178,6 @@ export default function CategoryManager({ categories, products }: { categories: 
                             <div className="font-bold text-slate-800 text-lg group-hover:text-indigo-700 transition-colors">{cat.name}</div>
                             <div className="text-xs text-slate-400 font-mono mt-1 flex items-center gap-3">
                                 <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">ID: {cat.id}</span>
-                                <span className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded border border-orange-100 flex items-center gap-1">
-                                    <Ruler size={10}/> {cat.uom || 'PCS'}
-                                </span>
                             </div>
                         </div>
                     </div>

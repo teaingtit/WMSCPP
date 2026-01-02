@@ -41,7 +41,6 @@ export default function ProductManager({ products, category }: ProductManagerPro
     setIsLoading(true);
     try {
     formData.append('category_id', category.id);
-    formData.append('uom', category.uom || 'PCS');
     
     const res = await createProduct(formData);
     setLoading(false);
@@ -148,12 +147,6 @@ export default function ProductManager({ products, category }: ProductManagerPro
                 <label className="text-xs font-bold text-slate-500 mb-1 block">ชื่อสินค้า *</label>
                 <input name="name" required placeholder="ระบุชื่อสินค้า..." className="w-full border border-slate-200 p-2.5 rounded-lg text-sm outline-none" />
             </div>
-            <div className="md:col-span-3">
-                 <label className="text-xs font-bold text-slate-500 mb-1 block">หน่วย (Auto)</label>
-                 <div className="w-full bg-slate-100 text-slate-600 p-2.5 rounded-lg text-sm font-bold border border-slate-200 text-center">
-                    {category.uom || 'PCS'}
-                 </div>
-            </div>
              
              {productSchema.length > 0 && (
               <div className="md:col-span-12 bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
@@ -202,7 +195,6 @@ export default function ProductManager({ products, category }: ProductManagerPro
                     <tr>
                         <th className="p-4 w-32">SKU</th>
                         <th className="p-4">สินค้า</th>
-                        <th className="p-4 w-24 text-center">หน่วย</th>
                         <th className="p-4">Spec</th>
                         <th className="p-4 text-right w-20">Action</th>
                     </tr>
@@ -212,9 +204,6 @@ export default function ProductManager({ products, category }: ProductManagerPro
                         <tr key={p.id} className="hover:bg-slate-50 transition-colors group">
                             <td className="p-4 font-mono font-bold text-indigo-700">{p.sku}</td>
                             <td className="p-4 font-medium text-slate-800">{p.name}</td>
-                            <td className="p-4 text-center">
-                                <span className="inline-block px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold">{p.uom}</span>
-                            </td>
                             <td className="p-4">
                                 {p.attributes && Object.keys(p.attributes).length > 0 ? (
                                     <div className="flex flex-wrap gap-1.5">

@@ -2,7 +2,7 @@
 
 import { useFormState } from 'react-dom';
 import { createCategory } from '@/actions/settings-actions';
-import { Plus, Info, Ruler } from 'lucide-react';
+import { Plus, Info } from 'lucide-react';
 import SchemaBuilder from './SchemaBuilder';
 import { SubmitButton } from '@/components/SubmitButton';
 import { useState, useRef, useEffect } from 'react';
@@ -42,7 +42,7 @@ export default function CategoryForm() {
                     placeholder="RAW" 
                 />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-3">
                 <label htmlFor="cat-name" className="text-xs font-bold text-slate-500 mb-1 block">ชื่อหมวดหมู่ *</label>
                 <input 
                     id="cat-name"
@@ -51,23 +51,6 @@ export default function CategoryForm() {
                     className="w-full p-3 border rounded-xl outline-none" 
                     placeholder="วัตถุดิบ..." 
                 />
-            </div>
-            <div className="col-span-1">
-                <label htmlFor="cat-uom" className="text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
-                    <Ruler size={12}/> หน่วย (UOM)
-                </label>
-                <select 
-                    id="cat-uom"
-                    name="uom" 
-                    className="w-full p-3 border rounded-xl bg-white outline-none cursor-pointer"
-                    aria-label="เลือกหน่วยนับ"
-                >
-                    <option value="PCS">PCS (ชิ้น)</option>
-                    <option value="BOX">BOX (กล่อง)</option>
-                    <option value="KG">KG (กิโล)</option>
-                    <option value="SET">SET (ชุด)</option>
-                    <option value="M">M (เมตร)</option>
-                </select>
             </div>
         </div>
 

@@ -15,12 +15,14 @@ export interface Product {
   created_at?: string;
   is_active: boolean;
   attributes?: Record<string, any>;
+  /** The name of the category, typically populated from a join operation. */
   category?: string;
 }
 
 /**
  * Represents a storage location within a warehouse.
  * Corresponds to the 'locations' table in the database.
+ * The combination of lot, cart, and level can define a more specific position.
  */
 export interface Location {
   id: string;
@@ -41,8 +43,8 @@ export interface StockWithDetails {
   quantity: number;
   updated_at: string;
   attributes?: Record<string, any>;
-  products: Product;   // Nested Object จากการ Join
-  locations: Location; // Nested Object จากการ Join
+  product: Product;   // Nested Object from Join
+  location: Location; // Nested Object from Join
 }
 
 /**
@@ -74,4 +76,29 @@ export interface HistoryLogItem {
   status: 'SUCCESS' | 'ERROR';
   user_email?: string;
   quantity: number;
+}
+export interface AuditSession {
+  id: string;
+  warehouse_id: string;
+  name: string;
+  status: 'OPEN' | 'FINALIZED' | 'CANCELLED';
+  created_at: string;
+  created_by: string;
+  finalized_at?: string;
+}
+
+export interface AuditItem {
+  id: string;
+  session_id: string;
+  product_id: string;
+  location_id: string;
+  status: 'PENDING' | 'COUNTED';
+  system_qty: number;
+  counted_qty: number | null;
+  diff_qty: number | null;
+  counter_id?: string;
+  updated_at: string;
+  // Relations (สำหรับการ join แสดงผล)
+  product?: Product;
+  location?: Location;
 }

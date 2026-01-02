@@ -61,7 +61,6 @@ export async function createProduct(formData: FormData) {
   try {
     const { error } = await supabase.from('products').insert({
       sku, name, category_id: categoryId || 'GENERAL',
-      uom: formData.get('uom') as string || 'PCS',
       min_stock: Number(formData.get('min_stock')) || 0,
       image_url: formData.get('image_url') as string || null,
       attributes: attributes,

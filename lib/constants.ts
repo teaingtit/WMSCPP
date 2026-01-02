@@ -1,5 +1,5 @@
 // lib/constants.ts
-import { Package, Settings, LayoutGrid, Users, History, BarChart3 } from 'lucide-react';
+import { Package, Settings, LayoutGrid, ClipboardCheck, History, BarChart3 } from 'lucide-react';
 
 export const APP_CONFIG = {
   name: 'WMS Pro',
@@ -22,6 +22,12 @@ export const MENU_ITEMS = [
     icon: Package,
     matchPath: '/inventory',
     hidden: true // ซ่อนจากเมนูหลัก (อาจจะใช้ใน Submenu)
+  },
+  {
+    title: 'Stock Audit',
+    href: '/dashboard/[warehouseId]/audit', // ใช้ Pattern เดียวกับ DesktopSidebar
+    matchPath: '/audit',
+    icon: ClipboardCheck, 
   },
   {
     title: 'ประวัติ (History)',
