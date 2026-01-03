@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { StockPositionGroup } from './StockPositionGroup';
 import { InventoryCheckbox } from './InventoryCheckbox';
@@ -13,6 +13,7 @@ interface StockLotSectionProps {
   onToggleLot: (lot: string) => void;
   onTogglePos: (lot: string, pos: string) => void;
   onToggleItem: (id: string) => void;
+  onToggleMultiple: (ids: string[]) => void;
 }
 
 export const StockLotSection = ({
@@ -21,30 +22,40 @@ export const StockLotSection = ({
   selectedIds,
   onToggleLot,
   onTogglePos,
-  onToggleItem
+  onToggleItem,
+  onToggleMultiple
 }: StockLotSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const posKeys = Object.keys(positions).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  const totalItemsInLot = Object.values(positions).flat().length;
+  const posKeys = useMemo(() => 
+    Object.keys(positions).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    [positions]
+  );
+
+  const allItems = useMemo(() => Object.values(positions).flat(), [positions]);
+  const totalItemsInLot = allItems.length;
   
-  const isLotSelected = (() => {
-    const allItems = Object.values(positions).flat();
+  const isLotSelected = useMemo(() => {
     return allItems.length > 0 && allItems.every(item => selectedIds.has(item.id));
-  })();
+  }, [allItems, selectedIds]);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2">
       {/* Header */}
       <div 
-        className="flex items-center gap-4 p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors select-none border-b border-slate-100"
+        className="flex items-center gap-4 p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 active:bg-slate-200 transition-all duration-200 select-none border-b border-slate-100 active:scale-[0.99] touch-manipulation"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <button aria-label="Expand lot" className="p-1 hover:bg-slate-200 rounded-full transition-colors">
-            {isExpanded ? <ChevronDown size={20} className="text-slate-500"/> : <ChevronRight size={20} className="text-slate-400"/>}
-        </button>
+        <div className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+            <ChevronDown 
+              size={20} 
+              className={`text-slate-500 transition-transform duration-300 ${isExpanded ? '' : '-rotate-90'}`}
+            />
+        </div>
         
-        <InventoryCheckbox checked={isLotSelected} onClick={() => onToggleLot(lot)} />
+        <div onClick={(e) => e.stopPropagation()} className="p-2 -m-2">
+            <InventoryCheckbox checked={isLotSelected} onClick={() => onToggleLot(lot)} />
+        </div>
         
         <div className="flex-1">
           <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lot / Zone</div>
@@ -58,7 +69,7 @@ export const StockLotSection = ({
 
       {/* Content */}
       {isExpanded && (
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-100 animate-in slide-in-from-top-1 duration-200">
           {posKeys.map(pos => (
             <StockPositionGroup
                 key={pos}
@@ -68,6 +79,7 @@ export const StockLotSection = ({
                 selectedIds={selectedIds}
                 onTogglePos={onTogglePos}
                 onToggleItem={onToggleItem}
+                onToggleMultiple={onToggleMultiple}
             />
           ))}
         </div>

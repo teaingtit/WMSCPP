@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Grid3X3 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Grid3X3, Layers, ChevronDown } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { StockItemCard } from './StockItemCard';
 import { InventoryCheckbox } from './InventoryCheckbox';
@@ -13,7 +13,50 @@ interface StockPositionGroupProps {
   selectedIds: Set<string>;
   onTogglePos: (lot: string, pos: string) => void;
   onToggleItem: (id: string) => void;
+  onToggleMultiple: (ids: string[]) => void;
 }
+
+const getLevelStyles = (level: string) => {
+  const char = level.charAt(0).toUpperCase();
+  
+  // Level A / 1 -> Red (Rose)
+  if (['A', '1'].includes(char)) {
+    return {
+      text: 'text-rose-700',
+      icon: 'text-rose-500',
+      hoverBg: 'hover:bg-rose-50',
+      badge: 'bg-rose-100 text-rose-700 border border-rose-200',
+    };
+  }
+  
+  // Level B / 2 -> Blue
+  if (['B', '2'].includes(char)) {
+    return {
+      text: 'text-blue-700',
+      icon: 'text-blue-500',
+      hoverBg: 'hover:bg-blue-50',
+      badge: 'bg-blue-100 text-blue-700 border border-blue-200',
+    };
+  }
+
+  // Level C / 3 -> Green (Emerald)
+  if (['C', '3'].includes(char)) {
+    return {
+      text: 'text-emerald-700',
+      icon: 'text-emerald-500',
+      hoverBg: 'hover:bg-emerald-50',
+      badge: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+    };
+  }
+
+  // Default -> Slate / Indigo
+  return {
+    text: 'text-slate-600',
+    icon: 'text-indigo-400',
+    hoverBg: 'hover:bg-slate-50',
+    badge: 'bg-slate-50 text-slate-400 border border-slate-200',
+  };
+};
 
 export const StockPositionGroup = ({ 
   lot, 
@@ -21,42 +64,107 @@ export const StockPositionGroup = ({
   items, 
   selectedIds, 
   onTogglePos, 
-  onToggleItem 
+  onToggleItem,
+  onToggleMultiple
 }: StockPositionGroupProps) => {
   // Logic: ตรวจสอบว่าเลือกสินค้าครบทุกชิ้นใน Position นี้หรือไม่
   const isPosSelected = items.length > 0 && items.every(item => selectedIds.has(item.id));
-  const firstItem = items[0];
+
+  // Group items by level
+  const itemsByLevel = useMemo(() => {
+    const groups: Record<string, StockWithDetails[]> = {};
+    items.forEach(item => {
+      const lvl = item.level || 'Unassigned';
+      if (!groups[lvl]) groups[lvl] = [];
+      groups[lvl].push(item);
+    });
+    return groups;
+  }, [items]);
+
+  const sortedLevels = useMemo(() => 
+    Object.keys(itemsByLevel).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    [itemsByLevel]
+  );
+
+  // State to track collapsed levels
+  const [collapsedLevels, setCollapsedLevels] = useState<Record<string, boolean>>({});
+
+  const toggleLevel = (lvl: string) => {
+    setCollapsedLevels(prev => ({ ...prev, [lvl]: !prev[lvl] }));
+  };
 
   return (
-    <div className="p-4 pl-12 bg-white border-b border-slate-50 last:border-none">
+    <div className="p-4 bg-white border-b border-slate-100 last:border-none">
       {/* Header ของ Position */}
-      <div className="flex items-center gap-3 mb-3">
-         <InventoryCheckbox 
-            checked={isPosSelected} 
-            onClick={() => onTogglePos(lot, pos)} 
-         />
-         <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1 rounded-lg">
+      <div className="flex items-center gap-3 mb-4">
+         <div className="p-1 -m-1">
+            <InventoryCheckbox 
+                checked={isPosSelected} 
+                onClick={() => onTogglePos(lot, pos)} 
+            />
+         </div>
+         <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
              <Grid3X3 size={16} className="text-indigo-500" />
              <span className="font-bold text-indigo-700">{pos}</span> 
          </div>
-         
-         {firstItem && (
-           <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded ml-2 font-mono">
-              Code: {firstItem.locations.code}
-           </span>
-         )}
+         <span className="text-xs text-slate-400">({items.length} items)</span>
       </div>
 
-      {/* Grid แสดงรายการสินค้า */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 ml-8">
-         {items.map(item => (
-            <StockItemCard 
-              key={item.id} 
-              item={item} 
-              isSelected={selectedIds.has(item.id)} 
-              onToggle={onToggleItem} 
-            />
-         ))}
+      {/* Loop แสดง Level */}
+      <div className="pl-2 md:pl-6 space-y-2">
+         {sortedLevels.map(lvl => {
+            const isCollapsed = collapsedLevels[lvl];
+            const lvlItems = itemsByLevel[lvl] || [];
+            const isLevelSelected = lvlItems.length > 0 && lvlItems.every(item => selectedIds.has(item.id));
+            const styles = getLevelStyles(lvl);
+
+            return (
+            <div key={lvl} className="relative">
+                {/* Level Header */}
+                <div 
+                  className={`flex items-center gap-3 py-3 cursor-pointer rounded-xl px-3 -ml-2 transition-all select-none group active:scale-[0.98] touch-manipulation ${styles.hoverBg}`}
+                  onClick={() => toggleLevel(lvl)}
+                >
+                    <ChevronDown 
+                        size={18} 
+                        className={`text-slate-400 transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`}
+                    />
+
+                    <div onClick={(e) => e.stopPropagation()} className="p-2 -m-2">
+                        <InventoryCheckbox 
+                            checked={isLevelSelected} 
+                            onClick={() => onToggleMultiple(lvlItems.map(i => i.id))} 
+                        />
+                    </div>
+                    
+                    <span className={`flex items-center gap-2 text-sm font-bold ${styles.text}`}>
+                        <Layers size={16} className={styles.icon} /> 
+                        Level {lvl}
+                    </span>
+                    
+                    <div className="flex-1 h-px bg-slate-100 group-hover:bg-slate-200 transition-colors mx-2"></div>
+                    
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm ${styles.badge}`}>
+                        {lvlItems.length}
+                    </span>
+                </div>
+
+                {/* Grid แสดงรายการสินค้าใน Level นี้ */}
+                {!isCollapsed && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pl-4 md:pl-8 pb-4 pt-2 animate-in fade-in slide-in-from-top-2 duration-300 ease-out">
+                      {lvlItems.map(item => (
+                          <StockItemCard 
+                            key={item.id} 
+                            item={item} 
+                            isSelected={selectedIds.has(item.id)} 
+                            onToggle={onToggleItem} 
+                          />
+                      ))}
+                  </div>
+                )}
+            </div>
+         );
+         })}
       </div>
     </div>
   );

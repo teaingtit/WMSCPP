@@ -10,7 +10,7 @@ export default function SearchInput({ placeholder }: { placeholder: string }) {
   const pathname = usePathname();
   const { replace } = useRouter();
 
-  // Manual Debounce Implementation (ไม่ต้องลง Package เพิ่ม)
+  // Debounce Implementation
     const handleSearch = useDebouncedCallback((value: string) => {
       const params = new URLSearchParams(searchParams);
 
@@ -36,10 +36,7 @@ export default function SearchInput({ placeholder }: { placeholder: string }) {
         className="peer block w-full rounded-xl border border-slate-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
         placeholder={placeholder}
         onChange={(e) => {
-            // Simple Debounce: รอ 500ms หลังหยุดพิมพ์ค่อยทำงาน
-            const value = e.target.value;
-            const timeoutId = setTimeout(() => handleSearch(value), 500);
-            return () => clearTimeout(timeoutId);
+            handleSearch(e.target.value);
         }}
         // อ่านค่าจาก URL มาแสดง (เพื่อให้ Refresh แล้วค่าไม่หาย)
         defaultValue={searchParams.get('q')?.toString()}

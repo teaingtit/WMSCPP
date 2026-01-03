@@ -19,8 +19,9 @@ const buildHierarchy = (stocks: StockWithDetails[]) => {
   const hierarchy: Record<string, Record<string, StockWithDetails[]>> = {};
 
   stocks.forEach(item => {
-    const lotKey = item.locations.lot || 'Unassigned';
-    const posKey = item.locations.cart || 'No Position';
+    // Use flattened properties from page.tsx mapping for consistency
+    const lotKey = item.lot || 'Unassigned';
+    const posKey = item.cart || 'No Position';
 
     if (!hierarchy[lotKey]) hierarchy[lotKey] = {};
     if (!hierarchy[lotKey][posKey]) hierarchy[lotKey][posKey] = [];
@@ -85,6 +86,14 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
     setSelectedIds(newSet);
   };
 
+  const toggleMultiple = (ids: string[]) => {
+    const newSet = new Set(selectedIds);
+    const isAll = ids.every(id => newSet.has(id));
+    if (isAll) ids.forEach(id => newSet.delete(id));
+    else ids.forEach(id => newSet.add(id));
+    setSelectedIds(newSet);
+  };
+
   const handleBulkAction = (action: 'transfer' | 'outbound') => {
     const idsArray = Array.from(selectedIds);
     if (idsArray.length === 0) return;
@@ -104,12 +113,12 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
                 </span>
                 Inventory Management
             </h1>
-            <p className="text-slate-500 mt-1 text-sm">มุมมองแบบ <span className="font-bold text-indigo-600">Lot & Position</span></p>
+            <p className="text-slate-500 mt-1 text-sm">มุมมองแบบ <span className="font-bold text-indigo-600">Lot, Position & Level</span></p>
          </div>
          
          <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
             <div className="w-full md:w-64">
-                <SearchInput placeholder="ค้นหา Lot, Position, SKU..." />
+                <SearchInput placeholder="ค้นหา Lot, Position, Level, SKU..." />
             </div>
             <ExportButton warehouseId={warehouseId} />
          </div>
@@ -130,6 +139,7 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
                 onToggleLot={toggleLot}
                 onTogglePos={togglePos}
                 onToggleItem={toggleItem}
+                onToggleMultiple={toggleMultiple}
             />
         ))}
       </div>
