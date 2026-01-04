@@ -1,7 +1,7 @@
 // app/dashboard/[warehouseId]/layout.tsx
 import React from 'react';
 import { notFound, redirect } from 'next/navigation';
-import { createClient } from '@/lib/db/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth-service';
 import WarehouseHeader from '@/components/ui/WarehouseHeader';
 

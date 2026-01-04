@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/db/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import { AppUser } from '@/types/auth';
 import { checkManagerRole } from '@/lib/auth-service';
 import { ActionResponse } from '@/types/action-response';

@@ -1,6 +1,6 @@
 // components/ui/button.tsx
 import * as React from "react"
-import { cn } from "@/lib/utils/utils"
+import { cn } from "@/lib/utils"
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'ghost' | 'destructive' | 'outline';

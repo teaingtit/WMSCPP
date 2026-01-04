@@ -1,5 +1,5 @@
 import React from 'react';
-import { createClient } from '@/lib/db/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import InventoryDashboard from '@/components/inventory/InventoryDashboard';
 import { StockWithDetails } from '@/types/inventory';
 

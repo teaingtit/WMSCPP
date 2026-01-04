@@ -54,27 +54,6 @@ export interface StockWithDetails {
   image_url?: string;
 }
 
-/**
- * Represents a flattened inventory item structure.
- * NOTE: This type seems to overlap with StockWithDetails.
- * Consider using this for specific use cases like form submissions or API payloads, or remove if redundant.
- */
-export interface InventoryItem {
-  id: string;
-  item_name: string;
-  code: string;
-  quantity: number;
-  warehouse_id: string;
-  location_id: string;
-  cart_no?: string;
-  lot?: string;
-  uom: string;
-  attributes?: Record<string, any>;
-  remark?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
 export interface HistoryLogItem {
   id: number;
   timestamp: string;

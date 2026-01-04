@@ -27,7 +27,7 @@ import VarianceReport from '@/components/audit/VarianceReport';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useUser } from '@/components/providers/UserProvider';
-import { supabaseBrowser } from '@/lib/supabase-browser';
+import { supabaseBrowser } from '@/lib/supabase/client';
 import AuditLoadingSkeleton from '@/components/audit/AuditLoadingSkeleton';
 import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
 import {

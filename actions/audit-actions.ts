@@ -1,7 +1,7 @@
 'use server';
 
 import { AuditItem } from '@/types/inventory';
-import { createClient } from '@/lib/db/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getWarehouseId } from '@/lib/utils/db-helpers';

@@ -1,5 +1,5 @@
 // lib/auth-service.ts
-import { createClient } from '@/lib/db/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { AppUser } from '@/types/auth';
 import { SupabaseClient } from '@supabase/supabase-js';
