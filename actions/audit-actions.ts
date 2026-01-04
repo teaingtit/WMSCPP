@@ -258,12 +258,18 @@ export async function finalizeAuditSession(sessionId: string, warehouseId: strin
 // --- Update Session (แก้ไขข้อมูล) ---
 export async function updateAuditSession(sessionId: string, warehouseId: string, data: { name: string }) {
     const supabase = await createClient();
-    const { error } = await supabase
-        .from('audit_sessions')
-        .update(data)
-        .eq('id', sessionId);
     
-    if (error) return { success: false, message: error.message };
-    revalidatePath(`/dashboard/${warehouseId}/audit`);
-    return { success: true, message: 'อัปเดตข้อมูลสำเร็จ' };
+    try {
+        const { error } = await supabase
+            .from('audit_sessions')
+            .update(data)
+            .eq('id', sessionId);
+        
+        if (error) throw error;
+        
+        revalidatePath(`/dashboard/${warehouseId}/audit`);
+        return { success: true, message: 'อัปเดตข้อมูลสำเร็จ' };
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
 }

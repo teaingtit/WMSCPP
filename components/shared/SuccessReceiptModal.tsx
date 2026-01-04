@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle2, X, Printer, ArrowRight, Package, MapPin, Calendar } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { CheckCircle2, X, ArrowRight, MapPin } from 'lucide-react';
 
 export interface SuccessData {
   // Common / Summary Mode
@@ -10,7 +9,7 @@ export interface SuccessData {
   details?: { label: string; value: string }[];
 
   // Single Transaction Mode (Optional)
-  type?: 'INBOUND' | 'TRANSFER' | 'CROSS_TRANSFER' | 'OUTBOUND';
+  type?: 'INBOUND' | 'TRANSFER' | 'CROSS_TRANSFER' | 'OUTBOUND' | 'AUDIT';
   productName?: string;
   quantity?: number;
   uom?: string;
@@ -22,6 +21,12 @@ export interface SuccessData {
   toWarehouse?: string;      // Cross Transfer
   sku?: string;
   note?: string;
+
+  // Audit Specific
+  sessionName?: string;
+  accuracy?: string;
+  totalCounted?: number;
+  varianceCount?: number;
 }
 
 interface SuccessReceiptModalProps {
@@ -78,24 +83,50 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
             ) : (
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 text-left space-y-4 relative overflow-hidden">
                 {/* Product Info */}
-                <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Product</div>
-                    <div className="font-bold text-slate-800 text-lg leading-tight">{data.productName || '-'}</div>
-                    {data.sku && <div className="text-xs font-mono text-slate-400 mt-1">{data.sku}</div>}
-                </div>
+                {data.type !== 'AUDIT' && (
+                    <div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Product</div>
+                        <div className="font-bold text-slate-800 text-lg leading-tight">{data.productName || '-'}</div>
+                        {data.sku && <div className="text-xs font-mono text-slate-400 mt-1">{data.sku}</div>}
+                    </div>
+                )}
+
+                {/* Audit Info */}
+                {data.type === 'AUDIT' && (
+                    <div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Session</div>
+                        <div className="font-bold text-slate-800 text-lg leading-tight">{data.sessionName}</div>
+                    </div>
+                )}
 
                 <div className="w-full h-px bg-slate-200 border-dashed border-b border-slate-200" />
 
                 {/* Dynamic Content based on Type */}
                 <div className="grid grid-cols-2 gap-4">
                     
-                    {/* QUANTITY (Always Show) */}
-                    <div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Quantity</div>
-                        <div className="text-2xl font-black text-emerald-600">
-                            {data.quantity?.toLocaleString() || '0'} <span className="text-sm font-bold text-emerald-800/60">{data.uom}</span>
+                    {/* QUANTITY (For Inventory Ops) */}
+                    {data.type !== 'AUDIT' && (
+                        <div>
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Quantity</div>
+                            <div className="text-2xl font-black text-emerald-600">
+                                {data.quantity?.toLocaleString() || '0'} <span className="text-sm font-bold text-emerald-800/60">{data.uom}</span>
+                            </div>
                         </div>
-                    </div>
+                    )}
+
+                    {/* AUDIT STATS */}
+                    {data.type === 'AUDIT' && (
+                        <>
+                            <div>
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Accuracy</div>
+                                <div className="text-2xl font-black text-emerald-600">{data.accuracy}</div>
+                            </div>
+                            <div>
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Variance</div>
+                                <div className="text-2xl font-black text-amber-500">{data.varianceCount} <span className="text-sm text-slate-400 font-bold">Items</span></div>
+                            </div>
+                        </>
+                    )}
 
                     {/* LOCATION LOGIC */}
                     <div>
@@ -132,6 +163,14 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                         <span>{data.fromLocation}</span>
                         <ArrowRight size={12} />
                         <span className="text-emerald-600 font-bold">{data.type === 'CROSS_TRANSFER' ? data.toWarehouse : data.toLocation}</span>
+                    </div>
+                )}
+
+                {/* Audit Total (Optional) */}
+                {data.type === 'AUDIT' && (
+                    <div className="pt-2 flex justify-between items-center text-sm bg-slate-100 rounded-lg p-3 mt-2">
+                        <span className="text-slate-500 font-medium">Total Counted</span>
+                        <span className="font-bold text-slate-800">{data.totalCounted} Items</span>
                     </div>
                 )}
 

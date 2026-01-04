@@ -25,7 +25,9 @@ import VarianceReport from '@/components/audit/VarianceReport';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useUser } from '@/components/providers/UserProvider';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseBrowser } from '@/lib/supabase-browser';
+import AuditLoadingSkeleton from '@/components/audit/AuditLoadingSkeleton';
+import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
 
 export default function AuditDetailPage() {
     const params = useParams();
@@ -45,6 +47,10 @@ export default function AuditDetailPage() {
 
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Success Modal State
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successData, setSuccessData] = useState<SuccessData | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -66,12 +72,7 @@ export default function AuditDetailPage() {
 
     // Realtime Subscription
     useEffect(() => {
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        );
-
-        const channel = supabase
+        const channel = supabaseBrowser
             .channel('audit-realtime')
             .on(
                 'postgres_changes',
@@ -97,7 +98,7 @@ export default function AuditDetailPage() {
             .subscribe();
 
         return () => {
-            supabase.removeChannel(channel);
+            supabaseBrowser.removeChannel(channel);
         };
     }, [sessionId]);
 
@@ -116,7 +117,23 @@ export default function AuditDetailPage() {
         try {
             const res = await finalizeAuditSession(session.id, session.warehouse_id);
             if (res.success) {
-                toast.success('ปิดรอบการนับเรียบร้อย');
+                // Calculate stats for modal
+                const totalCounted = items.filter(i => i.status === 'COUNTED').length;
+                const varianceCount = items.filter(i => i.status === 'COUNTED' && i.system_qty !== i.counted_qty).length;
+                const matched = totalCounted - varianceCount;
+                const accuracy = totalCounted > 0 ? (matched / totalCounted) * 100 : 0;
+
+                setSuccessData({
+                    type: 'AUDIT',
+                    title: 'ปิดรอบการนับสำเร็จ',
+                    sessionName: session.name,
+                    accuracy: accuracy.toFixed(1) + '%',
+                    totalCounted: totalCounted,
+                    varianceCount: varianceCount,
+                    timestamp: new Date().toISOString()
+                });
+                setShowSuccessModal(true);
+
                 const [sessionData, itemsData] = await Promise.all([
                     getAuditSessionById(sessionId),
                     getAuditItems(sessionId),
@@ -155,7 +172,7 @@ export default function AuditDetailPage() {
     const currentList = activeTab === 'pending' ? pendingItems : completedItems;
 
     if (isLoading) {
-        return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-indigo-600" size={40} /></div>;
+        return <AuditLoadingSkeleton />;
     }
 
     if (!session) {
@@ -376,6 +393,13 @@ export default function AuditDetailPage() {
                     </Button>
                 </div>
             )}
+
+            {/* Success Modal */}
+            <SuccessReceiptModal 
+                isOpen={showSuccessModal} 
+                onClose={() => setShowSuccessModal(false)} 
+                data={successData} 
+            />
         </div>
     );
 }

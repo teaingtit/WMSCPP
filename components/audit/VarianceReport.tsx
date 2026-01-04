@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, AlertTriangle, BarChart3, Target } from 'lucide-react';
+import { CheckCircle, AlertTriangle, BarChart3, Target, Box, MapPin } from 'lucide-react';
 
 interface VarianceReportProps {
   items: AuditItem[];
@@ -29,7 +29,7 @@ export default function VarianceReport({ items }: VarianceReportProps) {
   const progress = totalItems > 0 ? (totalCounted / totalItems) * 100 : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h3 className="font-bold text-2xl text-slate-800 flex items-center gap-2">
@@ -87,33 +87,85 @@ export default function VarianceReport({ items }: VarianceReportProps) {
       ) : (
         <div className="space-y-2">
         <h4 className="font-semibold text-slate-800">รายการผลต่าง (Variance Items)</h4>
-        <div className="overflow-x-auto border rounded-xl shadow-sm bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead className="text-right">System Qty</TableHead>
-              <TableHead className="text-right">Counted Qty</TableHead>
-              <TableHead className="text-right">Variance</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {varianceItems.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.product?.name} ({item.product?.sku})</TableCell>
-                <TableCell>{item.location?.code}</TableCell>
-                <TableCell className="text-right">{item.system_qty}</TableCell>
-                <TableCell className="text-right font-semibold">{item.counted_qty}</TableCell>
-                <TableCell className={`text-right font-bold ${(item.counted_qty ?? 0) > (item.system_qty ?? 0) ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {(item.counted_qty ?? 0) > (item.system_qty ?? 0) ? '+' : ''}
-                  {(item.counted_qty ?? 0) - (item.system_qty ?? 0)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        
+        {/* Mobile Card View */}
+        <div className="block md:hidden space-y-3">
+          {varianceItems.map((item) => (
+            <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
+                    <Box size={20} />
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-800 text-sm">{item.product?.name}</div>
+                    <div className="text-xs text-slate-500 font-mono">{item.product?.sku}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-slate-600 text-xs font-medium bg-slate-100 px-2 py-1 rounded-md">
+                   <MapPin size={12} /> {item.location?.code}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-50 text-sm">
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">System</div>
+                  <div className="font-mono text-slate-600">{item.system_qty}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">Counted</div>
+                  <div className="font-mono font-bold text-slate-800">{item.counted_qty}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">Diff</div>
+                  <div className={`font-mono font-bold ${(item.counted_qty ?? 0) > (item.system_qty ?? 0) ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {(item.counted_qty ?? 0) > (item.system_qty ?? 0) ? '+' : ''}
+                    {(item.counted_qty ?? 0) - (item.system_qty ?? 0)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto border rounded-xl shadow-sm bg-white">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/50">
+                <TableHead>Product</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead className="text-right">System Qty</TableHead>
+                <TableHead className="text-right">Counted Qty</TableHead>
+                <TableHead className="text-right">Variance</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {varianceItems.map((item) => (
+                <TableRow key={item.id} className="hover:bg-slate-50">
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col">
+                      <span className="text-slate-800">{item.product?.name}</span>
+                      <span className="text-xs text-slate-500 font-mono">{item.product?.sku}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-slate-600 bg-slate-100 px-2 py-1 rounded w-fit text-xs font-medium">
+                      <MapPin size={12} /> {item.location?.code}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-slate-600">{item.system_qty}</TableCell>
+                  <TableCell className="text-right font-mono font-bold text-slate-800">{item.counted_qty}</TableCell>
+                  <TableCell className={`text-right font-mono font-bold ${(item.counted_qty ?? 0) > (item.system_qty ?? 0) ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {(item.counted_qty ?? 0) > (item.system_qty ?? 0) ? '+' : ''}
+                    {(item.counted_qty ?? 0) - (item.system_qty ?? 0)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
         </div>
       )}
     </div>

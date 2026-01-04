@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { AuditSession } from '@/types/inventory';
 import { useUser } from '@/components/providers/UserProvider';
+import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
 
 interface AuditSessionListProps {
   warehouseId: string;
@@ -44,43 +45,65 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
   // Edit State
   const [editingSession, setEditingSession] = useState<AuditSession | null>(null);
   const [editName, setEditName] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
+  // Success Modal State
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState<SuccessData | null>(null);
 
   const handleCreate = async () => {
     if (!newSessionName) return;
     setIsCreating(true);
 
-    const formData = new FormData();
-    formData.append('warehouseId', warehouseId);
-    formData.append('name', newSessionName);
-    
-    if (selectedIds.size > 0) {
-      const itemsArray = Array.from(selectedIds).map(id => ({ inventory_id: id }));
-      formData.append('items', JSON.stringify(itemsArray));
-    }
+    try {
+      const formData = new FormData();
+      formData.append('warehouseId', warehouseId);
+      formData.append('name', newSessionName);
+      
+      if (selectedIds.size > 0) {
+        const itemsArray = Array.from(selectedIds).map(id => ({ inventory_id: id }));
+        formData.append('items', JSON.stringify(itemsArray));
+      }
 
-    const res = await createAuditSession(formData);
-    setIsCreating(false);
+      const res = await createAuditSession(formData);
 
-    if (res.success) {
-      toast.success("เปิดรอบการนับเรียบร้อย");
-      setIsDialogOpen(false);
-      setNewSessionName('');
-      router.refresh(); // Refresh เพื่อแสดงรายการใหม่
-    } else {
-      toast.error(res.message);
+      if (res.success) {
+        setSuccessData({
+          title: 'เปิดรอบการนับสำเร็จ',
+          details: [
+            { label: 'ชื่อรอบการนับ', value: newSessionName },
+            { label: 'ประเภท', value: selectedIds.size > 0 ? 'Partial Audit (เลือกรายการ)' : 'Full Audit (ทั้งคลัง)' },
+            { label: 'จำนวนรายการ', value: selectedIds.size > 0 ? `${selectedIds.size} รายการ` : 'สินค้าทั้งหมดที่มีในระบบ' },
+          ]
+        });
+        setShowSuccessModal(true);
+
+        setIsDialogOpen(false);
+        setNewSessionName('');
+        router.refresh(); // Refresh เพื่อแสดงรายการใหม่
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error) {
+      toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    } finally {
+      setIsCreating(false);
     }
   };
 
   // Fetch items when dialog opens
-  const handleOpenChange = (open: boolean) => {
+  const handleOpenChange = async (open: boolean) => {
     setIsDialogOpen(open);
     if (open) {
       setIsLoadingItems(true);
-      getInventoryItems(warehouseId).then((data) => {
+      try {
+        const data = await getInventoryItems(warehouseId);
         setInventoryItems(data);
+      } catch (error) {
+        toast.error('ไม่สามารถโหลดข้อมูลสินค้าได้');
+      } finally {
         setIsLoadingItems(false);
-      });
+      }
     } else {
       setNewSessionName('');
       setSelectedIds(new Set());
@@ -116,14 +139,21 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
   const handleUpdateSession = async () => {
     if (!editingSession || !editName) return;
     
-    const res = await updateAuditSession(editingSession.id, warehouseId, { name: editName });
-    
-    if (res.success) {
-      toast.success('แก้ไขข้อมูลสำเร็จ');
-      setEditingSession(null);
-      router.refresh();
-    } else {
-      toast.error(res.message);
+    setIsUpdating(true);
+    try {
+      const res = await updateAuditSession(editingSession.id, warehouseId, { name: editName });
+      
+      if (res.success) {
+        toast.success('แก้ไขข้อมูลสำเร็จ');
+        setEditingSession(null);
+        router.refresh();
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error) {
+      toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -149,7 +179,10 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="ชื่อรอบการนับ" />
             </div>
             <DialogFooter>
-              <Button onClick={handleUpdateSession}>บันทึก</Button>
+              <Button onClick={handleUpdateSession} disabled={isUpdating}>
+                {isUpdating && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                บันทึก
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -201,8 +234,16 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                 
                 <div className="overflow-y-auto p-2 space-y-1 flex-1">
                   {isLoadingItems ? (
-                    <div className="flex justify-center items-center h-full text-slate-400">
-                      <Loader2 className="w-6 h-6 animate-spin mr-2" /> กำลังโหลดข้อมูล...
+                    <div className="space-y-2 p-2">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex items-center gap-3 p-2 border border-slate-100 rounded-md animate-pulse">
+                          <div className="w-4 h-4 bg-slate-100 rounded" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-slate-100 rounded w-1/3" />
+                            <div className="h-3 bg-slate-100 rounded w-1/4" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : filteredItems.length === 0 ? (
                     <div className="text-center py-8 text-slate-400 text-sm">ไม่พบสินค้า</div>
@@ -323,6 +364,13 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
           ))
         )}
       </div>
+
+      {/* Success Modal */}
+      <SuccessReceiptModal 
+        isOpen={showSuccessModal} 
+        onClose={() => setShowSuccessModal(false)} 
+        data={successData} 
+      />
     </div>
   );
 }
