@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useTransitionRouter } from '@/hooks/useTransitionRouter';
 import { 
     getAuditSessionById, 
     getAuditItems, 
@@ -17,10 +18,11 @@ import {
     CheckCircle2,
     Clock,
     Lock,
+    AlertTriangle,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountingInterface from '@/components/audit/CountingInterface';
-import { AuditItem } from '@/types/inventory';
+import { AuditItem, AuditSession } from '@/types/inventory';
 import VarianceReport from '@/components/audit/VarianceReport';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -28,15 +30,23 @@ import { useUser } from '@/components/providers/UserProvider';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import AuditLoadingSkeleton from '@/components/audit/AuditLoadingSkeleton';
 import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function AuditDetailPage() {
     const params = useParams();
-    const router = useRouter();
+    const router = useTransitionRouter();
     const sessionId = params.sessionId as string;
     const user = useUser();
     const isManager = user?.role === 'admin' || user?.role === 'manager';
 
-    const [session, setSession] = useState<any>(null);
+    const [session, setSession] = useState<AuditSession | null>(null);
     const [items, setItems] = useState<AuditItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFinalizing, setIsFinalizing] = useState(false);
@@ -51,6 +61,7 @@ export default function AuditDetailPage() {
     // Success Modal State
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successData, setSuccessData] = useState<SuccessData | null>(null);
+    const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -62,7 +73,7 @@ export default function AuditDetailPage() {
                 setSession(sessionData);
                 setItems(itemsData);
             } catch (error) {
-                console.error(error);
+                toast.error('ไม่สามารถโหลดข้อมูลรอบการนับได้');
             } finally {
                 setIsLoading(false);
             }
@@ -111,7 +122,7 @@ export default function AuditDetailPage() {
 
     const handleFinalize = async () => {
         if (!session) return;
-        if (!confirm('ยืนยันการปิดรอบการนับและปรับยอดสต็อก? เมื่อดำเนินการแล้วจะไม่สามารถแก้ไขได้อีก')) return;
+        setShowFinalizeConfirm(false);
 
         setIsFinalizing(true);
         try {
@@ -235,6 +246,7 @@ export default function AuditDetailPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input 
                         type="text"
+                        name="searchAuditItems"
                         placeholder="ค้นหา SKU, ชื่อสินค้า, Location..."
                         className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                         value={searchTerm}
@@ -384,7 +396,7 @@ export default function AuditDetailPage() {
                         </p>
                     </div>
                     <Button 
-                        onClick={handleFinalize} 
+                        onClick={() => setShowFinalizeConfirm(true)} 
                         disabled={isFinalizing}
                         className="bg-slate-900 hover:bg-slate-800 text-white min-w-[200px] h-12 rounded-xl shadow-lg shadow-slate-200 active:scale-95 transition-all"
                     >
@@ -400,6 +412,31 @@ export default function AuditDetailPage() {
                 onClose={() => setShowSuccessModal(false)} 
                 data={successData} 
             />
+
+            {/* Finalize Confirmation Dialog */}
+            <Dialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="mx-auto w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                            <AlertTriangle className="w-6 h-6 text-red-600" />
+                        </div>
+                        <DialogTitle className="text-center text-xl">ยืนยันการปิดรอบการนับ?</DialogTitle>
+                        <DialogDescription className="text-center pt-2">
+                            เมื่อยืนยันแล้ว ระบบจะทำการ <span className="font-bold text-slate-700">ปรับยอดสต็อก (Adjustment)</span> ตามผลต่างที่นับได้ทันที 
+                            <br/><br/>
+                            <span className="text-red-500 font-medium">⚠️ การดำเนินการนี้ไม่สามารถย้อนกลับได้</span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="sm:justify-center gap-2 mt-4">
+                        <Button variant="outline" onClick={() => setShowFinalizeConfirm(false)} className="w-full sm:w-auto h-11 rounded-xl">
+                            ยกเลิก
+                        </Button>
+                        <Button onClick={handleFinalize} className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl shadow-md shadow-red-100">
+                            ยืนยันปิดรอบ
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -88,7 +88,7 @@ export interface AuditSession {
   id: string;
   warehouse_id: string;
   name: string;
-  status: 'OPEN' | 'FINALIZED' | 'CANCELLED';
+  status: 'OPEN' | 'COMPLETED' ;
   created_at: string;
   created_by: string;
   finalized_at?: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter } from '@/hooks/useTransitionRouter';
 import { AuditItem } from '@/types/inventory';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ interface CountingInterfaceProps {
 }
 
 function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: string, qty: number) => void }) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   // ใช้ status เป็นเกณฑ์หลักในการตรวจสอบว่านับเสร็จหรือยัง (ป้องกันกรณี DB default 0)
   const isItemCounted = item.status === 'COUNTED';
 
@@ -102,6 +102,7 @@ function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: str
               <Input
                 type="number"
                 inputMode="numeric"
+                name={`qty-${item.id}`}
                 pattern="[0-9]*"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -142,7 +143,7 @@ function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: str
 }
 
 export default function CountingInterface({ items, isFinalized, onDashboardClick, onItemChange }: CountingInterfaceProps) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const [selectedZone, setSelectedZone] = useState<string>('ALL');
   const [filter, setFilter] = useState('');
   const [localItems, setLocalItems] = useState<AuditItem[]>(items);
@@ -213,6 +214,7 @@ export default function CountingInterface({ items, isFinalized, onDashboardClick
                 <div className="relative flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input 
+                      name="searchItems"
                       placeholder="Search SKU, Name, Location..."
                       value={filter}
                       onChange={(e) => setFilter(e.target.value)}

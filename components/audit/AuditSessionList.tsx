@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter } from '@/hooks/useTransitionRouter';
 import { format } from 'date-fns';
 import { Loader2, Plus, ArrowRight, Search, CheckSquare, Square, Check, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,8 +27,20 @@ interface AuditSessionListProps {
   sessions: AuditSession[]; // ปรับปรุง: ใช้ Type ที่เฉพาะเจาะจงเพื่อความปลอดภัย
 }
 
+interface InventoryItem {
+  id: string;
+  quantity: number;
+  product: {
+    sku: string;
+    name: string;
+  };
+  location: {
+    code: string;
+  };
+}
+
 export default function AuditSessionList({ warehouseId, sessions }: AuditSessionListProps) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const user = useUser(); // ✅ ดึง user
   const isManager = user?.role === 'admin' || user?.role === 'manager';
   const [isCreating, setIsCreating] = useState(false);
@@ -37,7 +49,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
   const [viewMode, setViewMode] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   
   // Selection State
-  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,7 +110,13 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
       setIsLoadingItems(true);
       try {
         const data = await getInventoryItems(warehouseId);
-        setInventoryItems(data);
+        const mappedItems: InventoryItem[] = data.map((item: any) => ({
+          id: item.id,
+          quantity: item.quantity,
+          product: Array.isArray(item.product) ? item.product[0] : item.product,
+          location: Array.isArray(item.location) ? item.location[0] : item.location,
+        }));
+        setInventoryItems(mappedItems);
       } catch (error) {
         toast.error('ไม่สามารถโหลดข้อมูลสินค้าได้');
       } finally {
@@ -176,7 +194,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
               <DialogDescription>แก้ไขชื่อรอบการนับ (สำหรับประวัติ)</DialogDescription>
             </DialogHeader>
             <div className="py-4">
-              <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="ชื่อรอบการนับ" />
+              <Input value={editName} name="editSessionName" onChange={(e) => setEditName(e.target.value)} placeholder="ชื่อรอบการนับ" />
             </div>
             <DialogFooter>
               <Button onClick={handleUpdateSession} disabled={isUpdating}>
@@ -205,6 +223,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
             <div className="py-4 space-y-4 flex-1 overflow-hidden flex flex-col">
               <Input 
                 value={newSessionName} 
+                name="newSessionName"
                 onChange={(e) => setNewSessionName(e.target.value)} 
                 placeholder="ระบุชื่อรอบการนับ..." 
               />
@@ -213,6 +232,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                 <Search className="w-4 h-4 text-slate-400" />
                 <input 
                   className="flex-1 outline-none text-sm bg-transparent"
+                  name="searchInventory"
                   placeholder="ค้นหาสินค้า, SKU, หรือ Location..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
