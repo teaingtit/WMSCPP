@@ -55,3 +55,30 @@ export const CATEGORY_COLORS: Record<string, string> = {
   GENERAL: 'bg-indigo-50 text-indigo-700 border-indigo-100',
   FROZEN: 'bg-cyan-50 text-cyan-700 border-cyan-100',
 };
+
+// --- System Constants ---
+
+export const ROLES = {
+  ADMIN: 'admin',
+  MANAGER: 'manager',
+  STAFF: 'staff',
+} as const;
+
+export const TABLES = {
+  USER_ROLES: 'user_roles',
+  WAREHOUSES: 'warehouses',
+  PRODUCTS: 'products',
+  PRODUCT_CATEGORIES: 'product_categories',
+  STOCKS: 'stocks',
+  LOCATIONS: 'locations',
+  TRANSACTIONS: 'transactions',
+  AUDIT_SESSIONS: 'audit_sessions',
+  AUDIT_ITEMS: 'audit_items',
+} as const;
+
+export const AUDIT_STATUS = {
+  PENDING: 'PENDING',
+  COUNTED: 'COUNTED',
+  REVIEWED: 'REVIEWED',
+  COMPLETED: 'COMPLETED',
+} as const;

@@ -2,6 +2,31 @@
 
 import { createClient } from '@/lib/db/supabase-server';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+import { ActionResponse } from '@/types/action-response';
+
+// --- Zod Schemas ---
+const CreateWarehouseSchema = z.object({
+  code: z.string().min(1, "Warehouse Code is required").transform(val => val.trim().toUpperCase()),
+  name: z.string().min(1, "Warehouse Name is required").transform(val => val.trim()),
+  axis_x: z.coerce.number().min(1).default(1),
+  axis_y: z.coerce.number().min(1).default(1),
+  axis_z: z.coerce.number().min(1).default(1),
+});
+
+const CreateProductSchema = z.object({
+  sku: z.string().min(1, "SKU is required").transform(val => val.trim().toUpperCase()),
+  name: z.string().min(1, "Product Name is required").transform(val => val.trim()),
+  category_id: z.string().min(1, "Category is required"),
+  min_stock: z.coerce.number().min(0).default(0),
+  image_url: z.string().optional().nullable(),
+});
+
+const CreateCategorySchema = z.object({
+    id: z.string().min(1, "ID is required").transform(val => val.trim().toUpperCase()),
+    name: z.string().min(1, "Name is required"),
+    schema: z.string().optional().default('[]')
+});
 
 // --- 1. Getters (ดึงเฉพาะ Active) ---
 
@@ -41,13 +66,29 @@ export async function getProducts() {
 
 // --- 2. Mutations ---
 
-export async function createProduct(formData: FormData) {
+export async function createProduct(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
-  const sku = (formData.get('sku') as string).trim().toUpperCase();
-  const name = (formData.get('name') as string).trim();
-  const categoryId = formData.get('category_id') as string;
   
-  const { data: category } = await supabase.from('product_categories').select('form_schema').eq('id', categoryId).single();
+  const rawData = {
+      sku: formData.get('sku'),
+      name: formData.get('name'),
+      category_id: formData.get('category_id'),
+      min_stock: formData.get('min_stock'),
+      image_url: formData.get('image_url')
+  };
+
+  const validated = CreateProductSchema.safeParse(rawData);
+  if (!validated.success) {
+      return { 
+          success: false, 
+          message: validated.error.issues[0]?.message ?? 'Invalid Data',
+          errors: validated.error.flatten().fieldErrors as Record<string, string[]>
+      };
+  }
+  
+  const { sku, name, category_id, min_stock, image_url } = validated.data;
+  
+  const { data: category } = await supabase.from('product_categories').select('form_schema').eq('id', category_id).single();
   const attributes: Record<string, any> = {};
   if (category?.form_schema) {
     (category.form_schema as any[]).forEach((field) => {
@@ -56,13 +97,11 @@ export async function createProduct(formData: FormData) {
     });
   }
 
-  if (!sku || !name) return { success: false, message: 'SKU and Name are required' };
-
   try {
     const { error } = await supabase.from('products').insert({
-      sku, name, category_id: categoryId || 'GENERAL',
-      min_stock: Number(formData.get('min_stock')) || 0,
-      image_url: formData.get('image_url') as string || null,
+      sku, name, category_id: category_id || 'GENERAL',
+      min_stock,
+      image_url: image_url || null,
       attributes: attributes,
       is_active: true // ✅ Default เป็น True เสมอ
     });
@@ -77,7 +116,7 @@ export async function createProduct(formData: FormData) {
 }
 
 // ✅ RE-DESIGNED: Soft Delete Product
-export async function deleteProduct(formData: FormData) {
+export async function deleteProduct(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const id = formData.get('id') as string;
   
@@ -110,7 +149,7 @@ export async function deleteProduct(formData: FormData) {
 }
 
 // ✅ RE-DESIGNED: Soft Delete Warehouse
-export async function deleteWarehouse(formData: FormData) {
+export async function deleteWarehouse(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const id = formData.get('id') as string;
   try {
@@ -131,15 +170,33 @@ export async function deleteWarehouse(formData: FormData) {
   } catch (err: any) { return { success: false, message: err.message }; }
 }
 
-export async function createWarehouse(formData: FormData) {
+export async function createWarehouse(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
+
+  const rawData = {
+    code: formData.get('code'),
+    name: formData.get('name'),
+    axis_x: formData.get('axis_x'),
+    axis_y: formData.get('axis_y'),
+    axis_z: formData.get('axis_z'),
+  };
   
+  const validated = CreateWarehouseSchema.safeParse(rawData);
+  if (!validated.success) {
+      return { 
+          success: false, 
+          message: validated.error.issues[0]?.message ?? 'Invalid Data',
+          errors: validated.error.flatten().fieldErrors as Record<string, string[]>
+      };
+  }
+  const { code, name, axis_x, axis_y, axis_z } = validated.data;
+
   const payload = {
-    p_code: (formData.get('code') as string).trim().toUpperCase(),
-    p_name: (formData.get('name') as string).trim(),
-    p_axis_x: parseInt(formData.get('axis_x') as string) || 1, 
-    p_axis_y: parseInt(formData.get('axis_y') as string) || 1, 
-    p_axis_z: parseInt(formData.get('axis_z') as string) || 1, 
+    p_code: code,
+    p_name: name,
+    p_axis_x: axis_x,
+    p_axis_y: axis_y,
+    p_axis_z: axis_z,
   };
 
   try {
@@ -161,14 +218,26 @@ export async function createWarehouse(formData: FormData) {
   }
 }
 
-export async function createCategory(formData: FormData) {
-  const id = (formData.get('id') as string).trim().toUpperCase();
-  const name = formData.get('name') as string;
-  const schemaString = formData.get('schema') as string || '[]';
-  if (!id || !name) return { success: false, message: 'ระบุ ID และชื่อ' };
+export async function createCategory(formData: FormData): Promise<ActionResponse> {
+  const rawData = {
+      id: formData.get('id'),
+      name: formData.get('name'),
+      schema: formData.get('schema')
+  };
+  
+  const validated = CreateCategorySchema.safeParse(rawData);
+  if (!validated.success) {
+      return { 
+          success: false, 
+          message: validated.error.issues[0]?.message ?? 'Invalid Data',
+          errors: validated.error.flatten().fieldErrors as Record<string, string[]>
+      };
+  }
+  const { id, name, schema } = validated.data;
+
   const supabase = await createClient();
   try {
-    let parsedSchema = JSON.parse(schemaString);
+    let parsedSchema = JSON.parse(schema);
     const { error } = await supabase.from('product_categories').insert([{ id, name, form_schema: parsedSchema }]);
     if (error) {
         if (error.code === '23505') return { success: false, message: 'ID ซ้ำ' };
@@ -179,7 +248,7 @@ export async function createCategory(formData: FormData) {
   } catch (err: any) { return { success: false, message: 'Error: ' + err.message }; }
 }
 
-export async function deleteCategory(formData: FormData) {
+export async function deleteCategory(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const id = formData.get('id') as string;
   try {

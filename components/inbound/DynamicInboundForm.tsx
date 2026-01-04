@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { submitInbound } from '@/actions/inbound-actions';
-import { Loader2, Save, MapPin, Package, CheckCircle2, Layers } from 'lucide-react';
+import { submitInbound,submitBulkInbound } from '@/actions/inbound-actions';
+import { Loader2, Save, MapPin, Package, CheckCircle2, Layers, Plus, ListChecks, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/types/inventory';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
@@ -33,6 +33,14 @@ interface DynamicInboundFormProps {
   category: Category;
   products: Product[];
 }
+// ✅ Interface สำหรับ Queue Item
+interface InboundQueueItem {
+    id: string; // unique id for UI key
+    product: Product;
+    location: LocationData;
+    quantity: number;
+    attributes: Record<string, any>;
+}
 
 export default function DynamicInboundForm({ warehouseId, category, products }: DynamicInboundFormProps) {
   const router = useRouter();
@@ -42,7 +50,8 @@ export default function DynamicInboundForm({ warehouseId, category, products }: 
   const [formResetKey, setFormResetKey] = useState(Date.now());
   // State สำหรับ Success Modal
   const [successInfo, setSuccessInfo] = useState<{ data: SuccessData, redirect: boolean } | null>(null);
-
+// ✅ Queue State
+  const [queue, setQueue] = useState<InboundQueueItem[]>([]);
   // 1. Product State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -65,223 +74,252 @@ export default function DynamicInboundForm({ warehouseId, category, products }: 
     }
   }, [selectedProduct]);
 
-  // Suggestion 2: Centralize form reset logic into a single function.
-  const resetForm = useCallback(() => {
+// ✅ Reset แค่ Form Input (ไม่เคลียร์ Queue)
+  const resetInput = useCallback(() => {
     setQuantity('');
     setAttributes({});
     setSelectedProduct(null);
     setSelectedLocation(null);
-    // By changing the key, we force the LocationSelector to re-mount and clear its internal state.
     setFormResetKey(Date.now());
   }, []);
 
-  const handlePreSubmit = (e: React.FormEvent) => {
+  // ✅ ฟังก์ชันเพิ่มลงตะกร้า
+  const handleAddToQueue = (e: React.FormEvent) => {
     e.preventDefault();
-    // Suggestion 3: Enhance validation for better user feedback.
-    if (!selectedLocation?.id) return toast.error("กรุณาระบุพิกัดให้ครบถ้วน");
+    if (!selectedLocation?.id) return toast.error("กรุณาระบุพิกัด");
     if (!selectedProduct) return toast.error("กรุณาเลือกสินค้า");
     const qty = Number(quantity);
-    if (!quantity || qty <= 0) return toast.error("กรุณาระบุจำนวนรับเข้าให้ถูกต้อง");
+    if (!quantity || qty <= 0) return toast.error("จำนวนไม่ถูกต้อง");
 
-    // Validate required dynamic attributes
     for (const field of lotSchema) {
         if (field.required && !attributes[field.key]) {
-            return toast.error(`กรุณากรอกข้อมูล: ${field.label}`);
+            return toast.error(`กรุณากรอก: ${field.label}`);
         }
     }
-    
-    setShowConfirm(true); // Open confirmation modal
-  };
-  const processSubmit = async (redirect: boolean) => {
-    setIsLoading(true);
-    setSubmitting(true);
-    
-    
-    if (!selectedLocation || !selectedProduct) {
-      toast.error("ข้อมูลไม่ครบถ้วน ไม่สามารถบันทึกได้");
-      setSubmitting(false);
-      setIsLoading(false);
-      setShowConfirm(false);
-      return;
-    }
 
-    const payload = {
-        warehouseId,
-        locationId: selectedLocation.id,
-        quantity: Number(quantity),
-        isNewProduct: false,
-        productId: selectedProduct.id,
-        attributes
+    const newItem: InboundQueueItem = {
+        id: Date.now().toString(),
+        product: selectedProduct,
+        location: selectedLocation,
+        quantity: qty,
+        attributes: { ...attributes }
     };
 
+    setQueue(prev => [...prev, newItem]);
+    toast.success("เพิ่มรายการแล้ว");
+    resetInput(); // เคลียร์ฟอร์มเพื่อให้กรอกต่อได้ทันที
+  };
+
+  const removeFromQueue = (id: string) => {
+    setQueue(prev => prev.filter(item => item.id !== id));
+  };
+
+  // ✅ ฟังก์ชันบันทึกทั้งหมด
+  const handleConfirmAll = () => {
+    if (queue.length === 0) return;
+    setShowConfirm(true);
+  };
+
+  const executeSubmission = async () => {
+    setShowConfirm(false);
+    setIsLoading(true);
+    setSubmitting(true);
+
+    // Prepare Payload
+    const payload = queue.map(item => ({
+        warehouseId,
+        locationId: item.location.id,
+        quantity: item.quantity,
+        isNewProduct: false,
+        productId: item.product.id,
+        attributes: item.attributes,
+        productName: item.product.name // ส่งไปเพื่อ Log Error ถ้ามี
+    }));
+
     try {
-        const result = await submitInbound(payload);
+        const result = await submitBulkInbound(payload);
         if (result.success) {
-            // ปิด Confirmation Modal และเปิด Success Modal แทน
-            setShowConfirm(false);
-            setSuccessInfo({ data: result.details as SuccessData, redirect: redirect });
+            setQueue([]); // Clear Queue
+            setSuccessInfo({
+                data: {
+                    details: [
+                        { label: 'จำนวนรายการ', value: `${result.details.success} รายการ` },
+                        { label: 'เวลา', value: new Date().toLocaleString('th-TH') }
+                    ]
+                },
+                redirect: true
+            });
         } else {
-            toast.error(result.message);
-            setShowConfirm(false); // ปิด Modal ยืนยันถ้าเกิด Error
+            toast.error("มีบางรายการผิดพลาด กรุณาตรวจสอบ");
+            // อาจจะลบรายการที่สำเร็จออก หรือเหลือไว้ทั้งหมด (ในที่นี้ขอเหลือไว้)
+            console.error(result.details);
         }
     } catch (error) {
-        toast.error("เกิดข้อผิดพลาด");
-        setShowConfirm(false);
+        toast.error("เกิดข้อผิดพลาดในการเชื่อมต่อ");
     } finally {
         setIsLoading(false);
         setSubmitting(false);
     }
   };
 
-  // Function ที่จะถูกเรียกเมื่อปิด Success Modal
-  const handleSuccessModalClose = () => {
-    if (!successInfo) return;
-
-    if (successInfo.redirect) {
-        router.push(`/dashboard/${warehouseId}/inventory`);
-    } else {
-        // Use the centralized reset function for "Save & Continue"
-        resetForm();
-    }
-    setSuccessInfo(null); // Clear data and close modal
+  const handleSuccessClose = () => {
+      const shouldRedirect = successInfo?.redirect;
+      setSuccessInfo(null);
+      if (shouldRedirect) {
+          router.push(`/dashboard/${warehouseId}/inventory`);
+      }
   };
 
   return (
-    <>
-      <form onSubmit={handlePreSubmit} className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4">
-       {/* --- Left Column: Product & Attributes --- */}
-       <div className="space-y-6">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[200px]">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 pb-20">
+      {/* --- Left Column: Form (2/3 width) --- */}
+      <div className="xl:col-span-2">
+        <form onSubmit={handleAddToQueue} className="space-y-6">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
                     <Package className="text-indigo-600" /> ข้อมูลสินค้า (Product)
                 </h3>
-
-                {/* ✅ ใช้ Component ใหม่ */}
                 <ProductAutocomplete 
                     products={products}
                     selectedProduct={selectedProduct}
                     onSelect={setSelectedProduct}
                 />
-            </div>
-
-            {/* Dynamic Attributes (Render เมื่อเลือกสินค้าแล้ว) */}
-            {lotSchema.length > 0 && selectedProduct && (
-                <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 animate-in fade-in slide-in-from-bottom-2">
-                     <h4 className="font-bold text-emerald-700 mb-4 text-sm flex items-center gap-2"><Layers size={16}/> ข้อมูลล็อตสินค้า (Lot Data)</h4>
-                     <div className="grid gap-4">
-                        {lotSchema.map((field) => (
-                            <div key={field.key}>
-                                <label htmlFor={`attr-${field.key}`} className="block text-xs font-bold text-emerald-800 mb-1">
-                                    {field.label} {field.required && <span className="text-rose-500">*</span>}
-                                </label>
-                                <input 
-                                    id={`attr-${field.key}`}
-                                    type={field.type} 
-                                    required={field.required}
-                                    className="w-full p-2.5 bg-white border border-emerald-200 rounded-lg focus:outline-none focus:border-emerald-500"
-                                    onChange={e => setAttributes({...attributes, [field.key]: e.target.value})}
-                                    value={attributes[field.key] || ''}
-                                />
-                            </div>
-                        ))}
-                     </div>
-                </div>
-            )}
-       </div>
-
-       {/* --- Right Column: Location & Quantity --- */}
-       <div className="space-y-6">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
-                    <MapPin className="text-indigo-600" /> ระบุพิกัด (Coordinates)
-                </h3>
-                
-                {/* ✅ ใช้ Component ใหม่ (จัดการ Logic Dropdown ทั้งหมดในนี้) */}
-                <LocationSelector 
-                    key={formResetKey}
-                    warehouseId={warehouseId}
-                    onSelect={setSelectedLocation}
-                />
-
-                {/* Summary Card (แสดงเมื่อเลือกครบแล้ว) */}
-                {selectedLocation && (
-                    <div className="mt-6 p-4 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-lg animate-in zoom-in duration-300">
-                        <div>
-                            <div className="text-xs text-slate-400 font-bold uppercase">Target Location</div>
-                            <div className="text-xl font-bold font-mono tracking-wider">
-                                {selectedLocation.lot}-{selectedLocation.cart}-{selectedLocation.level}
-                            </div>
-                        </div>
-                        <div className="text-right">
-                             <div className="text-xs text-emerald-400 font-bold flex items-center gap-1 justify-end"><CheckCircle2 size={12}/> READY</div>
-                             <div className="text-[10px] text-slate-500 font-mono">{selectedLocation.code}</div>
+                 {/* Dynamic Attributes */}
+                 {lotSchema.length > 0 && selectedProduct && (
+                    <div className="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <div className="grid grid-cols-2 gap-4">
+                            {lotSchema.map((field) => (
+                                <div key={field.key}>
+                                    <label className="block text-xs font-bold text-emerald-800 mb-1">{field.label}</label>
+                                    <input 
+                                        type={field.type} 
+                                        aria-label={field.label}
+                                        className="w-full p-2 bg-white border border-emerald-200 rounded-lg text-sm"
+                                        onChange={e => setAttributes({...attributes, [field.key]: e.target.value})}
+                                        value={attributes[field.key] || ''}
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Quantity Input */}
-            <div className={`transition-all duration-500 ${selectedLocation ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-4 pointer-events-none blur-[1px]'}`}>
-                <label htmlFor="inbound-qty" className="block text-sm font-bold text-slate-700 mb-2">จำนวนรับเข้า (Quantity)</label>
-                <div className="relative">
-                    <input 
-                        id="inbound-qty"
-                        type="number" min="1"
-                        value={quantity}
-                        onChange={e => setQuantity(e.target.value)}
-                        disabled={!selectedLocation}
-                        className="w-full text-4xl font-black text-slate-900 pl-6 pr-20 py-6 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none disabled:bg-slate-100"
-                        placeholder="0"
-                    />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold bg-white px-3 py-1 rounded border text-xs">
-                        {selectedProduct?.uom || 'UNIT'}
-                    </span>
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
+                    <MapPin className="text-indigo-600" /> ระบุพิกัด & จำนวน
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <LocationSelector 
+                            key={formResetKey}
+                            warehouseId={warehouseId}
+                            onSelect={setSelectedLocation}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">จำนวน</label>
+                        <div className="relative">
+                            <input 
+                                type="number" min="1"
+                                value={quantity}
+                                onChange={e => setQuantity(e.target.value)}
+                                disabled={!selectedLocation}
+                                className="w-full text-3xl font-black text-slate-900 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl"
+                                placeholder="0"
+                            />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">{selectedProduct?.uom || 'UNIT'}</span>
+                        </div>
+                         {/* ปุ่ม Add to Queue */}
+                        <button 
+                            type="submit"
+                            disabled={!selectedLocation || !selectedProduct || !quantity}
+                            className="mt-4 w-full py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            <Plus size={20} /> เพิ่มลงรายการ
+                        </button>
+                    </div>
                 </div>
             </div>
+        </form>
+      </div>
 
-            <button 
-                type="submit" 
-                disabled={submitting || !selectedLocation || !selectedProduct || !quantity}
-                className="w-full py-5 bg-slate-900 text-white rounded-2xl font-bold text-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed group"
-            >
-                {submitting ? <Loader2 className="animate-spin" /> : <Save size={24} className="group-hover:scale-110 transition-transform"/>}
-                <span>บันทึกรับเข้า</span>
-            </button>
+      {/* --- Right Column: Queue List (1/3 width) --- */}
+      <div className="xl:col-span-1">
+        <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl sticky top-6">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                <ListChecks className="text-emerald-400"/> รายการรอรับเข้า ({queue.length})
+            </h3>
+            
+            <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 mb-6">
+                {queue.length === 0 ? (
+                    <div className="text-slate-500 text-center py-8 border-2 border-dashed border-slate-700 rounded-xl">
+                        ยังไม่มีรายการ
+                    </div>
+                ) : (
+                    queue.map((item, idx) => (
+                        <div key={item.id} className="bg-slate-800 p-3 rounded-xl border border-slate-700 flex justify-between items-start animate-in fade-in slide-in-from-right-4">
+                            <div className="flex-1 min-w-0 pr-2">
+                                <div className="font-bold text-sm truncate text-slate-200">{idx + 1}. {item.product.name}</div>
+                                <div className="text-xs text-slate-400 font-mono mt-1">
+                                    {item.location.code} • {JSON.stringify(item.attributes)}
+                                </div>
+                            </div>
+                            <div className="text-right flex flex-col items-end gap-2">
+                                <span className="text-emerald-400 font-black text-lg">{item.quantity}</span>
+                                <button onClick={() => removeFromQueue(item.id)} aria-label="ลบรายการ" className="text-rose-400 hover:text-rose-300">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            <div className="border-t border-slate-700 pt-4">
+                <div className="flex justify-between mb-4 text-sm text-slate-400">
+                    <span>รวมทั้งสิ้น</span>
+                    <span className="text-white font-bold">{queue.length} รายการ</span>
+                </div>
+                <button 
+                    onClick={handleConfirmAll}
+                    disabled={queue.length === 0 || submitting}
+                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale"
+                >
+                    {submitting ? <Loader2 className="animate-spin"/> : <Save size={20}/>}
+                    ยืนยันรับเข้าทั้งหมด
+                </button>
+            </div>
         </div>
-      </form>
-    {/* ✅ แทรก Modal ไว้ท้ายสุด */}
-      <TransactionConfirmModal 
+      </div>
+
+      {/* --- Modals --- */}
+      <TransactionConfirmModal
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
-        onConfirm={() => processSubmit(true)} // Confirm -> Redirect
-        onSaveAndContinue={() => processSubmit(false)} // Save & Continue -> Reset
-        isLoading={submitting}
-        title="รับสินค้าเข้าคลัง (Inbound)"
-        type="INBOUND"
+        onConfirm={executeSubmission}
+        title="ยืนยันการรับเข้าสินค้า"
         details={
-            <div className="space-y-3">
-                <div className="flex justify-between border-b border-emerald-200 pb-2">
-                    <span className="text-emerald-800 font-bold">สินค้า</span>
-                    <span className="text-emerald-900">{selectedProduct?.name}</span>
+            <div className="flex flex-col gap-2 text-sm">
+                <div className="flex justify-between">
+                    <span className="text-slate-500">จำนวนรายการ</span>
+                    <span className="font-medium text-slate-900">{queue.length} รายการ</span>
                 </div>
-                <div className="flex justify-between border-b border-emerald-200 pb-2">
-                    <span className="text-emerald-800 font-bold">พิกัดจัดเก็บ</span>
-                    <span className="font-mono text-emerald-900">{selectedLocation?.code}</span>
-                </div>
-                <div className="flex justify-between items-center pt-1">
-                    <span className="text-emerald-800 font-bold">จำนวน</span>
-                    <span className="text-2xl font-black text-emerald-600">{quantity} <span className="text-sm font-normal text-emerald-800">{selectedProduct?.uom}</span></span>
+                <div className="flex justify-between">
+                    <span className="text-slate-500">ประเภท</span>
+                    <span className="font-medium text-slate-900">รับเข้า (Inbound)</span>
                 </div>
             </div>
         }
+        confirmText="ยืนยันรับเข้า"
+        isLoading={submitting}
       />
 
-      {/* ✅ แสดง Modal เมื่อทำรายการสำเร็จ */}
-      <SuccessReceiptModal 
+      <SuccessReceiptModal
         isOpen={!!successInfo}
-        onClose={handleSuccessModalClose}
-        data={successInfo?.data || null}
+        onClose={handleSuccessClose}
+        data={successInfo?.data ?? null}
       />
-    </>
+    </div>
   );
 }

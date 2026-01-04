@@ -2,19 +2,19 @@
 
 import { createClient } from '@/lib/db/supabase-server';
 import { revalidatePath } from 'next/cache';
+import { getWarehouseId } from '@/lib/utils/db-helpers';
 
 interface OutboundFormData { warehouseId: string; stockId: string; qty: string | number; note?: string; }
 
 export async function searchStockForOutbound(warehouseId: string, query: string) {
-  // ... (โค้ดส่วน search คงเดิม) ...
   const supabase = await createClient();
-  const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).maybeSingle();
-  if (!wh) return [];
+  const whId = await getWarehouseId(supabase, warehouseId);
+  if (!whId) return [];
 
   const { data: stocks, error } = await supabase
     .from('stocks')
     .select(`id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code, warehouse_id)`)
-    .eq('locations.warehouse_id', wh.id) 
+    .eq('locations.warehouse_id', whId) 
     .gt('quantity', 0)
     .or(`name.ilike.%${query}%,sku.ilike.%${query}%`, { foreignTable: 'products' })
     .order('quantity', { ascending: false })
@@ -76,4 +76,28 @@ export async function submitOutbound(formData: OutboundFormData) {
         console.error("Outbound Error:", error);
         return { success: false, message: error.message || "เกิดข้อผิดพลาด" };
     }
+}
+// เพิ่มต่อท้ายในไฟล์ actions/outbound-actions.ts
+
+export async function submitBulkOutbound(items: any[]) {
+    const results = { success: 0, failed: 0, errors: [] as string[] };
+
+    const promises = items.map(async (item) => {
+        const result = await submitOutbound(item);
+        if (result.success) {
+            results.success++;
+        } else {
+            results.failed++;
+            results.errors.push(result.message as string);
+        }
+        return result;
+    });
+
+    await Promise.all(promises);
+
+    return {
+        success: results.failed === 0,
+        message: `เบิกจ่ายสำเร็จ ${results.success} รายการ${results.failed > 0 ? `, ไม่สำเร็จ ${results.failed} รายการ` : ''}`,
+        errors: results.errors
+    };
 }

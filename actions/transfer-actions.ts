@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/db/supabase-server';
 import { supabaseAdmin } from '@/lib/db/supabase-admin';
 import { revalidatePath } from 'next/cache';
+import { getWarehouseId } from '@/lib/utils/db-helpers';
 
 // Helper: สร้างรหัส Lxx-Pxx-Zxx (ใช้เป็น Fallback เท่านั้น)
 function generate3DCode(lot: string, pos: string, level: string) {
@@ -23,13 +24,13 @@ export async function getStockById(stockId: string) {
 
 export async function searchStockForTransfer(warehouseId: string, query: string) {
   const supabase = await createClient();
-  const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).maybeSingle();
-  if (!wh) return [];
+  const whId = await getWarehouseId(supabase, warehouseId);
+  if (!whId) return [];
 
   const { data: stocks, error } = await supabase
     .from('stocks')
     .select(`id, quantity, attributes, products!inner(sku, name, uom), locations!inner(code, warehouse_id)`)
-    .eq('locations.warehouse_id', wh.id)
+    .eq('locations.warehouse_id', whId)
     .gt('quantity', 0)
     .or(`name.ilike.%${query}%,sku.ilike.%${query}%`, { foreignTable: 'products' }) 
     .limit(20);
@@ -49,8 +50,8 @@ export async function submitTransfer(formData: any) {
     if (isNaN(qty) || qty <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
 
     try {
-        const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
-        if (!wh) throw new Error("Warehouse Not Found");
+        const whId = await getWarehouseId(supabase, warehouseId);
+        if (!whId) throw new Error("Warehouse Not Found");
 
         // Resolve Target Location
         let targetLocId = targetLocationId;
@@ -63,7 +64,7 @@ export async function submitTransfer(formData: any) {
                 .from('locations')
                 .select('id')
                 .eq('code', locData.code)
-                .eq('warehouse_id', wh.id)
+                .eq('warehouse_id', whId)
                 .eq('is_active', true) 
                 .maybeSingle();
             
@@ -94,7 +95,7 @@ export async function submitTransfer(formData: any) {
 
         // Log Transaction
         await supabase.from('transactions').insert({
-            type: 'TRANSFER', warehouse_id: wh.id,
+            type: 'TRANSFER', warehouse_id: whId,
             product_id: sourceStock.product_id,
             from_location_id: sourceStock.location_id, to_location_id: targetLocId,
             quantity: qty, user_id: user.id, 
@@ -136,10 +137,10 @@ export async function submitCrossTransfer(formData: any) {
     if (isNaN(qty) || qty <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
 
   try {
-    const { data: sourceWh } = await supabase.from('warehouses').select('id, name').eq('code', sourceWarehouseId).single();
+    const sourceWhId = await getWarehouseId(supabase, sourceWarehouseId);
     const { data: targetWh } = await supabaseAdmin.from('warehouses').select('id, code, name').eq('id', targetWarehouseId).single();
     
-    if (!sourceWh || !targetWh) throw new Error("Warehouse Info Missing");
+    if (!sourceWhId || !targetWh) throw new Error("Warehouse Info Missing");
 
     let targetCode = '';
     if (targetLocationId) {
@@ -172,7 +173,7 @@ export async function submitCrossTransfer(formData: any) {
 
     // Log Transaction
     await supabase.from('transactions').insert({
-        type: 'TRANSFER_OUT', warehouse_id: sourceWh.id,
+        type: 'TRANSFER_OUT', warehouse_id: sourceWhId,
         product_id: sourceStock.product_id,
         from_location_id: sourceStock.location_id,
         details: `To: ${targetWh.name} (${targetCode})`,
@@ -201,4 +202,33 @@ export async function submitCrossTransfer(formData: any) {
   } catch (error: any) {
     return { success: false, message: error.message || 'เกิดข้อผิดพลาดในการย้ายข้ามคลัง' };
   }
+}
+// actions/transfer-actions.ts
+export async function submitBulkTransfer(items: any[]) {
+    const results = {
+        success: 0,
+        failed: 0,
+        errors: [] as string[]
+    };
+    
+    // Use Sequential Loop to avoid Race Conditions on Source Stock Quantity
+    for(const item of items) {
+        // Determine type based on item.mode (passed from frontend)
+        const res = item.mode === 'CROSS' 
+            ? await submitCrossTransfer(item) 
+            : await submitTransfer(item);
+            
+        if(res.success) {
+            results.success++;
+        } else {
+            results.failed++;
+            results.errors.push(res.message || 'Unknown Error');
+        }
+    }
+    
+    return {
+        success: results.failed === 0,
+        message: `ย้ายสำเร็จ ${results.success} รายการ${results.failed > 0 ? `, ไม่สำเร็จ ${results.failed} รายการ` : ''}`,
+        details: results
+    };
 }

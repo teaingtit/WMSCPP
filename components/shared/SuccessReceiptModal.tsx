@@ -5,11 +5,16 @@ import { CheckCircle2, X, Printer, ArrowRight, Package, MapPin, Calendar } from 
 import { useRouter } from 'next/navigation';
 
 export interface SuccessData {
-  type: 'INBOUND' | 'TRANSFER' | 'CROSS_TRANSFER' | 'OUTBOUND';
-  productName: string;
-  quantity: number;
-  uom: string;
-  timestamp: string;
+  // Common / Summary Mode
+  title?: string;
+  details?: { label: string; value: string }[];
+
+  // Single Transaction Mode (Optional)
+  type?: 'INBOUND' | 'TRANSFER' | 'CROSS_TRANSFER' | 'OUTBOUND';
+  productName?: string;
+  quantity?: number;
+  uom?: string;
+  timestamp?: string;
   // Fields ที่อาจจะมีหรือไม่มีตามประเภท
   locationCode?: string;     // Inbound, Outbound
   fromLocation?: string;     // Transfer
@@ -28,10 +33,12 @@ interface SuccessReceiptModalProps {
 export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessReceiptModalProps) {
   if (!isOpen || !data) return null;
 
+  const isSummary = !!data.details && data.details.length > 0;
+  const title = data.title || 'ทำรายการสำเร็จ!';
   // Format Date
-  const dateStr = new Date(data.timestamp).toLocaleString('th-TH', { 
-    dateStyle: 'medium', timeStyle: 'short' 
-  });
+  const dateStr = data.timestamp 
+    ? new Date(data.timestamp).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })
+    : new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-emerald-900/40 backdrop-blur-sm animate-in fade-in duration-300">
@@ -55,15 +62,25 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                 <CheckCircle2 size={40} className="animate-bounce-short" />
             </div>
 
-            <h2 className="text-2xl font-black text-slate-800 mb-1">ทำรายการสำเร็จ!</h2>
+            <h2 className="text-2xl font-black text-slate-800 mb-1">{title}</h2>
             <p className="text-slate-500 text-sm mb-6">{dateStr}</p>
 
             {/* Ticket / Receipt Card */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 text-left space-y-4 relative overflow-hidden">
+            {isSummary ? (
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-3 text-left">
+                  {data.details?.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center border-b border-slate-200 last:border-0 pb-2 last:pb-0">
+                          <span className="text-slate-500 text-sm">{item.label}</span>
+                          <span className="font-bold text-slate-800">{item.value}</span>
+                      </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 text-left space-y-4 relative overflow-hidden">
                 {/* Product Info */}
                 <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Product</div>
-                    <div className="font-bold text-slate-800 text-lg leading-tight">{data.productName}</div>
+                    <div className="font-bold text-slate-800 text-lg leading-tight">{data.productName || '-'}</div>
                     {data.sku && <div className="text-xs font-mono text-slate-400 mt-1">{data.sku}</div>}
                 </div>
 
@@ -76,7 +93,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                     <div>
                         <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Quantity</div>
                         <div className="text-2xl font-black text-emerald-600">
-                            {data.quantity.toLocaleString()} <span className="text-sm font-bold text-emerald-800/60">{data.uom}</span>
+                            {data.quantity?.toLocaleString() || '0'} <span className="text-sm font-bold text-emerald-800/60">{data.uom}</span>
                         </div>
                     </div>
 
@@ -125,7 +142,8 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                         <p className="text-sm text-slate-600 bg-slate-100 p-2 rounded-lg">{data.note}</p>
                     </div>
                 )}
-            </div>
+              </div>
+            )}
             
             {/* Actions */}
             <div className="mt-8 space-y-3">

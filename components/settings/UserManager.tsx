@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { createUser, deleteUser, reactivateUser } from '@/actions/user-actions';
 import { Button } from '@/components/ui/button';
-import { Users, Trash2, Warehouse, Mail, Lock, Unlock, RefreshCw } from 'lucide-react';
+import { Users, Trash2, Warehouse, Mail, Lock, Unlock, RefreshCw, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 
@@ -16,49 +16,51 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
   const [loading, setLoading] = useState(false);
   const [inviteMode, setInviteMode] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-const { setIsLoading } = useGlobalLoading();
+  const { setIsLoading } = useGlobalLoading();
 
   async function handleCreate(formData: FormData) {
     setIsLoading(true);
     try {
-    if (inviteMode) {
-        formData.set('verify_email', 'on');
-    }
-    
-    const result = await createUser(null, formData);     
-    if (result.success) {
-      toast.success(result.message);
-      formRef.current?.reset();
-      setInviteMode(false);
-    } else {
-      toast.error(result.message);
-    }
+        if (inviteMode) {
+            formData.set('verify_email', 'on');
+        }
+        
+        const result = await createUser(null, formData);     
+        if (result.success) {
+            toast.success(result.message);
+            formRef.current?.reset();
+            setInviteMode(false);
+        } else {
+            toast.error(result.message);
+        }
+    } catch (err) {
+        toast.error("เกิดข้อผิดพลาด");
     } finally {
-        setIsLoading(false); // Stop
+        setIsLoading(false); 
     }
   }
 
   async function handleDelete(id: string) {
     if(!confirm('ยืนยันที่จะระงับ/ลบผู้ใช้นี้?')) return;
-    setIsLoading(true); // Start
+    setIsLoading(true);
     try {
         const result = await deleteUser(id);
         if (result.success) toast.success(result.message);
         else toast.error(result.message);
     } finally {
-        setIsLoading(false); // Stop
+        setIsLoading(false);
     };
     }
 
   async function handleReactivate(id: string) {
     if(!confirm('ยืนยันที่จะเปิดใช้งานผู้ใช้นี้อีกครั้ง?')) return;
-setIsLoading(true); // Start
-try {
-    const result = await reactivateUser(id);
-    if (result.success) toast.success(result.message);
-    else toast.error(result.message);
+    setIsLoading(true);
+    try {
+        const result = await reactivateUser(id);
+        if (result.success) toast.success(result.message);
+        else toast.error(result.message);
     } finally {
-        setIsLoading(false); // Stop
+        setIsLoading(false);
     };
   }
 
@@ -72,15 +74,43 @@ try {
         </h3>
         
         <form ref={formRef} action={handleCreate} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Name Fields */}
+            <div className="md:col-span-1">
+                <label htmlFor="first_name" className="block text-xs font-bold text-slate-500 mb-1">ชื่อจริง (First Name)</label>
+                <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input 
+                        id="first_name"
+                        name="first_name" type="text" required 
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        placeholder="Somchai"
+                    />
+                </div>
+            </div>
+
+            <div className="md:col-span-1">
+                <label htmlFor="last_name" className="block text-xs font-bold text-slate-500 mb-1">นามสกุล (Last Name)</label>
+                <input 
+                    id="last_name"
+                    name="last_name" type="text" required 
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    placeholder="Jaidee"
+                />
+            </div>
+
             {/* Email */}
             <div className="md:col-span-1">
                 <label htmlFor="email" className="block text-xs font-bold text-slate-500 mb-1">อีเมล (Email)</label>
-                <input 
-                    id="email"
-                    name="email" type="email" required 
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
-                    placeholder="user@example.com"
-                />
+                <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input 
+                        id="email"
+                        name="email" type="email" required 
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        placeholder="user@example.com"
+                    />
+                </div>
             </div>
 
             {/* Role */}
@@ -89,10 +119,11 @@ try {
                 <select 
                     id="role"
                     name="role" 
-                    aria-label="เลือกบทบาท" // ✅ FIX 1: เพิ่ม aria-label แก้ปัญหา A11y
+                    aria-label="เลือกบทบาท"
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                     <option value="staff">Staff (พนักงานคลัง)</option>
+                    <option value="manager">Manager (ผู้จัดการ)</option>
                     <option value="admin">Admin (ผู้ดูแลระบบ)</option>
                 </select>
             </div>
@@ -135,7 +166,6 @@ try {
 
             {/* Warehouses */}
             <div className="md:col-span-2">
-                {/* ✅ FIX 2: ลบ 'block' ออก เหลือแค่ 'flex' เพื่อแก้ CSS Conflict */}
                 <label className="text-xs font-bold text-slate-500 mb-2 flex items-center gap-2">
                     <Warehouse size={14}/> คลังสินค้าที่เข้าถึงได้ (สำหรับ Staff)
                 </label>
@@ -167,7 +197,7 @@ try {
             <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
                     <tr>
-                        <th className="p-4">Email</th>
+                        <th className="p-4">Name / Email</th>
                         <th className="p-4">Role</th>
                         <th className="p-4">Status</th>
                         <th className="p-4">Warehouses</th>
@@ -179,12 +209,19 @@ try {
                         const isBanned = u.is_banned || !u.is_active;
                         return (
                             <tr key={u.id} className={`hover:bg-slate-50 transition-colors ${isBanned ? 'bg-red-50/50 grayscale-[0.5]' : ''}`}>
-                                <td className="p-4 font-medium flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${isBanned ? 'bg-red-400' : 'bg-emerald-400'}`}></div>
-                                    {u.email}
+                                <td className="p-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${isBanned ? 'bg-slate-400' : 'bg-indigo-500'}`}>
+                                            {(u.first_name?.[0] || u.email[0]).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-800">{u.full_name || u.email.split('@')[0]}</div>
+                                            <div className="text-xs text-slate-500 font-mono">{u.email}</div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="p-4">
-                                    <span className={`px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>
+                                    <span className={`px-2 py-1 rounded text-xs font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : u.role === 'manager' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'}`}>
                                         {u.role.toUpperCase()}
                                     </span>
                                 </td>

@@ -2,60 +2,31 @@
 
 import { AuditItem } from '@/types/inventory';
 import { createClient } from '@/lib/db/supabase-server';
-import { SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { getWarehouseId } from '@/lib/utils/db-helpers';
+import { checkManagerRole } from '@/lib/auth-service';
+import { withAuth } from '@/lib/action-utils';
 
-// --- Helper Functions ---
-async function checkManagerRole(supabase: any, userId: string) {
-    const { data: profile } = await supabase.from('user_roles').select('role').eq('user_id', userId).single();
-    const role = profile?.role;
-    if (!role) return false;
-  return ['admin', 'manager'].includes(role);
-}
-/**
- * Resolves a warehouse identifier (code or UUID) to a UUID.
- * Suggestion: Move this to a shared utility file (e.g., /lib/utils/db-helpers.ts)
- * to be used across different action files.
- */
-async function getWarehouseId(supabase: SupabaseClient, warehouseIdentifier: string): Promise<string | null> {
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(warehouseIdentifier);
-    if (isUUID) return warehouseIdentifier;
-    
-    const { data } = await supabase
-        .from('warehouses')
-        .select('id')
-        .eq('code', warehouseIdentifier)
-        .maybeSingle(); // Use maybeSingle to avoid error if not found
-
-    return data?.id ?? null;
-}
 
 // --- Create Session ---
 const CreateAuditSchema = z.object({
   warehouseId: z.string().min(1),
   name: z.string().min(1, "กรุณาระบุชื่อรอบการนับ"),
+  items: z.string().optional(), // JSON string: { inventory_id }[]
 });
 
-export async function createAuditSession(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { success: false, message: 'Unauthenticated' };
-  const isManager = await checkManagerRole(supabase, user.id);
-  if (!isManager) {
-      return { success: false, message: 'ไม่มีสิทธิ์เปิดรอบการนับ (Requires Manager/Admin)' };
-  }
-
-
+export const createAuditSession = withAuth(async (formData: FormData, { user, supabase }) => {
   const rawData = {
-    warehouseId: formData.get('warehouseId'),
-    name: formData.get('name'),
+    warehouseId: formData.get('warehouseId') ?? '',
+    name: formData.get('name') ?? '',
+    items: formData.get('items') ?? undefined,
   };
   const validated = CreateAuditSchema.safeParse(rawData);
   if (!validated.success) {
     return { success: false, message: validated.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง' };
   }
-  const { warehouseId, name } = validated.data;
+  const { warehouseId, name, items } = validated.data;
 
   try {
     const whId = await getWarehouseId(supabase, warehouseId);
@@ -63,14 +34,96 @@ export async function createAuditSession(formData: FormData) {
         throw new Error(`ไม่พบคลังสินค้า: ${warehouseId}`);
     }
 
-    // Call RPC: init_audit_session
-    const { data: sessionId, error } = await supabase.rpc('init_audit_session', {
-      p_warehouse_id: whId,
-      p_name: name,
-      p_user_id: user.id
-    });
+    // Check for duplicate name in the same warehouse
+    const { data: existingSession } = await supabase
+        .from('audit_sessions')
+        .select('id')
+        .eq('warehouse_id', whId)
+        .eq('name', name)
+        .maybeSingle();
 
-    if (error) throw error;
+    if (existingSession) {
+        return { success: false, message: `ชื่อรอบการนับ "${name}" มีอยู่แล้วในคลังสินค้านี้ กรุณาใช้ชื่ออื่น` };
+    }
+
+    // 1. Create Audit Session (Manual Insert)
+    const { data: session, error: sessionError } = await supabase
+        .from('audit_sessions')
+        .insert({
+            warehouse_id: whId,
+            name: name,
+            created_by: user.id,
+            status: 'OPEN'
+        })
+        .select('id')
+        .single();
+
+    if (sessionError) throw sessionError;
+    const sessionId = session.id;
+
+    // 2. Process Selected Items
+    let auditItemsPayload: any[] = [];
+    let selectedItems: any[] = [];
+
+    if (items && typeof items === 'string' && items.length > 0) {
+        try {
+            const parsed = JSON.parse(items);
+            if (Array.isArray(parsed)) selectedItems = parsed;
+        } catch (e) {
+            console.error("Error parsing items JSON:", e);
+        }
+    }
+
+    if (selectedItems.length > 0) {
+        // --- PARTIAL AUDIT (Selected Items) ---
+        const inventoryIds = selectedItems.map((i: any) => i.inventory_id);
+        
+        const { data: inventoryData } = await supabase
+            .from('stocks')
+            .select('id, product_id, location_id, quantity')
+            .in('id', inventoryIds);
+        
+        const invMap = new Map(inventoryData?.map((i: any) => [i.id, i]));
+
+        auditItemsPayload = selectedItems.map((item: any) => {
+            const inv = invMap.get(item.inventory_id);
+            if (!inv) return null;
+            return {
+                session_id: sessionId,
+                product_id: inv.product_id,
+                location_id: inv.location_id,
+                system_qty: inv.quantity,
+                status: 'PENDING'
+            };
+        }).filter(Boolean);
+    } else {
+        // --- FULL AUDIT (Snapshot All) ---
+        // กรณีไม่ได้เลือกสินค้ามา (items = empty/null) ให้ดึงสินค้าทั้งหมดในคลังที่มี quantity > 0
+        const { data: allStocks } = await supabase
+            .from('stocks')
+            .select('product_id, location_id, quantity')
+            .eq('warehouse_id', whId)
+            .gt('quantity', 0);
+
+        if (allStocks) {
+            auditItemsPayload = allStocks.map(s => ({
+                session_id: sessionId,
+                product_id: s.product_id,
+                location_id: s.location_id,
+                system_qty: s.quantity,
+                status: 'PENDING'
+            }));
+        }
+    }
+
+    // 3. Insert Audit Items
+    if (auditItemsPayload.length > 0) {
+        const { error: itemsError } = await supabase
+            .from('audit_items')
+            .insert(auditItemsPayload);
+        
+        if (itemsError) throw itemsError;
+    }
 
     revalidatePath(`/dashboard/${warehouseId}/audit`);
     return { success: true, message: 'เปิดรอบการนับสำเร็จ', sessionId };
@@ -79,9 +132,31 @@ export async function createAuditSession(formData: FormData) {
     console.error("Create Audit Error:", error);
     return { success: false, message: error.message };
   }
-}
+}, { requiredRole: 'manager' }); // Enforce Manager Role
 
 // --- Fetch Data ---
+export async function getInventoryItems(warehouseId: string) {
+    const supabase = await createClient();
+    const whId = await getWarehouseId(supabase, warehouseId);
+    if (!whId) return [];
+
+    const { data, error } = await supabase
+        .from('stocks')
+        .select(`
+            id,
+            quantity,
+            product:products (id, sku, name, image_url),
+            location:locations!inner (id, code)
+        `)
+        .eq('warehouse_id', whId);
+
+    if (error) {
+        console.error("getInventoryItems Error:", error.message);
+        return [];
+    }
+    return data || [];
+}
+
 export async function getAuditSessions(warehouseId: string) {
     const supabase = await createClient();
     const whId = await getWarehouseId(supabase, warehouseId);
@@ -106,17 +181,13 @@ export async function getAuditItems(sessionId: string): Promise<AuditItem[]> {
             location:locations!audit_items_location_id_fkey (code, lot, cart, level)
         `)
         .eq('session_id', sessionId)
-        .order('location(code)', { ascending: true }); // เรียงตาม Location เพื่อให้นับง่าย
+        .order('code', { foreignTable: 'location', ascending: true }); // เรียงตาม Location เพื่อให้นับง่าย
 
     if (error) {
         console.error("Error fetching audit items:", error.message);
-        if (error.message.includes("embedded resource")) {
-            console.error("Hint: ตรวจสอบ Foreign Key ระหว่าง audit_items และ locations ใน Database");
-        }
         return [];
     }
     
-    // The data structure from Supabase with aliased relations now matches our AuditItem type.
     return data as AuditItem[];
 }
 
@@ -143,7 +214,7 @@ export async function updateAuditItemCount(itemId: string, qty: number) {
             .update({ 
                 counted_qty: qty,
                 status: 'COUNTED',
-                counter_id: user.id,
+                counter_id: user.id, // Record who *actually* counted it
                 updated_at: new Date().toISOString()
             })
             .eq('id', itemId);
@@ -182,4 +253,17 @@ export async function finalizeAuditSession(sessionId: string, warehouseId: strin
     } catch (error: any) {
         return { success: false, message: error.message };
     }
+}
+
+// --- Update Session (แก้ไขข้อมูล) ---
+export async function updateAuditSession(sessionId: string, warehouseId: string, data: { name: string }) {
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from('audit_sessions')
+        .update(data)
+        .eq('id', sessionId);
+    
+    if (error) return { success: false, message: error.message };
+    revalidatePath(`/dashboard/${warehouseId}/audit`);
+    return { success: true, message: 'อัปเดตข้อมูลสำเร็จ' };
 }

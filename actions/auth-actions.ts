@@ -5,13 +5,9 @@ import { createClient } from '@/lib/db/supabase-server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { loginSchema } from '@/lib/validations/auth-schemas';
+import { ActionResponse } from '@/types/action-response';
 
-interface LoginState {
-  success?: boolean;
-  message?: string;
-}
-
-export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
+export async function login(prevState: ActionResponse, formData: FormData): Promise<ActionResponse> {
   // 1. Validate Input
   const rawData = {
     email: formData.get('email'),
@@ -24,7 +20,8 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
     return { 
       success: false, 
       // ป้องกัน undefined ด้วย ?. และ ??
-      message: validatedFields.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง' 
+      message: validatedFields.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง',
+      errors: validatedFields.error.flatten().fieldErrors as Record<string, string[]>
     };
   }
 

@@ -6,6 +6,8 @@ import * as ExcelUtils from '@/lib/utils/excel-utils';
 import { isValidUUID } from '@/lib/utils/utils';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Worksheet, Row, Cell } from 'exceljs';
+import { getWarehouseId } from '@/lib/utils/db-helpers';
+import { checkManagerRole } from '@/lib/auth-service';
 
 interface ImportResult {
   success: boolean;
@@ -16,6 +18,7 @@ interface ImportResult {
     failed: number;
     errors: string[]; // รายงาน Error รายบรรทัด
 }};
+
 // ==========================================
 // 1. MASTER DATA (Global)
 // ==========================================
@@ -40,6 +43,13 @@ export async function downloadMasterTemplate(type: 'product' | 'category', categ
 
 export async function importMasterData(formData: FormData, type: 'product' | 'category') {
   const supabase = await createClient();
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, message: 'Unauthenticated' };
+
+  const isManager = await checkManagerRole(supabase, user.id);
+  if (!isManager) return { success: false, message: 'ไม่มีสิทธิ์จัดการข้อมูลหลัก (Requires Manager/Admin)' };
+
   const file = formData.get('file') as File;
   const categoryId = formData.get('categoryId') as string;
 
@@ -182,16 +192,16 @@ export async function downloadInboundTemplate(warehouseId: string, categoryId: s
 export async function importInboundStock(formData: FormData) {
     let warehouseId = formData.get('warehouseId') as string;
     const categoryId = formData.get('categoryId') as string;
-    const userId = formData.get('userId') as string;
 
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, message: 'Unauthenticated' };
+    const userId = user.id;
     
     // Resolve Warehouse ID if it is a Code (แปลง Code เป็น UUID ถ้าจำเป็น)
-    if (!isValidUUID(warehouseId)) {
-        const { data: wh } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
-        if (!wh) return { success: false, message: `ไม่พบคลังสินค้า: ${warehouseId}` };
-        warehouseId = wh.id;
-    }
+    const resolvedWhId = await getWarehouseId(supabase, warehouseId);
+    if (!resolvedWhId) return { success: false, message: `ไม่พบคลังสินค้า: ${warehouseId}` };
+    warehouseId = resolvedWhId;
 
     const file = formData.get('file') as File;
     if (!file) return { success: false, message: 'ไม่พบไฟล์ Excel' };

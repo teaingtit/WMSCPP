@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/db/supabase-server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { getWarehouseId } from '@/lib/utils/db-helpers';
 
 // --- Validation Schema ---
 const InboundSchema = z.object({
@@ -12,13 +13,6 @@ const InboundSchema = z.object({
   quantity: z.coerce.number().positive("Quantity must be greater than 0"),
   attributes: z.record(z.string(), z.any()).optional().default({}),
 });
-
-async function resolveWarehouseId(supabase: any, warehouseId: string) {
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(warehouseId);
-    if (isUUID) return warehouseId;
-    const { data } = await supabase.from('warehouses').select('id').eq('code', warehouseId).single();
-    return data ? data.id : null;
-}
 
 // --- Data Fetching ---
 
@@ -59,7 +53,7 @@ export async function getInboundOptions(warehouseId: string, categoryId: string)
 
 export async function getWarehouseLots(warehouseId: string) {
     const supabase = await createClient();
-    const whId = await resolveWarehouseId(supabase, warehouseId);
+    const whId = await getWarehouseId(supabase, warehouseId);
     if (!whId) return [];
     
     const { data } = await supabase.from('locations')
@@ -73,7 +67,7 @@ export async function getWarehouseLots(warehouseId: string) {
 
 export async function getCartsByLot(warehouseId: string, lot: string) {
     const supabase = await createClient();
-    const whId = await resolveWarehouseId(supabase, warehouseId);
+    const whId = await getWarehouseId(supabase, warehouseId);
     if (!whId) return [];
     
     const { data } = await supabase.from('locations')
@@ -88,7 +82,7 @@ export async function getCartsByLot(warehouseId: string, lot: string) {
 
 export async function getLevelsByCart(warehouseId: string, lot: string, cart: string) {
     const supabase = await createClient();
-    const whId = await resolveWarehouseId(supabase, warehouseId);
+    const whId = await getWarehouseId(supabase, warehouseId);
     if (!whId) return [];
     
     // ✅ FIX: เพิ่ม .not('level', 'is', null) และ .order('level')
@@ -116,7 +110,7 @@ export async function submitInbound(rawData: any) {
   const { warehouseId, locationId, productId, quantity, attributes } = validated.data;
 
   try {
-    const whId = await resolveWarehouseId(supabase, warehouseId);
+    const whId = await getWarehouseId(supabase, warehouseId);
     if (!whId) throw new Error("Warehouse Not Found");
 
     const { data: rpcResult, error: rpcError } = await supabase.rpc('process_inbound_transaction', {
@@ -162,4 +156,31 @@ export async function submitInbound(rawData: any) {
   } catch (error: any) {
     return { success: false, message: error.message };
   }
+}
+
+export async function submitBulkInbound(items: any[]) {
+  const results = {
+    success: 0,
+    failed: 0,
+    errors: [] as string[]
+  };
+
+  const promises = items.map(async (item) => {
+    const result = await submitInbound(item);
+    if (result.success) {
+      results.success++;
+    } else {
+      results.failed++;
+      results.errors.push(`สินค้า ${item.productName || 'Unknown'}: ${result.message}`);
+    }
+    return result;
+  });
+
+  await Promise.all(promises);
+
+  return {
+    success: results.failed === 0,
+    message: `บันทึกสำเร็จ ${results.success} รายการ${results.failed > 0 ? `, ไม่สำเร็จ ${results.failed} รายการ` : ''}`,
+    details: results
+  };
 }

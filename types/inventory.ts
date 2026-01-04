@@ -104,8 +104,15 @@ export interface AuditItem {
   counted_qty: number | null;
   diff_qty: number | null;
   counter_id?: string;
+  assignee_id?: string | null;
   updated_at: string;
   // Relations (สำหรับการ join แสดงผล)
   product?: Product;
   location?: Location;
+  assignee?: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  };
 }

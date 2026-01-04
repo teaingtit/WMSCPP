@@ -63,8 +63,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (user && request.nextUrl.pathname === '/login') {
-    // ถ้ามี User แล้ว แต่พยายามเข้าหน้า Login -> ส่งไป Dashboard เลย
+  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/')) {
+    // ดึง Role ของ User เพื่อ Redirect ไปหน้าแรกที่เหมาะสม
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role, allowed_warehouses')
+      .eq('user_id', user.id)
+      .single()
+
+    const role = roleData?.role
+    const allowedWarehouses = roleData?.allowed_warehouses || []
+
+    if (role === 'staff' && allowedWarehouses.length > 0) {
+      // Staff -> ไปหน้า Inventory ของคลังแรกที่มีสิทธิ์
+      return NextResponse.redirect(new URL(`/dashboard/${allowedWarehouses[0]}/inventory`, request.url))
+    }
+
+    // Manager / Admin -> ไปหน้า Dashboard รวม
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

@@ -1,0 +1,18 @@
+{
+    "general": {
+        "previewFeatures": true
+    }
+    ,
+  "mcpServers": {
+    "supabase-mcp": {
+      "command": "node",
+      "args": [
+        "C:/Users/nteai/Desktop/project/my-mcp-server/dist/index.js"
+      ],
+      "env": {
+        "SUPABASE_URL": "https://pbqiaqrrtyjarrkbvmyz.supabase.co",
+        "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBicWlhcXJydHlqYXJya2J2bXl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDU3ODgsImV4cCI6MjA4MjMyMTc4OH0.PK73jpNRG4YCeTfhyaS2n7s-4GqPmCTk6M7UX8u-LKY"
+      }
+    }
+  }
+}

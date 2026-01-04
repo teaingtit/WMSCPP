@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, Save, CheckCircle2, Loader2, PackagePlus, ArrowRightLeft, Truck } from 'lucide-react';
+import { string } from 'zod';
 
 interface TransactionConfirmModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface TransactionConfirmModalProps {
   details: React.ReactNode;   // ข้อมูลสรุปที่จะแสดง (เช่น สินค้าอะไร จำนวนเท่าไหร่)
   isLoading: boolean;
   confirmLabel?: string;
+  confirmText?: string;       // Alias for confirmLabel to match usage in some components
   type?: 'INBOUND' | 'TRANSFER' | 'OUTBOUND';
 }
 
@@ -24,6 +26,7 @@ export default function TransactionConfirmModal({
   details,
   isLoading,
   confirmLabel = "ยืนยันรายการ",
+  confirmText,
   type = 'INBOUND'
 }: TransactionConfirmModalProps) {
   if (!isOpen) return null;
@@ -45,6 +48,8 @@ export default function TransactionConfirmModal({
   };
   const theme = themes[type];
   const HeaderIcon = theme.Icon;
+
+  const finalConfirmLabel = confirmText || confirmLabel;
 
   return (
     <div 
@@ -87,7 +92,7 @@ export default function TransactionConfirmModal({
                     className={`w-full py-4 ${theme.bg} hover:opacity-90 text-white rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]`}
                 >
                     {isLoading ? <Loader2 className="animate-spin"/> : <CheckCircle2 />}
-                    <span>{confirmLabel}</span>
+                    <span>{finalConfirmLabel}</span>
                 </button>
 
                 {/* Suggestion 1: แสดงปุ่มนี้เมื่อมี prop onSaveAndContinue เท่านั้น */}

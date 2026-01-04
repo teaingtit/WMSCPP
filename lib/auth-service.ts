@@ -2,6 +2,15 @@
 import { createClient } from '@/lib/db/supabase-server';
 import { redirect } from 'next/navigation';
 import { AppUser } from '@/types/auth';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { ROLES, TABLES } from '@/lib/constants';
+
+export async function checkManagerRole(supabase: SupabaseClient, userId: string) {
+  const { data: profile } = await supabase.from(TABLES.USER_ROLES).select('role').eq('user_id', userId).single();
+  const role = profile?.role;
+  if (!role) return false;
+  return [ROLES.ADMIN, ROLES.MANAGER].includes(role);
+}
 
 export async function getCurrentUser(): Promise<AppUser | null> {
   const supabase = await createClient();
@@ -14,7 +23,7 @@ export async function getCurrentUser(): Promise<AppUser | null> {
 
   // ดึง Role และสถานะ
   const { data: roleData, error: roleError } = await supabase
-    .from('user_roles')
+    .from(TABLES.USER_ROLES)
     .select('role, allowed_warehouses, is_active')
     .eq('user_id', user.id)
     .single();
@@ -61,7 +70,7 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const user = await requireUser();
-  if (user.role !== 'admin') {
+  if (user.role !== ROLES.ADMIN) {
     redirect('/dashboard'); 
   }
   return user;
