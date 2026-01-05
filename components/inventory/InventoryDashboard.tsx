@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, createContext, useContext, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
@@ -32,67 +32,133 @@ const buildHierarchy = (stocks: StockWithDetails[]) => {
   return hierarchy;
 };
 
-export default function InventoryDashboard({ stocks, warehouseId }: InventoryDashboardProps) {
-  const router = useRouter();
+// --- Context & Provider ---
+
+interface InventorySelectionContextType {
+  selectedIds: Set<string>;
+  hierarchy: Record<string, Record<string, StockWithDetails[]>>;
+  toggleLot: (lot: string) => void;
+  togglePos: (lot: string, pos: string) => void;
+  toggleItem: (id: string) => void;
+  toggleMultiple: (ids: string[]) => void;
+  isLotSelected: (lot: string) => boolean;
+  isPosSelected: (lot: string, pos: string) => boolean;
+}
+
+const InventorySelectionContext = createContext<InventorySelectionContextType | null>(null);
+
+export const useInventorySelection = () => {
+  const context = useContext(InventorySelectionContext);
+  if (!context) {
+    throw new Error('useInventorySelection must be used within an InventorySelectionProvider');
+  }
+  return context;
+};
+
+export const InventorySelectionProvider = ({ 
+  stocks, 
+  children 
+}: { 
+  stocks: StockWithDetails[]; 
+  children: React.ReactNode; 
+}) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // 1. Prepare Data
   const hierarchy = useMemo(() => buildHierarchy(stocks), [stocks]);
-  const lotKeys = Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  // --- Toggle Logic Helpers ---
-  const isLotSelected = (lot: string) => {
+  // Helpers for selection status
+  const isLotSelected = useCallback((lot: string) => {
     const positions = hierarchy[lot];
     if (!positions) return false;
     const allItems = Object.values(positions).flat();
     return allItems.length > 0 && allItems.every(item => selectedIds.has(item.id));
-  };
+  }, [hierarchy, selectedIds]);
 
-  const isPosSelected = (lot: string, pos: string) => {
+  const isPosSelected = useCallback((lot: string, pos: string) => {
     const items = hierarchy[lot]?.[pos];
     return !!items && items.length > 0 && items.every(item => selectedIds.has(item.id));
-  };
+  }, [hierarchy, selectedIds]);
 
-  // --- Handlers ---
-  const toggleLot = (lot: string) => {
+  // Toggle Handlers
+  const toggleLot = useCallback((lot: string) => {
     const positions = hierarchy[lot];
     if (!positions) return;
     const allItems = Object.values(positions).flat();
     const allIds = allItems.map(i => i.id);
-    const isAll = isLotSelected(lot);
 
-    const newSet = new Set(selectedIds);
-    if (isAll) allIds.forEach(id => newSet.delete(id));
-    else allIds.forEach(id => newSet.add(id));
-    setSelectedIds(newSet);
-  };
+    setSelectedIds(prev => {
+        const isAll = allItems.length > 0 && allItems.every(item => prev.has(item.id));
+        const newSet = new Set(prev);
+        if (isAll) allIds.forEach(id => newSet.delete(id));
+        else allIds.forEach(id => newSet.add(id));
+        return newSet;
+    });
+  }, [hierarchy]);
 
-  const togglePos = (lot: string, pos: string) => {
+  const togglePos = useCallback((lot: string, pos: string) => {
     const items = hierarchy[lot]?.[pos];
     if (!items) return;
     const ids = items.map(i => i.id);
-    const isAll = isPosSelected(lot, pos);
 
-    const newSet = new Set(selectedIds);
-    if (isAll) ids.forEach(id => newSet.delete(id));
-    else ids.forEach(id => newSet.add(id));
-    setSelectedIds(newSet);
-  };
+    setSelectedIds(prev => {
+        const isAll = items.length > 0 && items.every(item => prev.has(item.id));
+        const newSet = new Set(prev);
+        if (isAll) ids.forEach(id => newSet.delete(id));
+        else ids.forEach(id => newSet.add(id));
+        return newSet;
+    });
+  }, [hierarchy]);
 
-  const toggleItem = (id: string) => {
-    const newSet = new Set(selectedIds);
-    if (newSet.has(id)) newSet.delete(id);
-    else newSet.add(id);
-    setSelectedIds(newSet);
-  };
+  const toggleItem = useCallback((id: string) => {
+    setSelectedIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        return newSet;
+    });
+  }, []);
 
-  const toggleMultiple = (ids: string[]) => {
-    const newSet = new Set(selectedIds);
-    const isAll = ids.every(id => newSet.has(id));
-    if (isAll) ids.forEach(id => newSet.delete(id));
-    else ids.forEach(id => newSet.add(id));
-    setSelectedIds(newSet);
-  };
+  const toggleMultiple = useCallback((ids: string[]) => {
+    setSelectedIds(prev => {
+        const isAll = ids.every(id => prev.has(id));
+        const newSet = new Set(prev);
+        if (isAll) ids.forEach(id => newSet.delete(id));
+        else ids.forEach(id => newSet.add(id));
+        return newSet;
+    });
+  }, []);
+
+  const value = useMemo(() => ({
+    selectedIds,
+    hierarchy,
+    toggleLot,
+    togglePos,
+    toggleItem,
+    toggleMultiple,
+    isLotSelected,
+    isPosSelected
+  }), [selectedIds, hierarchy, toggleLot, togglePos, toggleItem, toggleMultiple, isLotSelected, isPosSelected]);
+
+  return (
+    <InventorySelectionContext.Provider value={value}>
+      {children}
+    </InventorySelectionContext.Provider>
+  );
+};
+
+// --- Inner Component ---
+const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => {
+  const router = useRouter();
+  const { 
+    hierarchy, 
+    selectedIds, 
+    toggleLot, 
+    togglePos, 
+    toggleItem, 
+    toggleMultiple 
+  } = useInventorySelection();
+
+  const lotKeys = useMemo(() => Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })), [hierarchy]);
 
   const handleBulkAction = (action: 'transfer' | 'outbound') => {
     const idsArray = Array.from(selectedIds);
@@ -126,7 +192,7 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
 
       {/* Main Content: Loop Render Lots */}
       <div className="space-y-4">
-        {stocks.length === 0 && (
+        {lotKeys.length === 0 && (
           <div className="text-center py-12 text-slate-400">ไม่พบรายการสินค้า</div>
         )}
 
@@ -150,5 +216,13 @@ export default function InventoryDashboard({ stocks, warehouseId }: InventoryDas
         onAction={handleBulkAction} 
       />
     </div>
+  );
+}
+
+export default function InventoryDashboard({ stocks, warehouseId }: InventoryDashboardProps) {
+  return (
+    <InventorySelectionProvider stocks={stocks}>
+      <InventoryDashboardContent warehouseId={warehouseId} />
+    </InventorySelectionProvider>
   );
 }

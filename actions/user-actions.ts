@@ -59,7 +59,8 @@ export async function getUsers() {
     const fullName = profile?.full_name || u.user_metadata?.full_name || `${firstName} ${lastName}`.trim();
 
     const isActive = roleData?.is_active ?? true;
-    const isBannedInAuth = (u as any).banned_until !== null && (u as any).banned_until !== undefined;
+    const bannedUntil = (u as { banned_until?: string | null }).banned_until;
+    const isBannedInAuth = bannedUntil !== null && bannedUntil !== undefined;
     
     return {
       id: u.id,

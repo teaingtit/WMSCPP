@@ -57,7 +57,6 @@ export async function getDashboardStats(warehouseCode: string) {
         .from('stocks')
         .select(`
             quantity, 
-            products!inner(min_stock),
             locations!inner(warehouse_id) 
         `)
         .eq('locations.warehouse_id', wh.id); // กรองจาก Location ที่ผูกกับ Warehouse นี้
@@ -70,36 +69,47 @@ export async function getDashboardStats(warehouseCode: string) {
     
     // คำนวณยอดรวม (Handle null/undefined safely)
     const totalQty = stocks?.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) || 0;
-    
-    // คำนวณสินค้าใกล้หมด
-    const lowStockCount = stocks?.filter((item: any) => {
-        // products อาจจะเป็น array หรือ object ขึ้นอยู่กับ relationship แต่ปกติจะเป็น object
-        const minStock = item.products?.min_stock || 0; 
-        return (Number(item.quantity) || 0) <= minStock;
-    }).length || 0;
 
+    // Fetch Active Audits
+    const { data: activeAudits } = await supabase
+        .from('audit_sessions')
+        .select('id, name, created_at, status')
+        .eq('warehouse_id', wh.id)
+        .eq('status', 'OPEN')
+        .order('created_at', { ascending: false });
+    
     // ส่วนของ Recent Logs (คงเดิม หรือปรับให้ชัวร์)
     const { data: recentLogs } = await supabase
         .from('transactions')
         .select(`
             id, type, quantity, created_at,
-            products(name, sku),
+            products(name, sku, uom),
             from_location:locations!transactions_from_location_id_fkey(code),
             to_location:locations!transactions_to_location_id_fkey(code)
         `)
         .eq('warehouse_id', wh.id)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(20);
+
+    // Count Today's Transactions
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { count: todayTransactionCount } = await supabase
+        .from('transactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('warehouse_id', wh.id)
+        .gte('created_at', today.toISOString());
 
     return {
         totalItems,
         totalQty,
-        lowStockCount,
+        todayTransactionCount: todayTransactionCount || 0,
+        activeAudits: activeAudits || [],
         recentLogs: recentLogs || []
     };
 
   } catch (error) {
     console.error("Dashboard Stats Error:", error);
-    return { totalItems: 0, totalQty: 0, lowStockCount: 0, recentLogs: [] };
+    return { totalItems: 0, totalQty: 0, recentLogs: [] };
   }
 }

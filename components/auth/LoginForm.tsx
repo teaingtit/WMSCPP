@@ -18,7 +18,7 @@ const SubmitButton = () => {
   return (
     <button 
       disabled={pending}
-      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground p-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {pending ? <Loader2 className="animate-spin" /> : <KeyRound size={20} />} 
       {pending ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
@@ -52,7 +52,7 @@ const { setIsLoading } = useGlobalLoading();
           type="email" 
           required
           placeholder="admin@wms.com"
-          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-medium text-slate-800"
+          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium text-slate-800"
         />
       </div>
       
@@ -63,7 +63,7 @@ const { setIsLoading } = useGlobalLoading();
           type="password" 
           required
           placeholder="••••••••"
-          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-medium text-slate-800"
+          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium text-slate-800"
         />
       </div>
 

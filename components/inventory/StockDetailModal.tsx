@@ -86,11 +86,7 @@ export default function StockDetailModal({ isOpen, onClose, item, warehouseId }:
                   {item.quantity.toLocaleString()} <span className="text-sm font-normal text-slate-500">{item.product?.uom}</span>
                 </div>
              </div>
-             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                   <span className="text-slate-500 flex items-center gap-1"><Ruler size={12}/> Min Stock</span>
-                   <span className="font-bold text-slate-700">{item.product?.min_stock || 0}</span>
-                </div>
+             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center gap-2">
                 <div className="flex items-center justify-between text-sm">
                    <span className="text-slate-500 flex items-center gap-1"><Calendar size={12}/> Updated</span>
                    <span className="font-bold text-slate-700">{new Date(item.updated_at).toLocaleDateString('th-TH')}</span>

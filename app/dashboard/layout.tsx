@@ -1,7 +1,7 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import MobileNav from '@/components/ui/MobileNav';
-import DesktopSidebar from '@/components/ui/DesktopSidebar';
+import TopNav from '@/components/ui/TopNav';
 import UserProvider from '@/components/providers/UserProvider';
 import { getCurrentUser } from '@/lib/auth-service';
 
@@ -16,16 +16,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     // ✅ 2. Wrap ด้วย Provider เพื่อส่งข้อมูล User ไปทั่วทั้ง Dashboard (Client Side)
     <UserProvider user={user}>
-      <div className="flex h-screen overflow-hidden flex-col md:flex-row">
+      <div className="flex h-screen overflow-hidden flex-col from-[#122247] to-[#1e293b]">
         
-        {/* Mobile Nav */}
+        {/* Mobile Nav (Visible only on mobile) */}
         <MobileNav />
 
-        {/* Desktop Sidebar: ไม่ต้องส่ง props แล้ว ใช้ Context ภายในเอา */}
-        <DesktopSidebar />
+        {/* Top Nav (Visible only on desktop) */}
+        <TopNav />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-slate-50 relative w-full">
+        <main className="flex-1 overflow-auto relative w-full">
           {children}
         </main>
       </div>

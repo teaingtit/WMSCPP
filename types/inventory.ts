@@ -10,7 +10,6 @@ export interface Product {
   name: string;
   uom: string;
   category_id: string;
-  min_stock: number;
   image_url?: string;
   created_at?: string;
   is_active: boolean;

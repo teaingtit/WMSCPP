@@ -14,6 +14,8 @@ const InboundSchema = z.object({
   attributes: z.record(z.string(), z.any()).optional().default({}),
 });
 
+export type InboundFormData = z.infer<typeof InboundSchema>;
+
 // --- Data Fetching ---
 
 export async function getProductCategories() {
@@ -99,7 +101,7 @@ export async function getLevelsByCart(warehouseId: string, lot: string, cart: st
 }
 
 // --- Submit Action ---
-export async function submitInbound(rawData: any) {
+export async function submitInbound(rawData: unknown) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || !user.email) return { success: false, message: 'Unauthenticated' };
@@ -158,7 +160,7 @@ export async function submitInbound(rawData: any) {
   }
 }
 
-export async function submitBulkInbound(items: any[]) {
+export async function submitBulkInbound(items: (InboundFormData & { productName?: string })[]) {
   const results = {
     success: 0,
     failed: 0,

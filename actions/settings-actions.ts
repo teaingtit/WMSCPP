@@ -17,9 +17,8 @@ const CreateWarehouseSchema = z.object({
 const CreateProductSchema = z.object({
   sku: z.string().min(1, "SKU is required").transform(val => val.trim().toUpperCase()),
   name: z.string().min(1, "Product Name is required").transform(val => val.trim()),
-  category_id: z.string().min(1, "Category is required"),
-  min_stock: z.coerce.number().min(0).default(0),
-  image_url: z.string().optional().nullable(),
+  category_id: z.string().min(1, 'Product Category is required'),
+  image_url: z.string().optional(),
 });
 
 const CreateCategorySchema = z.object({
@@ -73,8 +72,7 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
       sku: formData.get('sku'),
       name: formData.get('name'),
       category_id: formData.get('category_id'),
-      min_stock: formData.get('min_stock'),
-      image_url: formData.get('image_url')
+      image_url: formData.get('image_url'),
   };
 
   const validated = CreateProductSchema.safeParse(rawData);
@@ -86,8 +84,7 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
       };
   }
   
-  const { sku, name, category_id, min_stock, image_url } = validated.data;
-  
+  const { sku, name, category_id, image_url } = validated.data;  
   const { data: category } = await supabase.from('product_categories').select('form_schema').eq('id', category_id).single();
   const attributes: Record<string, any> = {};
   if (category?.form_schema) {
@@ -100,7 +97,6 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
   try {
     const { error } = await supabase.from('products').insert({
       sku, name, category_id: category_id || 'GENERAL',
-      min_stock,
       image_url: image_url || null,
       attributes: attributes,
       is_active: true // ✅ Default เป็น True เสมอ

@@ -1,121 +1,117 @@
-// components/dashboard/StatsWidgets.tsx
 'use client';
 
 import React from 'react';
-import { Package, AlertTriangle, ArrowRightLeft, Layers } from 'lucide-react';
+import { Package, Layers, ArrowRightLeft, ClipboardList, Clock, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
+import Link from 'next/link';
 
-export function SummaryCards({ stats }: { stats: any }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      
-      {/* Card 1: Total Items (SKU) */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-        <div className="absolute right-0 top-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-        <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><Package size={20} /></div>
-                <span className="text-sm font-bold text-slate-500 uppercase">สินค้า (SKU)</span>
-            </div>
-            <div className="flex items-end gap-2">
-                <h3 className="text-3xl font-black text-slate-800">{stats.totalItems?.toLocaleString() || 0}</h3>
-                <span className="text-sm font-medium text-slate-400 mb-1">รายการ</span>
+
+
+// --- Active Audit Sessions List ---
+export function ActiveAuditList({ sessions, warehouseId }: { sessions: any[], warehouseId: string }) {
+    if (!sessions || sessions.length === 0) return null;
+
+    return (
+        <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 mb-6 shadow-sm relative overflow-hidden group">
+            <h3 className="text-base font-bold text-slate-200 flex items-center gap-2 mb-4 relative z-10">
+                <ClipboardList size={20} className="text-amber-400" />
+                กำลังดำเนินการนับสต็อก (Active Sessions)
+            </h3>
+            <div className="space-y-3 relative z-10">
+                {sessions.map((session) => (
+                    <Link 
+                        key={session.id}
+                        href={`/dashboard/${warehouseId}/audit/${session.id}`}
+                        className="bg-slate-700/50 border border-slate-600 rounded-xl p-4 hover:bg-slate-700 hover:border-amber-500/50 transition-all flex justify-between items-center group/item"
+                    >
+                        <div>
+                            <div className="font-bold text-slate-200 text-sm group-hover/item:text-amber-400 transition-colors">
+                                {session.name}
+                            </div>
+                            <div className="text-xs text-slate-400 flex items-center gap-1 mt-1.5">
+                                <Clock size={12} className="text-slate-400" />
+                                <span className="opacity-80">เริ่มเมื่อ: {format(new Date(session.created_at), 'dd MMM yyyy HH:mm', { locale: th })}</span>
+                            </div>
+                        </div>
+                        <div className="bg-amber-900/30 text-amber-400 text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-1.5 border border-amber-800/50 group-hover/item:bg-amber-900/50 transition-all">
+                            นับต่อ <ArrowRightLeft size={14} />
+                        </div>
+                    </Link>
+                ))}
             </div>
         </div>
-      </div>
-
-      {/* Card 2: Total Quantity (Pieces) */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-        <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-        <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><Layers size={20} /></div>
-                <span className="text-sm font-bold text-slate-500 uppercase">จำนวนในคลัง</span>
-            </div>
-            <div className="flex items-end gap-2">
-                <h3 className="text-3xl font-black text-slate-800">{stats.totalQty?.toLocaleString() || 0}</h3>
-                <span className="text-sm font-medium text-slate-400 mb-1">ชิ้น</span>
-            </div>
-        </div>
-      </div>
-
-      {/* Card 3: Low Stock */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-        <div className="absolute right-0 top-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-        <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-amber-100 text-amber-600 rounded-lg"><AlertTriangle size={20} /></div>
-                <span className="text-sm font-bold text-slate-500 uppercase">ใกล้หมดสต็อก</span>
-            </div>
-            <div className="flex items-end gap-2">
-                <h3 className={`text-3xl font-black ${stats.lowStockCount > 0 ? 'text-amber-600' : 'text-slate-800'}`}>
-                    {stats.lowStockCount?.toLocaleString() || 0}
-                </h3>
-                <span className="text-sm font-medium text-slate-400 mb-1">รายการ</span>
-            </div>
-        </div>
-      </div>
-
-    </div>
-  );
+    );
 }
 
-export function ActivityFeed({ logs }: { logs: any[] }) {
+// --- Dairy Activity Feed ---
+export function DairyActivityFeed({ logs }: { logs: any[] }) {
   return (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-full">
-      <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-            <ArrowRightLeft size={18} className="text-indigo-600"/>
-            ความเคลื่อนไหวล่าสุด
+    <div className="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm overflow-hidden flex flex-col h-full relative">
+      {/* Header */}
+      <div className="p-5 border-b border-slate-700 bg-slate-800/50 flex justify-between items-center relative z-10">
+        <h3 className="font-bold text-slate-200 flex items-center gap-2 text-sm">
+            <Clock size={18} className="text-blue-400"/>
+            รายการเคลื่อนไหวล่าสุด
         </h3>
+        <span className="text-[10px] font-bold bg-blue-900/30 text-blue-400 px-3 py-1 rounded-full border border-blue-800">Recent</span>
       </div>
-      <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+      
+      <div className="overflow-y-auto custom-scrollbar flex-1 p-4 relative z-10">
         {logs.length === 0 ? (
-            <div className="p-10 text-center text-slate-400 text-sm flex flex-col items-center gap-2">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center">
-                    <Package size={20} className="opacity-20"/>
+            <div className="h-40 flex flex-col items-center justify-center text-slate-500 text-xs gap-3 opacity-70">
+                <div className="w-12 h-12 bg-slate-700/50 rounded-xl flex items-center justify-center border border-slate-700">
+                    <Package size={20} className="text-slate-400"/>
                 </div>
                 ยังไม่มีรายการเคลื่อนไหว
             </div>
         ) : (
-            logs.map((log) => (
-                <div key={log.id} className="p-4 border-b border-slate-50 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
-                    <div className={`p-3 rounded-xl flex-shrink-0 ${
-                        log.type === 'INBOUND' ? 'bg-emerald-100 text-emerald-600' :
-                        log.type === 'OUTBOUND' ? 'bg-rose-100 text-rose-600' :
-                        'bg-orange-100 text-orange-600'
-                    }`}>
-                        {log.type === 'INBOUND' ? <Package size={18} /> : 
-                         log.type === 'OUTBOUND' ? <ArrowRightLeft size={18} /> : 
-                         <Layers size={18} />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-1">
-                             <div className="font-bold text-slate-700 truncate pr-2 text-sm">{log.products?.name || 'Unknown Product'}</div>
-                             <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${
-                                 log.type === 'INBOUND' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                 log.type === 'OUTBOUND' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-                                 'bg-orange-50 text-orange-700 border-orange-100'
-                             }`}>
-                                {log.type}
-                             </span>
+            <div className="space-y-3">
+                {logs.map((log) => (
+                    <div key={log.id} className="p-3 bg-slate-700/30 border border-slate-700 rounded-xl flex items-center gap-4 hover:bg-slate-700/50 transition-all group">
+                        {/* Icon Box 3D Effect */}
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 border border-white/5 ${
+                            log.type === 'INBOUND' ? 'bg-emerald-900/50 text-emerald-400' :
+                            log.type === 'OUTBOUND' ? 'bg-rose-900/50 text-rose-400' :
+                            'bg-blue-900/50 text-blue-400'
+                        }`}>
+                            {log.type === 'INBOUND' ? <ArrowDownLeft size={18} /> : 
+                             log.type === 'OUTBOUND' ? <ArrowUpRight size={18} /> : 
+                             <ArrowRightLeft size={18} />}
                         </div>
-                        <div className="flex justify-between items-center text-xs text-slate-400">
-                            <div className="flex items-center gap-2">
-                                <span className="font-mono bg-slate-100 px-1 rounded text-slate-500">
-                                    {log.type === 'INBOUND' ? log.to_location?.code : log.from_location?.code}
-                                </span>
-                                <span>•</span>
-                                <span>{log.quantity} {log.products?.uom}</span>
-                            </div>
-                            <div>
-                                {format(new Date(log.created_at), 'dd MMM HH:mm', { locale: th })}
-                            </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                             <div className="flex justify-between items-start">
+                                 <h4 className="font-bold text-slate-200 text-sm truncate pr-2 group-hover:text-blue-400 transition-colors">
+                                    {log.products?.name || 'Unknown Product'}
+                                 </h4>
+                                 <span className="text-[10px] text-slate-500 flex-shrink-0 whitespace-nowrap bg-slate-900/50 px-2 py-0.5 rounded-full">
+                                    {format(new Date(log.created_at), 'HH:mm', { locale: th })}
+                                 </span>
+                             </div>
+                             
+                             <div className="flex justify-between items-end mt-2">
+                                 <div className="text-xs text-slate-400">
+                                     <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono mr-2 border border-slate-600">
+                                        {log.type === 'INBOUND' ? log.to_location?.code : log.from_location?.code}
+                                     </span>
+                                     <span className="text-[10px] text-slate-500">
+                                        {log.products?.sku}
+                                     </span>
+                                 </div>
+                                 <div className={`text-sm font-bold ${
+                                     log.type === 'INBOUND' ? 'text-emerald-400' :
+                                     log.type === 'OUTBOUND' ? 'text-rose-400' :
+                                     'text-blue-400'
+                                 }`}>
+                                     {log.type === 'OUTBOUND' ? '-' : '+'}{Number(log.quantity).toLocaleString()} <span className="text-[10px] font-medium text-slate-600">{log.products?.uom}</span>
+                                 </div>
+                             </div>
                         </div>
                     </div>
-                </div>
-            ))
+                ))}
+            </div>
         )}
       </div>
     </div>

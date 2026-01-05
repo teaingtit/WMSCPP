@@ -13,7 +13,7 @@ const sarabun = Sarabun({
 });
 
 export const metadata: Metadata = {
-  title: 'WMS Pro - Stable Edition',
+  title: 'WMS DEMO',
   description: 'Warehouse Management System v.01',
 };
 
