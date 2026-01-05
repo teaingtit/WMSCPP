@@ -98,12 +98,21 @@ export default function OutboundPage() {
     setSearchResults([]);
   }, []);
 
-  const handleAddToQueue = (e: React.FormEvent) => {
+  const handleAddToQueue = (e: React.FormEvent): void => {
     e.preventDefault();
     const qty = Number(pickQty);
-    if (!selectedStock) return toast.error('กรุณาเลือกสินค้า');
-    if (!pickQty || qty <= 0) return toast.error('ระบุจำนวนที่ถูกต้อง');
-    if (qty > selectedStock.quantity) return toast.error('ยอดเบิกเกินกว่าที่มีในสต็อก');
+    if (!selectedStock) {
+      toast.error('กรุณาเลือกสินค้า');
+      return;
+    }
+    if (!pickQty || qty <= 0) {
+      toast.error('ระบุจำนวนที่ถูกต้อง');
+      return;
+    }
+    if (qty > selectedStock.quantity) {
+      toast.error('ยอดเบิกเกินกว่าที่มีในสต็อก');
+      return;
+    }
 
     const newItem: OutboundQueueItem = {
       id: Date.now().toString(),
