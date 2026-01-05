@@ -449,7 +449,7 @@ function _processInboundRows(
     } else if (result.txData) {
       transactions.push({
         ...result.txData,
-        p_warehouse_id: params.warehouseId,
+        p_warehouse_id: params['warehouseId'],
         p_user_id: params.userId,
       });
     }

@@ -76,7 +76,7 @@ export default function TopNav() {
   const user = useUser();
 
   const isAdmin = user?.role === 'admin';
-  const warehouseId = params?.warehouseId as string;
+  const warehouseId = params?.['warehouseId'] as string;
 
   const renderLink = (item: (typeof MENU_ITEMS)[0], onClick?: () => void) => {
     if (item.href.includes('/settings') && !isAdmin) return null;

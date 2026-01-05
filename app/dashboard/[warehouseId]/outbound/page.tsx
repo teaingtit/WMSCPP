@@ -30,7 +30,7 @@ export default function OutboundPage() {
   const { setIsLoading } = useGlobalLoading();
   const router = useRouter();
   const params = useParams();
-  const warehouseId = params.warehouseId as string;
+  const warehouseId = params['warehouseId'] as string;
 
   // State
   const [queue, setQueue] = useState<OutboundQueueItem[]>([]);

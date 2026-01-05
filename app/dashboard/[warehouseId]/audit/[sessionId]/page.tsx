@@ -38,7 +38,7 @@ import {
 export default function AuditDetailPage() {
   const params = useParams();
   const router = useTransitionRouter();
-  const sessionId = params.sessionId as string;
+  const sessionId = params['sessionId'] as string;
   const user = useUser();
   const isManager = user?.role === 'admin' || user?.role === 'manager';
 

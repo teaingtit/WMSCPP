@@ -15,7 +15,7 @@ export default function MobileNav() {
   const user = useUser();
   const params = useParams();
   const isAdmin = user?.role === 'admin';
-  const warehouseId = params?.warehouseId as string;
+  const warehouseId = params?.['warehouseId'] as string;
 
   // Prevent scrolling when menu is open
   useEffect(() => {
@@ -69,6 +69,7 @@ export default function MobileNav() {
           <h2 className="font-bold text-white text-lg">Menu</h2>
           <button
             onClick={() => setIsOpen(false)}
+            aria-label="Close menu"
             className="p-2 -mr-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
           >
             <X size={24} />
