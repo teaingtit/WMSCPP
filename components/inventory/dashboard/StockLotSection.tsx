@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { StockPositionGroup } from './StockPositionGroup';
 import { InventoryCheckbox } from './InventoryCheckbox';
+import { useInventorySelection } from '@/components/inventory/InventoryDashboard'; // Import useInventorySelection
 
 interface StockLotSectionProps {
   lot: string;
@@ -26,6 +27,7 @@ export const StockLotSection = ({
   onToggleMultiple
 }: StockLotSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { categoryFormSchemas } = useInventorySelection(); // Retrieve categoryFormSchemas from context
 
   const posKeys = useMemo(() => 
     Object.keys(positions).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
@@ -80,6 +82,7 @@ export const StockLotSection = ({
                 onTogglePos={onTogglePos}
                 onToggleItem={onToggleItem}
                 onToggleMultiple={onToggleMultiple}
+                categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas
             />
           ))}
         </div>

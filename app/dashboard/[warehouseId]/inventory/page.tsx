@@ -2,15 +2,16 @@ import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import InventoryDashboard from '@/components/inventory/InventoryDashboard';
 import { StockWithDetails } from '@/types/inventory';
+import { getProductCategories } from '@/actions/inbound-actions'; // Import getProductCategories
 
-export default async function InventoryPage({ 
+export default async function InventoryPage({
   params,
-  searchParams 
-}: { 
+  searchParams
+}: {
   params: { warehouseId: string };
   searchParams?: { q?: string; page?: string };
 }) {
-  const { warehouseId } = params; 
+  const { warehouseId } = params;
   const query = searchParams?.q || '';
   
   const supabase = await createClient();
@@ -35,14 +36,17 @@ export default async function InventoryPage({
     );
   }
 
+  // Fetch product categories
+  const categories = await getProductCategories();
+
   // ✅ FIX 1: แก้ Query ให้ดึง lot, cart จากตาราง locations (Source of Truth)
   // ตัด lot, cart_id ที่ stocks ออก เพราะเราย้ายไป locations แล้ว
   let dbQuery = supabase
     .from('stocks')
     .select(`
-      id, quantity, updated_at, 
-      products!inner(*), 
-      locations!inner(*) 
+      id, quantity, updated_at,
+      products!inner(*),
+      locations!inner(*)
     `)
     .eq('locations.warehouse_id', wh.id)
     .gt('quantity', 0);
@@ -108,7 +112,8 @@ export default async function InventoryPage({
       <div className="mx-auto max-w-7xl">
         <InventoryDashboard 
           stocks={formattedStocks} 
-          warehouseId={warehouseId} 
+          warehouseId={warehouseId}
+          categories={categories} // Pass categories to InventoryDashboard
         />
       </div>
     </div>

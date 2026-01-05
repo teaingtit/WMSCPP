@@ -8,10 +8,12 @@ import ExportButton from './ExportButton';
 import { StockWithDetails } from '@/types/inventory';
 import { StockLotSection } from './dashboard/StockLotSection';
 import { BulkActionBar } from './dashboard/BulkActionBar';
+import { Category } from '@/components/inbound/DynamicInboundForm'; // Import Category interface
 
 interface InventoryDashboardProps {
   stocks: StockWithDetails[];
   warehouseId: string;
+  categories: Category[]; // Add categories prop
 }
 
 // Helper: จัดกลุ่มสินค้าตาม Lot -> Position
@@ -37,6 +39,7 @@ const buildHierarchy = (stocks: StockWithDetails[]) => {
 interface InventorySelectionContextType {
   selectedIds: Set<string>;
   hierarchy: Record<string, Record<string, StockWithDetails[]>>;
+  categoryFormSchemas: Record<string, any[]>; // Add categoryFormSchemas to context
   toggleLot: (lot: string) => void;
   togglePos: (lot: string, pos: string) => void;
   toggleItem: (id: string) => void;
@@ -57,14 +60,24 @@ export const useInventorySelection = () => {
 
 export const InventorySelectionProvider = ({ 
   stocks, 
+  categories, // Receive categories
   children 
 }: { 
   stocks: StockWithDetails[]; 
+  categories: Category[]; // Receive categories
   children: React.ReactNode; 
 }) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const hierarchy = useMemo(() => buildHierarchy(stocks), [stocks]);
+
+  // Create memoized map of category_id to form_schema
+  const categoryFormSchemas = useMemo(() => {
+    return categories.reduce((acc, cat) => {
+      acc[cat.id] = cat.form_schema || [];
+      return acc;
+    }, {} as Record<string, any[]>);
+  }, [categories]);
 
   // Helpers for selection status
   const isLotSelected = useCallback((lot: string) => {
@@ -131,13 +144,14 @@ export const InventorySelectionProvider = ({
   const value = useMemo(() => ({
     selectedIds,
     hierarchy,
+    categoryFormSchemas, // Provide categoryFormSchemas
     toggleLot,
     togglePos,
     toggleItem,
     toggleMultiple,
     isLotSelected,
     isPosSelected
-  }), [selectedIds, hierarchy, toggleLot, togglePos, toggleItem, toggleMultiple, isLotSelected, isPosSelected]);
+  }), [selectedIds, hierarchy, categoryFormSchemas, toggleLot, togglePos, toggleItem, toggleMultiple, isLotSelected, isPosSelected]);
 
   return (
     <InventorySelectionContext.Provider value={value}>
@@ -206,6 +220,7 @@ const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => 
                 onTogglePos={togglePos}
                 onToggleItem={toggleItem}
                 onToggleMultiple={toggleMultiple}
+                categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas to StockLotSection
             />
         ))}
       </div>
@@ -219,9 +234,9 @@ const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => 
   );
 }
 
-export default function InventoryDashboard({ stocks, warehouseId }: InventoryDashboardProps) {
+export default function InventoryDashboard({ stocks, warehouseId, categories }: InventoryDashboardProps) {
   return (
-    <InventorySelectionProvider stocks={stocks}>
+    <InventorySelectionProvider stocks={stocks} categories={categories}>
       <InventoryDashboardContent warehouseId={warehouseId} />
     </InventorySelectionProvider>
   );

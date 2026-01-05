@@ -12,7 +12,7 @@ export const BulkActionBar = ({ selectedCount, onAction }: BulkActionBarProps) =
   if (selectedCount === 0) return null;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-6 z-50">
+    <div className="w-full bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-6 mt-8">
        <div className="flex items-center gap-3">
           <div className="bg-indigo-500 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
             {selectedCount}

@@ -9,9 +9,12 @@ interface StockItemCardProps {
   item: StockWithDetails;
   isSelected: boolean;
   onToggle: (id: string) => void;
+  categoryFormSchemas: Record<string, any[]>; // Add categoryFormSchemas
 }
 
-export const StockItemCard = ({ item, isSelected, onToggle }: StockItemCardProps) => {
+export const StockItemCard = ({ item, isSelected, onToggle, categoryFormSchemas }: StockItemCardProps) => {
+  const lotSchema = categoryFormSchemas[item.product?.category_id || '']?.filter((f: any) => f.scope === 'LOT') || [];
+
   return (
     <div 
       onClick={() => onToggle(item.id)}
@@ -48,6 +51,21 @@ export const StockItemCard = ({ item, isSelected, onToggle }: StockItemCardProps
             )}
           </div>
           <div className="text-sm font-bold text-slate-800 truncate">{item.product?.name || 'Unknown Product'}</div>
+          
+          {/* Display Attributes */}
+          {Object.keys(item.attributes || {}).length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {lotSchema.map((field: any) => {
+                const value = item.attributes?.[field.key];
+                return value ? (
+                  <span key={field.key} className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-200">
+                    {field.label}: {String(value)}
+                  </span>
+                ) : null;
+              }).filter(Boolean)}
+            </div>
+          )}
+
           <div className="flex items-center justify-between mt-1">
              <div className="text-xs text-slate-400">
                 Qty: <span className="text-indigo-600 font-bold">{item.quantity.toLocaleString()}</span> {item.product?.uom}

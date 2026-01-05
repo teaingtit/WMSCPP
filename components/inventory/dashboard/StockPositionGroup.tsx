@@ -14,6 +14,7 @@ interface StockPositionGroupProps {
   onTogglePos: (lot: string, pos: string) => void;
   onToggleItem: (id: string) => void;
   onToggleMultiple: (ids: string[]) => void;
+  categoryFormSchemas: Record<string, any[]>; // Add categoryFormSchemas
 }
 
 const getLevelStyles = (level: string) => {
@@ -65,7 +66,8 @@ export const StockPositionGroup = ({
   selectedIds, 
   onTogglePos, 
   onToggleItem,
-  onToggleMultiple
+  onToggleMultiple,
+  categoryFormSchemas // Receive categoryFormSchemas
 }: StockPositionGroupProps) => {
   // Logic: ตรวจสอบว่าเลือกสินค้าครบทุกชิ้นใน Position นี้หรือไม่
   const isPosSelected = items.length > 0 && items.every(item => selectedIds.has(item.id));
@@ -158,6 +160,7 @@ export const StockPositionGroup = ({
                             item={item} 
                             isSelected={selectedIds.has(item.id)} 
                             onToggle={onToggleItem} 
+                            categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas
                           />
                       ))}
                   </div>

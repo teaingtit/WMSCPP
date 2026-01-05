@@ -262,7 +262,14 @@ export default function DynamicInboundForm({ warehouseId, category, products }: 
                             <div className="flex-1 min-w-0 pr-2">
                                 <div className="font-bold text-sm truncate text-slate-200">{idx + 1}. {item.product.name}</div>
                                 <div className="text-xs text-slate-400 font-mono mt-1">
-                                    {item.location.code} • {JSON.stringify(item.attributes)}
+                                    {item.location.code} {lotSchema.length > 0 && Object.keys(item.attributes).length > 0 && '•'} {lotSchema.map((field) => {
+                                        const value = item.attributes[field.key];
+                                        return value ? (
+                                            <span key={field.key} className="inline-flex items-center rounded-md bg-slate-700 px-2 py-1 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-600 mr-1">
+                                                {field.label}: {String(value)}
+                                            </span>
+                                        ) : null;
+                                    }).filter(Boolean)}
                                 </div>
                             </div>
                             <div className="text-right flex flex-col items-end gap-2">
