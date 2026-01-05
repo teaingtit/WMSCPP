@@ -8,7 +8,7 @@ import ExportButton from './ExportButton';
 import { StockWithDetails } from '@/types/inventory';
 import { StockLotSection } from './dashboard/StockLotSection';
 import { BulkActionBar } from './dashboard/BulkActionBar';
-import { Category } from '@/components/inbound/DynamicInboundForm'; // Import Category interface
+import { Category } from '@/components/inbound/DynamicInboundForm';
 
 interface InventoryDashboardProps {
   stocks: StockWithDetails[];
@@ -169,7 +169,8 @@ const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => 
     toggleLot, 
     togglePos, 
     toggleItem, 
-    toggleMultiple 
+    toggleMultiple,
+    categoryFormSchemas
   } = useInventorySelection();
 
   const lotKeys = useMemo(() => Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })), [hierarchy]);

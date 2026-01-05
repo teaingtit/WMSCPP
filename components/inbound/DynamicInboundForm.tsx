@@ -22,7 +22,7 @@ interface FormSchemaField {
   scope: 'LOT' | 'PRODUCT';
 }
 
-interface Category {
+export interface Category {
   id: string;
   name: string;
   form_schema?: FormSchemaField[];

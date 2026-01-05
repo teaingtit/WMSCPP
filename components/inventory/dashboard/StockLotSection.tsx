@@ -15,6 +15,7 @@ interface StockLotSectionProps {
   onTogglePos: (lot: string, pos: string) => void;
   onToggleItem: (id: string) => void;
   onToggleMultiple: (ids: string[]) => void;
+  categoryFormSchemas: Record<string, any[]>;
 }
 
 export const StockLotSection = ({
