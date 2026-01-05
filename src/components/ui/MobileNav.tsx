@@ -30,7 +30,7 @@ export default function MobileNav() {
   }, [isOpen]);
 
   return (
-    <div className="md:hidden sticky top-0 z-50">
+    <div className="lg:hidden sticky top-0 z-50">
       {/* Navbar */}
       <div className="bg-slate-900/80 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2.5">

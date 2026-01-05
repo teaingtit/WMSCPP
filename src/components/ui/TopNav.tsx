@@ -103,7 +103,7 @@ export default function TopNav() {
   };
 
   return (
-    <header className="bg-slate-900/60 backdrop-blur-xl border-b border-white/10 hidden md:flex items-center justify-between px-6 py-3 sticky top-0 z-40 shadow-sm">
+    <header className="bg-slate-900/60 backdrop-blur-xl border-b border-white/10 hidden lg:flex items-center justify-between px-4 sm:px-6 py-3 sticky top-0 z-40 shadow-sm">
       {/* Left: Brand & Main Nav */}
       <div className="flex items-center gap-8">
         {/* Brand */}

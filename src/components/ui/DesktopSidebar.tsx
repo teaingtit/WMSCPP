@@ -62,7 +62,7 @@ export default function DesktopSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-slate-900 to-slate-950 text-white hidden md:flex flex-col shrink-0 h-full shadow-2xl z-50 border-r border-slate-800/50">
+    <aside className="w-64 bg-gradient-to-b from-slate-900 to-slate-950 text-white hidden lg:flex flex-col shrink-0 h-full shadow-2xl z-50 border-r border-slate-800/50">
       {/* Brand */}
       <div className="p-6 border-b border-slate-800/50 flex items-center gap-3 bg-slate-900/50">
         <div className="bg-primary p-2 rounded-lg shadow-lg shadow-primary/20">
