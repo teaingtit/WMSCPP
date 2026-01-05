@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint \"app/**/*.{js,jsx,ts,tsx}\" \"components/**/*.{js,jsx,ts,tsx}\" \"lib/**/*.{js,jsx,ts,tsx}\" \"actions/**/*.{js,jsx,ts,tsx}\" \"types/**/*.{js,jsx,ts,tsx}\" --cache",
+    "lint": "eslint \"src/app/**/*.{js,jsx,ts,tsx}\" \"src/components/**/*.{js,jsx,ts,tsx}\" \"src/lib/**/*.{js,jsx,ts,tsx}\" \"src/actions/**/*.{js,jsx,ts,tsx}\" \"src/types/**/*.{js,jsx,ts,tsx}\" --cache",
     "format": "prettier --write .",
     "prepare": "husky install",
     "test": "npm run test:unit && npm run test:e2e",

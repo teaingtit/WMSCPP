@@ -6,9 +6,9 @@ module.exports = [
       'out/**',
       'e2e/**',
       'test/**',
-      'components/**/__tests__/**',
-      '**/*.spec.ts',
-      '**/*.spec.tsx',
+      'src/components/**/__tests__/**',
+      'src/**/*.spec.ts',
+      'src/**/*.spec.tsx',
     ],
   },
   {
