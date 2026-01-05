@@ -20,6 +20,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#0f172a" />
+      </head>
       <body
         className={cn(
           'min-h-screen bg-slate-50 font-sans antialiased',
@@ -29,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         {/* ✅ ห่อ GlobalLoadingProvider ไว้ชั้นนอกสุด (แต่ใน body) */}
         <GlobalLoadingProvider>
-          {children}
+          <div className="app-container">{children}</div>
           <Toaster position="top-center" richColors />
         </GlobalLoadingProvider>
       </body>

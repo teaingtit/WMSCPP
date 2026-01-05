@@ -130,6 +130,16 @@
   }
 }
 
+/* Responsive base font-size for better mobile readability */
+html {
+  font-size: 15px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
 @layer components {
   /* Mobile Optimized Inputs */
   .input-field {
@@ -142,6 +152,11 @@
   /* Mobile Friendly Tap Targets */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* App container for consistent responsive padding and max width */
+  .app-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   /* Custom Scrollbar */
