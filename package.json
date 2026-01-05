@@ -6,7 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "format": "prettier --write .",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   },
   "dependencies": {
     "@google/generative-ai": "^0.11.5",
@@ -47,6 +55,14 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.2",
-    "typescript": "^5.4.5"
+    "@typescript-eslint/parser": "^6.3.0",
+    "@typescript-eslint/eslint-plugin": "^6.3.0",
+    "typescript": "^5.4.5",
+    "prettier": "^2.8.8",
+    "lint-staged": "^13.2.3",
+    "husky": "^8.0.3"
+  },
+  "overrides": {
+    "micromatch": "4.0.8"
   }
 }

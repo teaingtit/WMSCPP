@@ -4,7 +4,12 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 
-interface OutboundFormData { warehouseId: string; stockId: string; qty: string | number; note?: string; }
+interface OutboundFormData {
+  warehouseId: string;
+  stockId: string;
+  qty: string | number;
+  note?: string;
+}
 
 export async function searchStockForOutbound(warehouseId: string, query: string) {
   const supabase = await createClient();
@@ -13,91 +18,100 @@ export async function searchStockForOutbound(warehouseId: string, query: string)
 
   const { data: stocks, error } = await supabase
     .from('stocks')
-    .select(`id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code, warehouse_id)`)
-    .eq('locations.warehouse_id', whId) 
+    .select(
+      `id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code, warehouse_id)`,
+    )
+    .eq('locations.warehouse_id', whId)
     .gt('quantity', 0)
     .or(`name.ilike.%${query}%,sku.ilike.%${query}%`, { foreignTable: 'products' })
     .order('quantity', { ascending: false })
     .limit(20);
 
-  if (error) { console.error("Search Error:", error); return []; }
+  if (error) {
+    console.error('Search Error:', error);
+    return [];
+  }
   return stocks || [];
 }
 
 export async function submitOutbound(formData: OutboundFormData) {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !user.email) return { success: false, message: 'Unauthenticated' };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || !user.email) return { success: false, message: 'Unauthenticated' };
 
-    const { warehouseId, stockId, qty, note } = formData;
-    const deductQty = Number(qty);
-    if (isNaN(deductQty) || deductQty <= 0) return { success: false, message: "จำนวนไม่ถูกต้อง" };
+  const { warehouseId, stockId, qty, note } = formData;
+  const deductQty = Number(qty);
+  if (isNaN(deductQty) || deductQty <= 0) return { success: false, message: 'จำนวนไม่ถูกต้อง' };
 
-    try {
-        // ✅ 1. ดึงข้อมูลสินค้าก่อนตัดสต็อก (เพื่อเอาไว้แสดงผล)
-        const { data: stockInfo } = await supabase.from('stocks')
-            .select(`id, products!inner(name, sku, uom), locations!inner(code)`)
-            .eq('id', stockId)
-            .single();
+  try {
+    // ✅ 1. ดึงข้อมูลสินค้าก่อนตัดสต็อก (เพื่อเอาไว้แสดงผล)
+    const { data: stockInfo } = await supabase
+      .from('stocks')
+      .select(`id, products!inner(name, sku, uom), locations!inner(code)`)
+      .eq('id', stockId)
+      .single();
 
-        if (!stockInfo) throw new Error("ไม่พบข้อมูลสต็อก");
+    if (!stockInfo) throw new Error('ไม่พบข้อมูลสต็อก');
 
-        // 2. เรียก RPC ตัดของ
-        const { data: result, error } = await supabase.rpc('deduct_stock', {
-            p_stock_id: stockId, 
-            p_deduct_qty: deductQty, 
-            p_note: note || '',
-            p_user_id: user.id,       
-            p_user_email: user.email  
-        });
+    // 2. เรียก RPC ตัดของ
+    const { data: result, error } = await supabase.rpc('deduct_stock', {
+      p_stock_id: stockId,
+      p_deduct_qty: deductQty,
+      p_note: note || '',
+      p_user_id: user.id,
+      p_user_email: user.email,
+    });
 
-        if (error) throw error;
-        if (!result.success) return { success: false, message: result.message };
+    if (error) throw error;
+    if (!result.success) return { success: false, message: result.message };
 
-        revalidatePath(`/dashboard/${warehouseId}/history`);
-        revalidatePath(`/dashboard/${warehouseId}/inventory`);
-        
-        // ✅ 3. Return Data Structure
-        return { 
-            success: true, 
-            message: result.message,
-            details: {
-                type: 'OUTBOUND',
-                productName: (stockInfo.products as any).name,
-                locationCode: (stockInfo.locations as any).code,
-                quantity: deductQty,
-                uom: (stockInfo.products as any).uom,
-                note: note || '-',
-                timestamp: new Date().toISOString()
-            }
-        };
+    revalidatePath(`/dashboard/${warehouseId}/history`);
+    revalidatePath(`/dashboard/${warehouseId}/inventory`);
 
-    } catch (error: any) {
-        console.error("Outbound Error:", error);
-        return { success: false, message: error.message || "เกิดข้อผิดพลาด" };
-    }
+    // ✅ 3. Return Data Structure
+    return {
+      success: true,
+      message: result.message,
+      details: {
+        type: 'OUTBOUND',
+        productName: (stockInfo.products as any).name,
+        locationCode: (stockInfo.locations as any).code,
+        quantity: deductQty,
+        uom: (stockInfo.products as any).uom,
+        note: note || '-',
+        timestamp: new Date().toISOString(),
+      },
+    };
+  } catch (error: any) {
+    console.error('Outbound Error:', error);
+    return { success: false, message: error.message || 'เกิดข้อผิดพลาด' };
+  }
 }
 // เพิ่มต่อท้ายในไฟล์ actions/outbound-actions.ts
 
 export async function submitBulkOutbound(items: any[]) {
-    const results = { success: 0, failed: 0, errors: [] as string[] };
+  const results = { success: 0, failed: 0, errors: [] as string[] };
 
-    const promises = items.map(async (item) => {
-        const result = await submitOutbound(item);
-        if (result.success) {
-            results.success++;
-        } else {
-            results.failed++;
-            results.errors.push(result.message as string);
-        }
-        return result;
-    });
+  const promises = items.map(async (item) => {
+    const result = await submitOutbound(item);
+    if (result.success) {
+      results.success++;
+    } else {
+      results.failed++;
+      results.errors.push(result.message as string);
+    }
+    return result;
+  });
 
-    await Promise.all(promises);
+  await Promise.all(promises);
 
-    return {
-        success: results.failed === 0,
-        message: `เบิกจ่ายสำเร็จ ${results.success} รายการ${results.failed > 0 ? `, ไม่สำเร็จ ${results.failed} รายการ` : ''}`,
-        errors: results.errors
-    };
+  return {
+    success: results.failed === 0,
+    message: `เบิกจ่ายสำเร็จ ${results.success} รายการ${
+      results.failed > 0 ? `, ไม่สำเร็จ ${results.failed} รายการ` : ''
+    }`,
+    errors: results.errors,
+  };
 }

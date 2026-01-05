@@ -13,7 +13,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
       <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl overflow-hidden relative">
-        
         {/* Decorative Circle */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500 rounded-full blur-2xl opacity-20"></div>
 
@@ -27,7 +26,6 @@ export default function LoginPage() {
 
         {/* เรียกใช้ Client Component */}
         <LoginForm />
-        
       </div>
     </div>
   );

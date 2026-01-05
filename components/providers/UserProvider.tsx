@@ -13,16 +13,12 @@ export const useUser = () => {
   return context;
 };
 
-export default function UserProvider({ 
-  user, 
-  children 
-}: { 
-  user: AppUser | null, 
-  children: React.ReactNode 
+export default function UserProvider({
+  user,
+  children,
+}: {
+  user: AppUser | null;
+  children: React.ReactNode;
 }) {
-  return (
-    <UserContext.Provider value={user}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
 }

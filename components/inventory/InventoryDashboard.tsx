@@ -20,14 +20,14 @@ interface InventoryDashboardProps {
 const buildHierarchy = (stocks: StockWithDetails[]) => {
   const hierarchy: Record<string, Record<string, StockWithDetails[]>> = {};
 
-  stocks.forEach(item => {
+  stocks.forEach((item) => {
     // Use flattened properties from page.tsx mapping for consistency
     const lotKey = item.lot || 'Unassigned';
     const posKey = item.cart || 'No Position';
 
     if (!hierarchy[lotKey]) hierarchy[lotKey] = {};
     if (!hierarchy[lotKey][posKey]) hierarchy[lotKey][posKey] = [];
-    
+
     hierarchy[lotKey][posKey].push(item);
   });
 
@@ -58,14 +58,14 @@ export const useInventorySelection = () => {
   return context;
 };
 
-export const InventorySelectionProvider = ({ 
-  stocks, 
+export const InventorySelectionProvider = ({
+  stocks,
   categories, // Receive categories
-  children 
-}: { 
-  stocks: StockWithDetails[]; 
+  children,
+}: {
+  stocks: StockWithDetails[];
   categories: Category[]; // Receive categories
-  children: React.ReactNode; 
+  children: React.ReactNode;
 }) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -80,78 +80,103 @@ export const InventorySelectionProvider = ({
   }, [categories]);
 
   // Helpers for selection status
-  const isLotSelected = useCallback((lot: string) => {
-    const positions = hierarchy[lot];
-    if (!positions) return false;
-    const allItems = Object.values(positions).flat();
-    return allItems.length > 0 && allItems.every(item => selectedIds.has(item.id));
-  }, [hierarchy, selectedIds]);
+  const isLotSelected = useCallback(
+    (lot: string) => {
+      const positions = hierarchy[lot];
+      if (!positions) return false;
+      const allItems = Object.values(positions).flat();
+      return allItems.length > 0 && allItems.every((item) => selectedIds.has(item.id));
+    },
+    [hierarchy, selectedIds],
+  );
 
-  const isPosSelected = useCallback((lot: string, pos: string) => {
-    const items = hierarchy[lot]?.[pos];
-    return !!items && items.length > 0 && items.every(item => selectedIds.has(item.id));
-  }, [hierarchy, selectedIds]);
+  const isPosSelected = useCallback(
+    (lot: string, pos: string) => {
+      const items = hierarchy[lot]?.[pos];
+      return !!items && items.length > 0 && items.every((item) => selectedIds.has(item.id));
+    },
+    [hierarchy, selectedIds],
+  );
 
   // Toggle Handlers
-  const toggleLot = useCallback((lot: string) => {
-    const positions = hierarchy[lot];
-    if (!positions) return;
-    const allItems = Object.values(positions).flat();
-    const allIds = allItems.map(i => i.id);
+  const toggleLot = useCallback(
+    (lot: string) => {
+      const positions = hierarchy[lot];
+      if (!positions) return;
+      const allItems = Object.values(positions).flat();
+      const allIds = allItems.map((i) => i.id);
 
-    setSelectedIds(prev => {
-        const isAll = allItems.length > 0 && allItems.every(item => prev.has(item.id));
+      setSelectedIds((prev) => {
+        const isAll = allItems.length > 0 && allItems.every((item) => prev.has(item.id));
         const newSet = new Set(prev);
-        if (isAll) allIds.forEach(id => newSet.delete(id));
-        else allIds.forEach(id => newSet.add(id));
+        if (isAll) allIds.forEach((id) => newSet.delete(id));
+        else allIds.forEach((id) => newSet.add(id));
         return newSet;
-    });
-  }, [hierarchy]);
+      });
+    },
+    [hierarchy],
+  );
 
-  const togglePos = useCallback((lot: string, pos: string) => {
-    const items = hierarchy[lot]?.[pos];
-    if (!items) return;
-    const ids = items.map(i => i.id);
+  const togglePos = useCallback(
+    (lot: string, pos: string) => {
+      const items = hierarchy[lot]?.[pos];
+      if (!items) return;
+      const ids = items.map((i) => i.id);
 
-    setSelectedIds(prev => {
-        const isAll = items.length > 0 && items.every(item => prev.has(item.id));
+      setSelectedIds((prev) => {
+        const isAll = items.length > 0 && items.every((item) => prev.has(item.id));
         const newSet = new Set(prev);
-        if (isAll) ids.forEach(id => newSet.delete(id));
-        else ids.forEach(id => newSet.add(id));
+        if (isAll) ids.forEach((id) => newSet.delete(id));
+        else ids.forEach((id) => newSet.add(id));
         return newSet;
-    });
-  }, [hierarchy]);
+      });
+    },
+    [hierarchy],
+  );
 
   const toggleItem = useCallback((id: string) => {
-    setSelectedIds(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
-        return newSet;
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
     });
   }, []);
 
   const toggleMultiple = useCallback((ids: string[]) => {
-    setSelectedIds(prev => {
-        const isAll = ids.every(id => prev.has(id));
-        const newSet = new Set(prev);
-        if (isAll) ids.forEach(id => newSet.delete(id));
-        else ids.forEach(id => newSet.add(id));
-        return newSet;
+    setSelectedIds((prev) => {
+      const isAll = ids.every((id) => prev.has(id));
+      const newSet = new Set(prev);
+      if (isAll) ids.forEach((id) => newSet.delete(id));
+      else ids.forEach((id) => newSet.add(id));
+      return newSet;
     });
   }, []);
 
-  const value = useMemo(() => ({
-    selectedIds,
-    hierarchy,
-    categoryFormSchemas, // Provide categoryFormSchemas
-    toggleLot,
-    togglePos,
-    toggleItem,
-    toggleMultiple,
-    isLotSelected,
-    isPosSelected
-  }), [selectedIds, hierarchy, categoryFormSchemas, toggleLot, togglePos, toggleItem, toggleMultiple, isLotSelected, isPosSelected]);
+  const value = useMemo(
+    () => ({
+      selectedIds,
+      hierarchy,
+      categoryFormSchemas, // Provide categoryFormSchemas
+      toggleLot,
+      togglePos,
+      toggleItem,
+      toggleMultiple,
+      isLotSelected,
+      isPosSelected,
+    }),
+    [
+      selectedIds,
+      hierarchy,
+      categoryFormSchemas,
+      toggleLot,
+      togglePos,
+      toggleItem,
+      toggleMultiple,
+      isLotSelected,
+      isPosSelected,
+    ],
+  );
 
   return (
     <InventorySelectionContext.Provider value={value}>
@@ -163,17 +188,20 @@ export const InventorySelectionProvider = ({
 // --- Inner Component ---
 const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => {
   const router = useRouter();
-  const { 
-    hierarchy, 
-    selectedIds, 
-    toggleLot, 
-    togglePos, 
-    toggleItem, 
+  const {
+    hierarchy,
+    selectedIds,
+    toggleLot,
+    togglePos,
+    toggleItem,
     toggleMultiple,
-    categoryFormSchemas
+    categoryFormSchemas,
   } = useInventorySelection();
 
-  const lotKeys = useMemo(() => Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })), [hierarchy]);
+  const lotKeys = useMemo(
+    () => Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    [hierarchy],
+  );
 
   const handleBulkAction = (action: 'transfer' | 'outbound') => {
     const idsArray = Array.from(selectedIds);
@@ -187,22 +215,24 @@ const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => 
     <div className="space-y-6">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
-         <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-3">
-                <span className="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-200">
-                    <Package size={24}/>
-                </span>
-                Inventory Management
-            </h1>
-            <p className="text-slate-500 mt-1 text-sm">มุมมองแบบ <span className="font-bold text-indigo-600">Lot, Position & Level</span></p>
-         </div>
-         
-         <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
-            <div className="w-full md:w-64">
-                <SearchInput placeholder="ค้นหา Lot, Position, Level, SKU..." />
-            </div>
-            <ExportButton warehouseId={warehouseId} />
-         </div>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-3">
+            <span className="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-200">
+              <Package size={24} />
+            </span>
+            Inventory Management
+          </h1>
+          <p className="text-slate-500 mt-1 text-sm">
+            มุมมองแบบ <span className="font-bold text-indigo-600">Lot, Position & Level</span>
+          </p>
+        </div>
+
+        <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+          <div className="w-full md:w-64">
+            <SearchInput placeholder="ค้นหา Lot, Position, Level, SKU..." />
+          </div>
+          <ExportButton warehouseId={warehouseId} />
+        </div>
       </div>
 
       {/* Main Content: Loop Render Lots */}
@@ -211,31 +241,32 @@ const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => 
           <div className="text-center py-12 text-slate-400">ไม่พบรายการสินค้า</div>
         )}
 
-        {lotKeys.map(lot => (
-            <StockLotSection 
-                key={lot}
-                lot={lot}
-                positions={hierarchy[lot] || {}} // ✅ แก้ไขตรงนี้: ใส่ || {} เพื่อกัน undefined
-                selectedIds={selectedIds}
-                onToggleLot={toggleLot}
-                onTogglePos={togglePos}
-                onToggleItem={toggleItem}
-                onToggleMultiple={toggleMultiple}
-                categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas to StockLotSection
-            />
+        {lotKeys.map((lot) => (
+          <StockLotSection
+            key={lot}
+            lot={lot}
+            positions={hierarchy[lot] || {}} // ✅ แก้ไขตรงนี้: ใส่ || {} เพื่อกัน undefined
+            selectedIds={selectedIds}
+            onToggleLot={toggleLot}
+            onTogglePos={togglePos}
+            onToggleItem={toggleItem}
+            onToggleMultiple={toggleMultiple}
+            categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas to StockLotSection
+          />
         ))}
       </div>
 
       {/* Footer Action Bar */}
-      <BulkActionBar 
-        selectedCount={selectedIds.size} 
-        onAction={handleBulkAction} 
-      />
+      <BulkActionBar selectedCount={selectedIds.size} onAction={handleBulkAction} />
     </div>
   );
-}
+};
 
-export default function InventoryDashboard({ stocks, warehouseId, categories }: InventoryDashboardProps) {
+export default function InventoryDashboard({
+  stocks,
+  warehouseId,
+  categories,
+}: InventoryDashboardProps) {
   return (
     <InventorySelectionProvider stocks={stocks} categories={categories}>
       <InventoryDashboardContent warehouseId={warehouseId} />

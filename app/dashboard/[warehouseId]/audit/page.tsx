@@ -4,10 +4,10 @@ import PageHeader from '@/components/ui/PageHeader';
 
 export default async function AuditPage({ params }: { params: { warehouseId: string } }) {
   const sessions = await getAuditSessions(params.warehouseId);
-console.log("Audit Sessions Data:", JSON.stringify(sessions, null, 2));
+  console.log('Audit Sessions Data:', JSON.stringify(sessions, null, 2));
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <PageHeader
         title="Stock Audit"
         subtitle="ระบบตรวจนับสินค้าและปรับปรุงยอดสต็อก"
         warehouseId={params.warehouseId}

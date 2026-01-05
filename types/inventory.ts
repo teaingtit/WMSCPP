@@ -42,7 +42,7 @@ export interface StockWithDetails {
   quantity: number;
   updated_at: string;
   attributes?: Record<string, any>;
-  product: Product;   // Nested Object from Join
+  product: Product; // Nested Object from Join
   location: Location; // Nested Object from Join
   // Flattened properties for UI compatibility
   lot?: string | null;
@@ -66,7 +66,7 @@ export interface AuditSession {
   id: string;
   warehouse_id: string;
   name: string;
-  status: 'OPEN' | 'COMPLETED' ;
+  status: 'OPEN' | 'COMPLETED';
   created_at: string;
   created_by: string;
   finalized_at?: string;

@@ -21,7 +21,12 @@ interface LocationSelectorProps {
   className?: string;
 }
 
-export default function LocationSelector({ warehouseId, onSelect, disabled = false, className = "" }: LocationSelectorProps) {
+export default function LocationSelector({
+  warehouseId,
+  onSelect,
+  disabled = false,
+  className = '',
+}: LocationSelectorProps) {
   // Data States
   const [lots, setLots] = useState<string[]>([]);
   const [positions, setPositions] = useState<string[]>([]);
@@ -40,30 +45,36 @@ export default function LocationSelector({ warehouseId, onSelect, disabled = fal
   // 1. Reset & Fetch Lots (เมื่อเปลี่ยนคลัง)
   useEffect(() => {
     // Reset selection
-    setSelectedLot(''); setSelectedPos(''); setSelectedLevelId('');
-    setLots([]); setPositions([]); setLevels([]);
+    setSelectedLot('');
+    setSelectedPos('');
+    setSelectedLevelId('');
+    setLots([]);
+    setPositions([]);
+    setLevels([]);
     onSelect(null);
 
     if (warehouseId) {
       setLoadingLots(true);
       getWarehouseLots(warehouseId)
         .then(setLots)
-        .catch(err => console.error("Error fetching lots:", err))
+        .catch((err) => console.error('Error fetching lots:', err))
         .finally(() => setLoadingLots(false));
     }
-  }, [warehouseId]); 
+  }, [warehouseId]);
 
   // 2. Fetch Positions (เมื่อเปลี่ยน Lot)
   useEffect(() => {
-    setSelectedPos(''); setSelectedLevelId('');
-    setPositions([]); setLevels([]);
+    setSelectedPos('');
+    setSelectedLevelId('');
+    setPositions([]);
+    setLevels([]);
     onSelect(null);
 
     if (warehouseId && selectedLot) {
       setLoadingPos(true);
       getCartsByLot(warehouseId, selectedLot)
         .then(setPositions)
-        .catch(err => console.error("Error fetching positions:", err))
+        .catch((err) => console.error('Error fetching positions:', err))
         .finally(() => setLoadingPos(false));
     }
   }, [warehouseId, selectedLot]);
@@ -78,14 +89,14 @@ export default function LocationSelector({ warehouseId, onSelect, disabled = fal
       setLoadingLevels(true);
       getLevelsByCart(warehouseId, selectedLot, selectedPos)
         .then((data) => {
-            // ✅ ป้องกันกรณี data เป็น null หรือ undefined
-            if (Array.isArray(data)) {
-                setLevels(data);
-            } else {
-                setLevels([]);
-            }
+          // ✅ ป้องกันกรณี data เป็น null หรือ undefined
+          if (Array.isArray(data)) {
+            setLevels(data);
+          } else {
+            setLevels([]);
+          }
         })
-        .catch(err => console.error("Error fetching levels:", err))
+        .catch((err) => console.error('Error fetching levels:', err))
         .finally(() => setLoadingLevels(false));
     }
   }, [warehouseId, selectedLot, selectedPos]);
@@ -97,12 +108,12 @@ export default function LocationSelector({ warehouseId, onSelect, disabled = fal
       onSelect(null);
       return;
     }
-    const levelObj = levels.find(l => l.id === levelId);
+    const levelObj = levels.find((l) => l.id === levelId);
     if (levelObj) {
       onSelect({
         ...levelObj,
         lot: selectedLot,
-        cart: selectedPos
+        cart: selectedPos,
       });
     }
   };
@@ -121,9 +132,15 @@ export default function LocationSelector({ warehouseId, onSelect, disabled = fal
             disabled={disabled || loadingLots || !warehouseId}
           >
             <option value="">-</option>
-            {lots.map((l) => <option key={l} value={l}>{l}</option>)}
+            {lots.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
           </select>
-          {loadingLots && <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />}
+          {loadingLots && (
+            <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
+          )}
         </div>
       </div>
 
@@ -139,9 +156,15 @@ export default function LocationSelector({ warehouseId, onSelect, disabled = fal
             disabled={disabled || !selectedLot}
           >
             <option value="">-</option>
-            {positions.map((p) => <option key={p} value={p}>{p}</option>)}
+            {positions.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
           </select>
-          {loadingPos && <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />}
+          {loadingPos && (
+            <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
+          )}
         </div>
       </div>
 
@@ -152,18 +175,28 @@ export default function LocationSelector({ warehouseId, onSelect, disabled = fal
           <select
             aria-label="Select Level" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
             className={`w-full p-2.5 border-2 rounded-lg font-black text-sm outline-none transition-colors disabled:opacity-50
-              ${selectedLevelId ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
+              ${
+                selectedLevelId
+                  ? 'bg-emerald-50 border-emerald-400 text-emerald-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
             value={selectedLevelId}
             onChange={(e) => handleLevelChange(e.target.value)}
             disabled={disabled || !selectedPos}
           >
             <option value="">-</option>
-            {levels.map((l: any) => <option key={l.id} value={l.id}>{l.level}</option>)}
+            {levels.map((l: any) => (
+              <option key={l.id} value={l.id}>
+                {l.level}
+              </option>
+            ))}
           </select>
-          {loadingLevels && <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />}
+          {loadingLevels && (
+            <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
+          )}
           {selectedLevelId && !loadingLevels && (
             <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none">
-                <CheckCircle2 className="text-emerald-500" size={16} />
+              <CheckCircle2 className="text-emerald-500" size={16} />
             </div>
           )}
         </div>

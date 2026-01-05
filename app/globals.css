@@ -12,28 +12,28 @@
     /* Card: White */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
- 
+
     /* Popover: White */
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
- 
+
     /* Primary: Deep Royal Blue (More visible) */
     /* Old: 221 83% 53% */
-    --primary: 221 83% 45%; 
+    --primary: 221 83% 45%;
     --primary-foreground: 210 40% 98%;
- 
+
     /* Secondary: Darker Slate 100/200 mix */
     --secondary: 210 20% 92%;
     --secondary-foreground: 222 47% 11%;
- 
+
     /* Muted: Darker Slate 100/200 mix */
     --muted: 210 20% 92%;
     --muted-foreground: 215 25% 40%; /* Darker muted text */
- 
+
     /* Accent: Darker Pale Blue */
     --accent: 210 20% 92%;
     --accent-foreground: 222 47% 11%;
- 
+
     /* Destructive: Deep Red */
     --destructive: 0 75% 50%;
     --destructive-foreground: 210 40% 98%;
@@ -56,7 +56,7 @@
     --input: 215 25% 82%;
     /* Ring: Primary match */
     --ring: 221 83% 45%;
- 
+
     --radius: 0.375rem; /* Standard enterprise radius (6px) */
 
     /* Chart Colors */
@@ -66,29 +66,29 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
- 
+
   .dark {
     --background: 224 71% 4%;
     --foreground: 210 40% 98%;
- 
+
     --card: 224 71% 4%;
     --card-foreground: 210 40% 98%;
- 
+
     --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
- 
+
     --primary: 217 91% 60%;
     --primary-foreground: 222.2 47.4% 11.2%;
- 
+
     --secondary: 217.2 32.6% 22%;
     --secondary-foreground: 210 40% 98%;
- 
+
     --muted: 217.2 32.6% 22%;
     --muted-foreground: 215 20.2% 75%;
- 
+
     --accent: 217.2 32.6% 22%;
     --accent-foreground: 210 40% 98%;
- 
+
     --destructive: 0 62.8% 40%;
     --destructive-foreground: 210 40% 98%;
 
@@ -103,7 +103,7 @@
     /* Info: Sky 500 Dark */
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
- 
+
     --border: 217.2 32.6% 28%;
     --input: 217.2 32.6% 28%;
     --ring: 224.3 76.3% 48%;
@@ -115,14 +115,14 @@
     --chart-5: 340 75% 55%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground min-h-screen antialiased selection:bg-primary/20 selection:text-primary;
-    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+    font-feature-settings: 'rlig' 1, 'calt' 1, 'tnum' 1;
   }
   html {
     scroll-behavior: smooth;
@@ -138,7 +138,7 @@
   .label-text {
     @apply block text-sm font-medium text-foreground mb-1.5;
   }
-  
+
   /* Mobile Friendly Tap Targets */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];

@@ -10,17 +10,17 @@ import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 // 1. กำหนดค่าเริ่มต้นให้ตรงกับ Type (LoginState)
 const initialState = {
   success: false,
-  message: ''
+  message: '',
 };
 
 const SubmitButton = () => {
   const { pending } = useFormStatus();
   return (
-    <button 
+    <button
       disabled={pending}
       className="w-full bg-primary hover:bg-primary/90 text-primary-foreground p-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {pending ? <Loader2 className="animate-spin" /> : <KeyRound size={20} />} 
+      {pending ? <Loader2 className="animate-spin" /> : <KeyRound size={20} />}
       {pending ? 'กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
     </button>
   );
@@ -28,7 +28,7 @@ const SubmitButton = () => {
 
 export default function LoginForm() {
   const [state, formAction] = useFormState(login, initialState);
-const { setIsLoading } = useGlobalLoading();
+  const { setIsLoading } = useGlobalLoading();
   // ✅ ใช้ useEffect ดักจับ state เพื่อแสดง Toast
   useEffect(() => {
     if (state?.message) {
@@ -42,25 +42,28 @@ const { setIsLoading } = useGlobalLoading();
 
   return (
     <form action={formAction} className="space-y-4 relative z-10">
-      
       {/* ลบ Error Box เดิมออก เพราะเราใช้ Toast แล้ว */}
 
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Email Address</label>
-        <input 
-          name="email" 
-          type="email" 
+        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">
+          Email Address
+        </label>
+        <input
+          name="email"
+          type="email"
           required
           placeholder="admin@wms.com"
           className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium text-slate-800"
         />
       </div>
-      
+
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Password</label>
-        <input 
-          name="password" 
-          type="password" 
+        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">
+          Password
+        </label>
+        <input
+          name="password"
+          type="password"
           required
           placeholder="••••••••"
           className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium text-slate-800"

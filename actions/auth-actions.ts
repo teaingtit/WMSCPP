@@ -1,13 +1,16 @@
 // actions/auth-actions.ts
 'use server';
 
-import { createClient } from '@/lib/supabase/server'; 
+import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { loginSchema } from '@/lib/validations/auth-schemas';
 import { ActionResponse } from '@/types/action-response';
 
-export async function login(prevState: ActionResponse, formData: FormData): Promise<ActionResponse> {
+export async function login(
+  prevState: ActionResponse,
+  formData: FormData,
+): Promise<ActionResponse> {
   // 1. Validate Input
   const rawData = {
     email: formData.get('email'),
@@ -17,11 +20,11 @@ export async function login(prevState: ActionResponse, formData: FormData): Prom
   const validatedFields = loginSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       // ป้องกัน undefined ด้วย ?. และ ??
       message: validatedFields.error.issues[0]?.message ?? 'ข้อมูลไม่ถูกต้อง',
-      errors: validatedFields.error.flatten().fieldErrors as Record<string, string[]>
+      errors: validatedFields.error.flatten().fieldErrors as Record<string, string[]>,
     };
   }
 
@@ -35,9 +38,9 @@ export async function login(prevState: ActionResponse, formData: FormData): Prom
     });
 
     if (error) {
-      console.error("Login Error:", error.message);
-      if (error.message.includes("Invalid login")) {
-          return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
+      console.error('Login Error:', error.message);
+      if (error.message.includes('Invalid login')) {
+        return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
       }
       return { success: false, message: error.message };
     }

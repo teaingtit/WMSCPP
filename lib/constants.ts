@@ -14,33 +14,33 @@ export const MENU_ITEMS = [
     href: '/dashboard',
     icon: LayoutGrid, // ส่งเป็น Component ไม่ใช่ JSX
     matchPath: '/dashboard', // ใช้เช็ค Active Menu
-    exact: true
+    exact: true,
   },
   {
     title: 'สต็อกสินค้า (Inventory)',
     href: '/dashboard/[warehouseId]/inventory', // ตัวอย่าง URL Pattern
     icon: Package,
     matchPath: '/inventory',
-    hidden: true // ซ่อนจากเมนูหลัก (อาจจะใช้ใน Submenu)
+    hidden: true, // ซ่อนจากเมนูหลัก (อาจจะใช้ใน Submenu)
   },
   {
     title: 'Stock Audit',
     href: '/dashboard/[warehouseId]/audit', // ใช้ Pattern เดียวกับ DesktopSidebar
     matchPath: '/audit',
-    icon: ClipboardCheck, 
+    icon: ClipboardCheck,
   },
   {
     title: 'ประวัติ (History)',
     href: '/dashboard/[warehouseId]/history',
     icon: History,
-    matchPath: '/history'
+    matchPath: '/history',
   },
   {
     title: 'ตั้งค่าระบบ',
     href: '/dashboard/settings',
     icon: Settings,
-    matchPath: '/settings'
-  }
+    matchPath: '/settings',
+  },
 ];
 
 // รวมสีสถานะไว้ที่เดียว
