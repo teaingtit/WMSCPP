@@ -38,14 +38,14 @@ export default function GlobalLoadingProvider({ children }: { children: React.Re
     <GlobalLoadingContext.Provider value={{ isLoading, setIsLoading }}>
       {/* Global Toaster: รองรับการแจ้งเตือนจาก Server Actions / Database */}
       <Toaster position="top-center" richColors closeButton theme="light" />
-      
+
       {isLoading && <LoadingOverlay />}
-      
+
       {/* Wrap useSearchParams in Suspense to avoid de-opting static generation */}
       <Suspense fallback={null}>
         <RouteChangeHandler setIsLoading={setIsLoading} />
       </Suspense>
-      
+
       {children}
     </GlobalLoadingContext.Provider>
   );

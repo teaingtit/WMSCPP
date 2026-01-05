@@ -10,10 +10,17 @@ interface Props {
 }
 
 export const InventoryCheckbox = ({ checked, onClick, className = '' }: Props) => (
-  <div 
-    onClick={(e) => { e.stopPropagation(); onClick(e); }} 
+  <div
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick(e);
+    }}
     className={`cursor-pointer transition-colors ${className}`}
   >
-    {checked ? <CheckSquare className="text-indigo-600" size={20} /> : <Square className="text-slate-300" size={20} />}
+    {checked ? (
+      <CheckSquare className="text-indigo-600" size={20} />
+    ) : (
+      <Square className="text-slate-300" size={20} />
+    )}
   </div>
 );

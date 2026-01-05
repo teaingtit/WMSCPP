@@ -12,66 +12,88 @@ interface StockItemCardProps {
   categoryFormSchemas: Record<string, any[]>; // Add categoryFormSchemas
 }
 
-export const StockItemCard = ({ item, isSelected, onToggle, categoryFormSchemas }: StockItemCardProps) => {
-  const lotSchema = categoryFormSchemas[item.product?.category_id || '']?.filter((f: any) => f.scope === 'LOT') || [];
+export const StockItemCard = ({
+  item,
+  isSelected,
+  onToggle,
+  categoryFormSchemas,
+}: StockItemCardProps) => {
+  const lotSchema =
+    categoryFormSchemas[item.product?.category_id || '']?.filter((f: any) => f.scope === 'LOT') ||
+    [];
 
   return (
-    <div 
+    <div
       onClick={() => onToggle(item.id)}
       className={`relative flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 active:scale-[0.97] touch-manipulation select-none
-        ${isSelected 
-          ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200 shadow-sm' 
-          : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md active:bg-slate-50'
+        ${
+          isSelected
+            ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200 shadow-sm'
+            : 'bg-white border-slate-100 hover:border-indigo-200 hover:shadow-md active:bg-slate-50'
         }`}
     >
-       <div onClick={(e) => e.stopPropagation()} className="p-1 -m-1">
-          <InventoryCheckbox checked={isSelected} onClick={() => onToggle(item.id)} className="shrink-0" />
-       </div>
-       
-       {/* Thumbnail Image */}
-       <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
-          {item.image_url ? (
-            <img 
-              src={item.image_url} 
-              alt={item.product?.name || 'Product'} 
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <Package size={20} className="text-slate-300" />
-          )}
-       </div>
+      <div onClick={(e) => e.stopPropagation()} className="p-1 -m-1">
+        <InventoryCheckbox
+          checked={isSelected}
+          onClick={() => onToggle(item.id)}
+          className="shrink-0"
+        />
+      </div>
 
-       <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-0.5">
-            <div className="text-xs font-bold text-slate-500 truncate">{item.product?.sku || 'Unknown SKU'}</div>
-            {item.level && (
-               <span className="flex items-center gap-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
-                  <Layers size={10} /> {item.level}
-               </span>
-            )}
+      {/* Thumbnail Image */}
+      <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt={item.product?.name || 'Product'}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <Package size={20} className="text-slate-300" />
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="text-xs font-bold text-slate-500 truncate">
+            {item.product?.sku || 'Unknown SKU'}
           </div>
-          <div className="text-sm font-bold text-slate-800 truncate">{item.product?.name || 'Unknown Product'}</div>
-          
-          {/* Display Attributes */}
-          {Object.keys(item.attributes || {}).length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-1">
-              {lotSchema.map((field: any) => {
+          {item.level && (
+            <span className="flex items-center gap-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
+              <Layers size={10} /> {item.level}
+            </span>
+          )}
+        </div>
+        <div className="text-sm font-bold text-slate-800 truncate">
+          {item.product?.name || 'Unknown Product'}
+        </div>
+
+        {/* Display Attributes */}
+        {Object.keys(item.attributes || {}).length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {lotSchema
+              .map((field: any) => {
                 const value = item.attributes?.[field.key];
                 return value ? (
-                  <span key={field.key} className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-200">
+                  <span
+                    key={field.key}
+                    className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-200"
+                  >
                     {field.label}: {String(value)}
                   </span>
                 ) : null;
-              }).filter(Boolean)}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mt-1">
-             <div className="text-xs text-slate-400">
-                Qty: <span className="text-indigo-600 font-bold">{item.quantity.toLocaleString()}</span> {item.product?.uom}
-             </div>
+              })
+              .filter(Boolean)}
           </div>
-       </div>
+        )}
+
+        <div className="flex items-center justify-between mt-1">
+          <div className="text-xs text-slate-400">
+            Qty: <span className="text-indigo-600 font-bold">{item.quantity.toLocaleString()}</span>{' '}
+            {item.product?.uom}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

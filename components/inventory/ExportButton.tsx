@@ -7,10 +7,9 @@ import { Loader2, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 
-
 export default function ExportButton({ warehouseId }: { warehouseId: string }) {
   const [loading] = useState(false);
-const { setIsLoading } = useGlobalLoading();
+  const { setIsLoading } = useGlobalLoading();
   const handleExport = async () => {
     setIsLoading(true);
     const toastId = toast.loading('กำลังสร้างไฟล์ Excel...');
@@ -26,7 +25,9 @@ const { setIsLoading } = useGlobalLoading();
         for (let i = 0; i < len; i++) {
           bytes[i] = binaryString.charCodeAt(i);
         }
-        const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const blob = new Blob([bytes], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
 
         // สร้าง Link ชั่วคราวเพื่อกด Download
         const link = document.createElement('a');
@@ -49,9 +50,9 @@ const { setIsLoading } = useGlobalLoading();
   };
 
   return (
-    <Button 
-      variant="outline" 
-      onClick={handleExport} 
+    <Button
+      variant="outline"
+      onClick={handleExport}
       disabled={loading}
       className="bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border-slate-200 transition-all gap-2 shadow-sm"
     >

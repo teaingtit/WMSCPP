@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { Loader2, Check, Pencil, MapPin, Search, Box, BarChart3 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-
 interface CountingInterfaceProps {
   items: AuditItem[];
   isFinalized?: boolean;
@@ -18,14 +17,24 @@ interface CountingInterfaceProps {
   onItemChange?: (id: string, qty: number) => void;
 }
 
-function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: string, qty: number) => void }) {
+function AuditItemCard({
+  item,
+  onUpdate,
+}: {
+  item: AuditItem;
+  onUpdate: (id: string, qty: number) => void;
+}) {
   const router = useTransitionRouter();
   // ใช้ status เป็นเกณฑ์หลักในการตรวจสอบว่านับเสร็จหรือยัง (ป้องกันกรณี DB default 0)
   const isItemCounted = item.status === 'COUNTED';
 
-  const [savedQty, setSavedQty] = useState<number | null>(isItemCounted ? (item.counted_qty ?? null) : null);
+  const [savedQty, setSavedQty] = useState<number | null>(
+    isItemCounted ? item.counted_qty ?? null : null,
+  );
   const [isEditing, setIsEditing] = useState(!isItemCounted);
-  const [inputValue, setInputValue] = useState(isItemCounted ? (item.counted_qty?.toString() ?? '') : '');
+  const [inputValue, setInputValue] = useState(
+    isItemCounted ? item.counted_qty?.toString() ?? '' : '',
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   // Sync state when props change
@@ -40,7 +49,7 @@ function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: str
 
   const handleSave = async () => {
     if (inputValue === '') return;
-    
+
     const qty = parseInt(inputValue, 10);
     if (isNaN(qty) || qty < 0) {
       toast.error('กรุณาระบุจำนวนที่ถูกต้อง');
@@ -69,9 +78,13 @@ function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: str
   const isCounted = savedQty !== null;
 
   return (
-    <div className={`group transition-all duration-300 border rounded-2xl p-5 shadow-sm hover:shadow-md ${
-      isCounted ? 'bg-emerald-50/50 border-emerald-200 ring-1 ring-emerald-100' : 'bg-white border-slate-200 hover:border-blue-200'
-    }`}>
+    <div
+      className={`group transition-all duration-300 border rounded-2xl p-5 shadow-sm hover:shadow-md ${
+        isCounted
+          ? 'bg-emerald-50/50 border-emerald-200 ring-1 ring-emerald-100'
+          : 'bg-white border-slate-200 hover:border-blue-200'
+      }`}
+    >
       <div className="flex justify-between items-start mb-3">
         <div className="space-y-1">
           <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
@@ -87,16 +100,22 @@ function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: str
       </div>
       <div className="grid grid-cols-2 gap-3 items-end">
         <div className="space-y-1.5">
-          <label className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">System</label>
+          <label className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+            System
+          </label>
           <div className="font-mono font-bold text-lg h-12 flex items-center justify-center bg-slate-100 rounded-lg text-slate-500">
             {item.system_qty}
           </div>
         </div>
         <div className="space-y-1.5">
-          <label className={`text-[10px] uppercase tracking-wider font-semibold ${isCounted ? 'text-emerald-600' : 'text-slate-100'}`}>
+          <label
+            className={`text-[10px] uppercase tracking-wider font-semibold ${
+              isCounted ? 'text-emerald-600' : 'text-slate-100'
+            }`}
+          >
             Counted
           </label>
-          
+
           {isEditing ? (
             <div className="flex gap-2">
               <Input
@@ -119,21 +138,25 @@ function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: str
                 disabled={isSaving}
                 className="bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 min-w-[48px] h-12 flex items-center justify-center shadow-md shadow-blue-200 active:scale-95 transition-transform"
               >
-                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                {isSaving ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Check className="w-5 h-5" />
+                )}
               </button>
             </div>
           ) : (
             <div className="flex gap-2 items-center">
-               <div className="flex-1 font-mono font-bold text-lg h-12 flex items-center justify-center bg-white border-2 border-emerald-500/20 rounded-xl text-emerald-600 shadow-sm">
-                 {savedQty}
-               </div>
-               <button
-                 onClick={() => setIsEditing(true)}
-                 className="h-12 w-12 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                aria-label='แก้ไข'
-               >
-                 <Pencil className="w-5 h-5" />
-               </button>
+              <div className="flex-1 font-mono font-bold text-lg h-12 flex items-center justify-center bg-white border-2 border-emerald-500/20 rounded-xl text-emerald-600 shadow-sm">
+                {savedQty}
+              </div>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="h-12 w-12 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                aria-label="แก้ไข"
+              >
+                <Pencil className="w-5 h-5" />
+              </button>
             </div>
           )}
         </div>
@@ -142,7 +165,12 @@ function AuditItemCard({ item, onUpdate }: { item: AuditItem; onUpdate: (id: str
   );
 }
 
-export default function CountingInterface({ items, isFinalized, onDashboardClick, onItemChange }: CountingInterfaceProps) {
+export default function CountingInterface({
+  items,
+  isFinalized,
+  onDashboardClick,
+  onItemChange,
+}: CountingInterfaceProps) {
   const router = useTransitionRouter();
   const [selectedZone, setSelectedZone] = useState<string>('ALL');
   const [filter, setFilter] = useState('');
@@ -154,29 +182,35 @@ export default function CountingInterface({ items, isFinalized, onDashboardClick
   }, [items]);
 
   const handleItemUpdate = (id: string, qty: number) => {
-    setLocalItems(prev => prev.map(item => 
-      item.id === id ? { ...item, status: 'COUNTED', counted_qty: qty } : item
-    ));
+    setLocalItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, status: 'COUNTED', counted_qty: qty } : item,
+      ),
+    );
     onItemChange?.(id, qty);
   };
 
-  
   // ใช้ useMemo เพื่อไม่ให้คำนวณใหม่ทุกครั้งที่ Component Re-render
-  const availableZones = useMemo(() => 
-    Array.from(new Set(localItems.map(item => item.location?.lot).filter(Boolean))), 
-  [localItems]);
+  const availableZones = useMemo(
+    () => Array.from(new Set(localItems.map((item) => item.location?.lot).filter(Boolean))),
+    [localItems],
+  );
 
-  const filteredItems = useMemo(() => localItems.filter((item: AuditItem) => {
-    const lowerFilter = filter.toLowerCase();
-    const matchesSearch = 
-      (item.product?.name ?? '').toLowerCase().includes(lowerFilter) ||
-      (item.product?.sku ?? '').toLowerCase().includes(lowerFilter) ||
-      (item.location?.code ?? '').toLowerCase().includes(lowerFilter);
-    
-    const matchesZone = selectedZone === 'ALL' || item.location?.lot === selectedZone;
+  const filteredItems = useMemo(
+    () =>
+      localItems.filter((item: AuditItem) => {
+        const lowerFilter = filter.toLowerCase();
+        const matchesSearch =
+          (item.product?.name ?? '').toLowerCase().includes(lowerFilter) ||
+          (item.product?.sku ?? '').toLowerCase().includes(lowerFilter) ||
+          (item.location?.code ?? '').toLowerCase().includes(lowerFilter);
 
-    return matchesSearch && matchesZone;
-  }), [localItems, filter, selectedZone]);
+        const matchesZone = selectedZone === 'ALL' || item.location?.lot === selectedZone;
+
+        return matchesSearch && matchesZone;
+      }),
+    [localItems, filter, selectedZone],
+  );
 
   // ซ่อนเนื้อหาถ้าปิดรอบแล้ว (ระหว่างรอ Redirect)
   if (isFinalized) {
@@ -184,77 +218,85 @@ export default function CountingInterface({ items, isFinalized, onDashboardClick
   }
 
   if (localItems.length === 0) {
-    return <div className="text-center text-slate-500 p-8">No items found for this audit session.</div>;
+    return (
+      <div className="text-center text-slate-500 p-8">No items found for this audit session.</div>
+    );
   }
   const totalItems = localItems.length;
-  const countedItems = localItems.filter(i => i.status === 'COUNTED').length;
+  const countedItems = localItems.filter((i) => i.status === 'COUNTED').length;
   const progressPercent = totalItems > 0 ? (countedItems / totalItems) * 100 : 0;
   return (
     <div className="space-y-4 pb-20 animate-in fade-in duration-500">
-        {/* Sticky Header for Mobile/Tablet */}
-        <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b shadow-sm -mx-4 px-4 py-4 sm:mx-0 sm:rounded-2xl sm:border sm:top-4 transition-all">
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-               <div className="text-xs font-medium text-slate-600">
-                  Progress: <span className="text-slate-900 font-bold">{Math.round(progressPercent)}%</span> ({countedItems}/{totalItems})
-               </div>
-               <Button 
-                 variant="outline" 
-                 size="sm" 
-                 onClick={onDashboardClick}
-                 className="h-8 text-xs rounded-lg hover:bg-slate-50"
-               >
-                 <BarChart3 className="w-3 h-3 mr-2" />
-                 Dashboard
-               </Button>
+      {/* Sticky Header for Mobile/Tablet */}
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b shadow-sm -mx-4 px-4 py-4 sm:mx-0 sm:rounded-2xl sm:border sm:top-4 transition-all">
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <div className="text-xs font-medium text-slate-600">
+              Progress:{' '}
+              <span className="text-slate-900 font-bold">{Math.round(progressPercent)}%</span> (
+              {countedItems}/{totalItems})
             </div>
-            <Progress value={progressPercent} className="h-2 [&>div]:bg-emerald-500 bg-slate-100" />
-            
-            <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                <div className="relative flex-grow">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input 
-                      name="searchItems"
-                      placeholder="Search SKU, Name, Location..."
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
-                      className="pl-9 bg-slate-50 border-slate-200 focus:bg-white rounded-xl h-10"
-                  />
-                </div>
-                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 items-center">
-                    <button
-                        onClick={() => setSelectedZone('ALL')}
-                        className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                            selectedZone === 'ALL' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
-                    >
-                        All Zones
-                    </button>
-                    {availableZones.sort().map(zone => (
-                        <button
-                            key={zone}
-                            onClick={() => setSelectedZone(zone as string)}
-                            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                                selectedZone === zone ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                            }`}
-                        >
-                            {zone}
-                        </button>
-                    ))}
-                </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDashboardClick}
+              className="h-8 text-xs rounded-lg hover:bg-slate-50"
+            >
+              <BarChart3 className="w-3 h-3 mr-2" />
+              Dashboard
+            </Button>
+          </div>
+          <Progress value={progressPercent} className="h-2 [&>div]:bg-emerald-500 bg-slate-100" />
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-1">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                name="searchItems"
+                placeholder="Search SKU, Name, Location..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="pl-9 bg-slate-50 border-slate-200 focus:bg-white rounded-xl h-10"
+              />
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 items-center">
+              <button
+                onClick={() => setSelectedZone('ALL')}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedZone === 'ALL'
+                    ? 'bg-slate-800 text-white shadow-md'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                All Zones
+              </button>
+              {availableZones.sort().map((zone) => (
+                <button
+                  key={zone}
+                  onClick={() => setSelectedZone(zone as string)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    selectedZone === zone
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {zone}
+                </button>
+              ))}
             </div>
           </div>
         </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredItems.map((item) => (
           <AuditItemCard key={item.id} item={item} onUpdate={handleItemUpdate} />
         ))}
         {filteredItems.length === 0 && (
-            <div className="col-span-full py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                <Search className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                <p>ไม่พบรายการสินค้าที่ค้นหา</p>
-            </div>
+          <div className="col-span-full py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            <Search className="w-10 h-10 mx-auto mb-3 opacity-20" />
+            <p>ไม่พบรายการสินค้าที่ค้นหา</p>
+          </div>
         )}
       </div>
     </div>

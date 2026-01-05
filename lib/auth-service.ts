@@ -6,7 +6,11 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { ROLES, TABLES } from '@/lib/constants';
 
 export async function checkManagerRole(supabase: SupabaseClient, userId: string) {
-  const { data: profile } = await supabase.from(TABLES.USER_ROLES).select('role').eq('user_id', userId).single();
+  const { data: profile } = await supabase
+    .from(TABLES.USER_ROLES)
+    .select('role')
+    .eq('user_id', userId)
+    .single();
   const role = profile?.role;
   if (!role) return false;
   return [ROLES.ADMIN, ROLES.MANAGER].includes(role);
@@ -15,8 +19,11 @@ export async function checkManagerRole(supabase: SupabaseClient, userId: string)
 export async function getCurrentUser(): Promise<AppUser | null> {
   const supabase = await createClient();
 
-  const { data: { user }, error } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
   if (error || !user) {
     return null;
   }
@@ -32,13 +39,14 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   // เพื่อป้องกันคนนอกที่หลุดเข้ามาใช้งานระบบโดยไม่ได้รับอนุญาต
   if (!roleData || roleError) {
     console.error(`Security Alert: User ${user.id} has no role assigned.`);
-    return null; 
+    return null;
   }
 
   // ✅ SECURITY FIX 2: เช็คสถานะ Banned และ Inactive
   // ถ้าโดนแบนใน Supabase Auth หรือถูกตั้งค่าเป็น Inactive ในระบบ -> ไม่อนุญาตให้เข้าระบบ
   // The `banned_until` property might not exist on the `User` type in older library versions.
-  const isBanned = (user as any).banned_until != null && new Date((user as any).banned_until) > new Date();
+  const isBanned =
+    (user as any).banned_until != null && new Date((user as any).banned_until) > new Date();
   const isActive = roleData.is_active;
 
   if (isBanned || !isActive) {
@@ -71,7 +79,7 @@ export async function requireUser() {
 export async function requireAdmin() {
   const user = await requireUser();
   if (user.role !== ROLES.ADMIN) {
-    redirect('/dashboard'); 
+    redirect('/dashboard');
   }
   return user;
 }

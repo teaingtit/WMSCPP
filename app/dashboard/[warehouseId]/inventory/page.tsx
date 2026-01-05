@@ -6,14 +6,14 @@ import { getProductCategories } from '@/actions/inbound-actions'; // Import getP
 
 export default async function InventoryPage({
   params,
-  searchParams
+  searchParams,
 }: {
   params: { warehouseId: string };
   searchParams?: { q?: string; page?: string };
 }) {
   const { warehouseId } = params;
   const query = searchParams?.q || '';
-  
+
   const supabase = await createClient();
 
   const { data: wh } = await supabase
@@ -43,11 +43,13 @@ export default async function InventoryPage({
   // ตัด lot, cart_id ที่ stocks ออก เพราะเราย้ายไป locations แล้ว
   let dbQuery = supabase
     .from('stocks')
-    .select(`
+    .select(
+      `
       id, quantity, updated_at,
       products!inner(*),
       locations!inner(*)
-    `)
+    `,
+    )
     .eq('locations.warehouse_id', wh.id)
     .gt('quantity', 0);
 
@@ -61,7 +63,7 @@ export default async function InventoryPage({
         `products.sku.ilike.%${sanitizedQuery}%`,
         `locations.lot.ilike.%${sanitizedQuery}%`,
         `locations.cart.ilike.%${sanitizedQuery}%`,
-        `locations.level.ilike.%${sanitizedQuery}%`
+        `locations.level.ilike.%${sanitizedQuery}%`,
       ];
       dbQuery = dbQuery.or(searchConditions.join(','));
     }
@@ -75,18 +77,18 @@ export default async function InventoryPage({
     .order('sku', { foreignTable: 'products', ascending: true });
 
   if (error) {
-      console.error(error);
-      return (
-        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-8 text-center animate-in fade-in zoom-in duration-500">
-          <div className="rounded-full bg-slate-50 p-4 ring-1 ring-slate-100">
-            <span className="text-3xl">⚠️</span>
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-900">Error loading data</h3>
-            <p className="text-sm text-slate-500">Please try refreshing the page.</p>
-          </div>
+    console.error(error);
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-8 text-center animate-in fade-in zoom-in duration-500">
+        <div className="rounded-full bg-slate-50 p-4 ring-1 ring-slate-100">
+          <span className="text-3xl">⚠️</span>
         </div>
-      );
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold text-slate-900">Error loading data</h3>
+          <p className="text-sm text-slate-500">Please try refreshing the page.</p>
+        </div>
+      </div>
+    );
   }
 
   // The `StockWithDetails` type expects `id` as a string, but Supabase returns it as a number.
@@ -108,10 +110,10 @@ export default async function InventoryPage({
   }));
 
   return (
-    <div className="min-h-screen bg-slate-50/30 pb-32 p-3 md:p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500"> 
+    <div className="min-h-screen bg-slate-50/30 pb-32 p-3 md:p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="mx-auto max-w-7xl">
-        <InventoryDashboard 
-          stocks={formattedStocks} 
+        <InventoryDashboard
+          stocks={formattedStocks}
           warehouseId={warehouseId}
           categories={categories} // Pass categories to InventoryDashboard
         />

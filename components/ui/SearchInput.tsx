@@ -11,21 +11,21 @@ export default function SearchInput({ placeholder }: { placeholder: string }) {
   const { replace } = useRouter();
 
   // Debounce Implementation
-    const handleSearch = useDebouncedCallback((value: string) => {
-      const params = new URLSearchParams(searchParams);
+  const handleSearch = useDebouncedCallback((value: string) => {
+    const params = new URLSearchParams(searchParams);
 
-      // ตั้งค่า Page กลับเป็น 1 เสมอเมื่อเริ่มค้นหาใหม่
-      params.set('page', '1');
+    // ตั้งค่า Page กลับเป็น 1 เสมอเมื่อเริ่มค้นหาใหม่
+    params.set('page', '1');
 
-      if (value) {
-        params.set('q', value);
-      } else {
-        params.delete('q');
-      }
+    if (value) {
+      params.set('q', value);
+    } else {
+      params.delete('q');
+    }
 
-      // Update URL โดยไม่ Refresh หน้า
-      replace(`${pathname}?${params.toString()}`);
-    }, 500);
+    // Update URL โดยไม่ Refresh หน้า
+    replace(`${pathname}?${params.toString()}`);
+  }, 500);
 
   return (
     <div className="relative flex flex-1 flex-shrink-0">
@@ -36,7 +36,7 @@ export default function SearchInput({ placeholder }: { placeholder: string }) {
         className="peer block w-full rounded-xl border border-slate-200 bg-white py-[9px] pl-10 text-sm outline-2 placeholder:text-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
         placeholder={placeholder}
         onChange={(e) => {
-            handleSearch(e.target.value);
+          handleSearch(e.target.value);
         }}
         // อ่านค่าจาก URL มาแสดง (เพื่อให้ Refresh แล้วค่าไม่หาย)
         defaultValue={searchParams.get('q')?.toString()}
