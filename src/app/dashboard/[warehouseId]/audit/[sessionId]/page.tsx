@@ -354,7 +354,7 @@ export default function AuditDetailPage() {
         {/* Desktop Table View */}
         <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table data-stack="true" className="w-full text-left text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="p-4 font-bold text-slate-600">สินค้า</th>

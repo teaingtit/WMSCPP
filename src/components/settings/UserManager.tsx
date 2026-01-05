@@ -233,7 +233,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table data-stack="true" className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
               <tr>
                 <th className="p-4">Name / Email</th>

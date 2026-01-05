@@ -246,7 +246,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
           />
         </div>
         <div className="max-h-[500px] overflow-y-auto">
-          <table className="w-full text-sm text-left">
+          <table data-stack="true" className="w-full text-sm text-left">
             <thead className="bg-slate-50 sticky top-0 shadow-sm text-slate-500 font-semibold z-10">
               <tr>
                 <th className="p-4 w-32">SKU</th>

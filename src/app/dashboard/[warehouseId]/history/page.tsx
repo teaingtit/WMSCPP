@@ -36,7 +36,7 @@ export default async function HistoryPage({ params }: { params: { warehouseId: s
       {/* Table Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table data-stack="true" className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase text-xs">
               <tr>
                 <th className="px-6 py-4">Date/Time</th>

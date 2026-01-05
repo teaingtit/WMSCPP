@@ -41,6 +41,12 @@
     },
     "baseUrl": "."
   },
-  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", "src/**/*.mts"],
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.mts",
+    ".next/types/**/*.ts"
+  ],
   "exclude": ["node_modules", "**/__tests__/**", "e2e/**", "test/**"]
 }
