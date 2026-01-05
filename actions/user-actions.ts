@@ -93,7 +93,7 @@ export async function getUsers() {
 }
 
 // --- 3. Create User Mutation ---
-export async function createUser(prevState: any, formData: FormData) {
+export async function createUser(_prevState: any, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const role = formData.get('role') as string;

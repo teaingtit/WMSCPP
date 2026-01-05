@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Users, Tags, Boxes, Settings as SettingsIcon } from 'lucide-react';
+import { Users, Tags, Boxes } from 'lucide-react';
 import UserManager from '@/components/settings/UserManager';
 import CategoryManager from '@/components/settings/CategoryManager';
 import { WarehouseManager } from '@/components/settings/WarehouseManager';

@@ -5,12 +5,11 @@ import {
   MapPin,
   Save,
   Loader2,
-  CheckCircle2,
   ArrowRight,
   Plus,
   Trash2,
   ListChecks,
-  Package,
+  CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { submitBulkTransfer } from '@/actions/transfer-actions';
@@ -31,7 +30,7 @@ interface TransferQueueItem {
   id: string;
   sourceStock: StockWithDetails;
   targetLocation: LocationData;
-  targetWarehouseId?: string; // For Cross
+  targetWarehouseId: string | undefined; // For Cross (explicitly allow undefined for exactOptionalPropertyTypes)
   qty: number;
   mode: 'INTERNAL' | 'CROSS';
 }

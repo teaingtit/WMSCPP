@@ -1,19 +1,10 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { LogOut, ArrowDownToLine, ArrowRightLeft, Package, Search } from 'lucide-react';
 import { getDashboardStats } from '@/actions/dashboard-actions';
 import { DairyActivityFeed, ActiveAuditList } from '@/components/dashboard/StatsWidgets';
 
-function StatsSkeleton() {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse mb-6">
-      <div className="h-24 bg-slate-200 rounded-xl"></div>
-      <div className="h-24 bg-slate-200 rounded-xl"></div>
-      <div className="h-24 bg-slate-200 rounded-xl"></div>
-      <div className="h-24 bg-slate-200 rounded-xl"></div>
-    </div>
-  );
-}
+// StatsSkeleton removed (unused)
 
 const quickActions = (warehouseId: string) => [
   {

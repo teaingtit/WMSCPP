@@ -4,7 +4,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, UserCircle, Shield, User } from 'lucide-react';
+import { ArrowLeft, UserCircle, Shield } from 'lucide-react';
 
 interface WarehouseHeaderProps {
   warehouse: {

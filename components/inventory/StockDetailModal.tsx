@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, ArrowRightLeft, Truck, Package, MapPin, Calendar, Ruler } from 'lucide-react';
+import { X, ArrowRightLeft, Truck, Package, MapPin, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { StockWithDetails } from '@/types/inventory'; // ✅ Import Type กลาง
 

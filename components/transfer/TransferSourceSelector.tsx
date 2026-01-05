@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Loader2, Box, PackageSearch, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Loader2, Box, PackageSearch } from 'lucide-react';
 import { searchStockForTransfer } from '@/actions/transfer-actions';
 import { useDebounce } from 'use-debounce';
 
@@ -24,8 +24,6 @@ export default function TransferSourceSelector({
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null); // Suggestion 3: Add ref for focus management
 
-  // Colors based on Tab
-  const theme = activeTab === 'INTERNAL' ? 'orange' : 'indigo';
   const themeColors = {
     INTERNAL: {
       text: 'text-orange-600',

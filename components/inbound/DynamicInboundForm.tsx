@@ -2,18 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { submitInbound, submitBulkInbound } from '@/actions/inbound-actions';
-import {
-  Loader2,
-  Save,
-  MapPin,
-  Package,
-  CheckCircle2,
-  Layers,
-  Plus,
-  ListChecks,
-  Trash2,
-} from 'lucide-react';
+import { submitBulkInbound } from '@/actions/inbound-actions';
+import { Loader2, Save, MapPin, Package, Plus, ListChecks, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/types/inventory';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';

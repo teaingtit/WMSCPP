@@ -63,7 +63,7 @@ export async function generateCategoryTemplate() {
   return Buffer.from(await workbook.xlsx.writeBuffer()).toString('base64');
 }
 
-export async function generateInboundTemplate(whName: string, catName: string, schema: any[]) {
+export async function generateInboundTemplate(_whName: string, _catName: string, schema: any[]) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Inbound');
 

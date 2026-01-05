@@ -1,5 +1,5 @@
 // lib/constants.ts
-import { Package, Settings, LayoutGrid, ClipboardCheck, History, BarChart3 } from 'lucide-react';
+import { Package, Settings, LayoutGrid, ClipboardCheck, History } from 'lucide-react';
 
 export const APP_CONFIG = {
   name: 'WMS Pro',

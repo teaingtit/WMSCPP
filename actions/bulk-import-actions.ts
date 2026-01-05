@@ -9,16 +9,7 @@ import { Worksheet, Row, Cell } from 'exceljs';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { checkManagerRole } from '@/lib/auth-service';
 
-interface ImportResult {
-  success: boolean;
-  message: string;
-  report?: {
-    total: number;
-    success: number;
-    failed: number;
-    errors: string[]; // รายงาน Error รายบรรทัด
-  };
-}
+// ImportResult intentionally removed (unused) — keep helpers minimal
 
 // ==========================================
 // 1. MASTER DATA (Global)
@@ -347,7 +338,7 @@ async function _prefetchInboundData(
   warehouseId: string,
   categoryId: string,
 ) {
-  const [productsRes, locsRes, whRes, catRes] = await Promise.all([
+  const [productsRes, locsRes, , catRes] = await Promise.all([
     supabase.from('products').select('id, sku').eq('category_id', categoryId),
     supabase.from('locations').select('id, code, lot, cart, level').eq('warehouse_id', warehouseId),
     supabase.from('warehouses').select('config').eq('id', warehouseId).single(),

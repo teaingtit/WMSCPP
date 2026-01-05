@@ -16,7 +16,7 @@ export function ActionCard({
   tag,
   title,
   description,
-  variant = 'secondary',
+  variant: _variant = 'secondary',
 }: ActionCardProps) {
   const baseClasses =
     'group rounded-3xl p-5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] transition-all transform hover:-translate-y-1 hover:scale-[1.02] hover:brightness-110 flex items-center gap-5 relative overflow-hidden backdrop-blur-md border border-white/10';
