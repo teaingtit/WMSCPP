@@ -8,7 +8,7 @@ import { loginSchema } from '@/lib/validations/auth-schemas';
 import { ActionResponse } from '@/types/action-response';
 
 export async function login(
-  prevState: ActionResponse,
+  _prevState: ActionResponse,
   formData: FormData,
 ): Promise<ActionResponse> {
   // 1. Validate Input

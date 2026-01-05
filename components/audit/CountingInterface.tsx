@@ -171,7 +171,6 @@ export default function CountingInterface({
   onDashboardClick,
   onItemChange,
 }: CountingInterfaceProps) {
-  const router = useTransitionRouter();
   const [selectedZone, setSelectedZone] = useState<string>('ALL');
   const [filter, setFilter] = useState('');
   const [localItems, setLocalItems] = useState<AuditItem[]>(items);

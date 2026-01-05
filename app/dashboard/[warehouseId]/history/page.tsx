@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export default async function HistoryPage({ params }: { params: { warehouseId: string } }) {
   // ดึงข้อมูลจาก Server Action
-  const logs = await getHistory(params.warehouseId, 50);
+  const logs = await getHistory(params['warehouseId'], 50);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-10">
@@ -22,7 +22,7 @@ export default async function HistoryPage({ params }: { params: { warehouseId: s
           </h1>
           <p className="text-slate-500 text-sm mt-1">
             แสดงความเคลื่อนไหวล่าสุดของคลัง:{' '}
-            <span className="font-bold text-indigo-600">{params.warehouseId}</span>
+            <span className="font-bold text-indigo-600">{params['warehouseId']}</span>
           </p>
         </div>
         <div className="text-right">

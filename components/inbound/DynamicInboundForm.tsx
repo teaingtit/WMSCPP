@@ -2,18 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { submitInbound, submitBulkInbound } from '@/actions/inbound-actions';
-import {
-  Loader2,
-  Save,
-  MapPin,
-  Package,
-  CheckCircle2,
-  Layers,
-  Plus,
-  ListChecks,
-  Trash2,
-} from 'lucide-react';
+import { submitBulkInbound } from '@/actions/inbound-actions';
+import { Loader2, Save, MapPin, Package, Plus, ListChecks, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/types/inventory';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
@@ -101,16 +91,26 @@ export default function DynamicInboundForm({
   }, []);
 
   // ✅ ฟังก์ชันเพิ่มลงตะกร้า
-  const handleAddToQueue = (e: React.FormEvent) => {
+  const handleAddToQueue = (e: React.FormEvent): void => {
     e.preventDefault();
-    if (!selectedLocation?.id) return toast.error('กรุณาระบุพิกัด');
-    if (!selectedProduct) return toast.error('กรุณาเลือกสินค้า');
+    if (!selectedLocation?.id) {
+      toast.error('กรุณาระบุพิกัด');
+      return;
+    }
+    if (!selectedProduct) {
+      toast.error('กรุณาเลือกสินค้า');
+      return;
+    }
     const qty = Number(quantity);
-    if (!quantity || qty <= 0) return toast.error('จำนวนไม่ถูกต้อง');
+    if (!quantity || qty <= 0) {
+      toast.error('จำนวนไม่ถูกต้อง');
+      return;
+    }
 
     for (const field of lotSchema) {
       if (field.required && !attributes[field.key]) {
-        return toast.error(`กรุณากรอก: ${field.label}`);
+        toast.error(`กรุณากรอก: ${field.label}`);
+        return;
       }
     }
 

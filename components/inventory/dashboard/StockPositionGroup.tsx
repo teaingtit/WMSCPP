@@ -77,8 +77,8 @@ export const StockPositionGroup = ({
     const groups: Record<string, StockWithDetails[]> = {};
     items.forEach((item) => {
       const lvl = item.level || 'Unassigned';
-      if (!groups[lvl]) groups[lvl] = [];
-      groups[lvl].push(item);
+      const bucket = groups[lvl] || (groups[lvl] = []);
+      bucket.push(item);
     });
     return groups;
   }, [items]);

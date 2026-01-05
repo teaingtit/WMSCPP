@@ -26,7 +26,7 @@ export interface User {
   role: string;
   is_active: boolean;
   is_banned: boolean;
-  last_sign_in_at?: string;
+  last_sign_in_at: string | undefined;
   created_at: string;
   allowed_warehouses: string[];
 }

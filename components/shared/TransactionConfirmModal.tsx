@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { X, Save, CheckCircle2, Loader2, PackagePlus, ArrowRightLeft, Truck } from 'lucide-react';
-import { string } from 'zod';
+// removed unused import
 
 interface TransactionConfirmModalProps {
   isOpen: boolean;

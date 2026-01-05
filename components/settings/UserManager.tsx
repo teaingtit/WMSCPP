@@ -13,7 +13,7 @@ interface UserManagerProps {
 }
 
 export default function UserManager({ users, warehouses }: UserManagerProps) {
-  const [loading, setLoading] = useState(false);
+  const loading = false;
   const [inviteMode, setInviteMode] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { setIsLoading } = useGlobalLoading();

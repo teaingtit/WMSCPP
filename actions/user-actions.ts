@@ -59,10 +59,10 @@ export async function getUsers() {
     const profile = profileMap.get(u.id);
 
     // Get Name from Profile -> Metadata -> Email
-    const firstName = profile?.first_name || u.user_metadata?.first_name || '';
-    const lastName = profile?.last_name || u.user_metadata?.last_name || '';
+    const firstName = profile?.['first_name'] || u.user_metadata?.['first_name'] || '';
+    const lastName = profile?.['last_name'] || u.user_metadata?.['last_name'] || '';
     const fullName =
-      profile?.full_name || u.user_metadata?.full_name || `${firstName} ${lastName}`.trim();
+      profile?.['full_name'] || u.user_metadata?.['full_name'] || `${firstName} ${lastName}`.trim();
 
     const isActive = roleData?.is_active ?? true;
     const bannedUntil = (u as { banned_until?: string | null }).banned_until;
@@ -93,7 +93,7 @@ export async function getUsers() {
 }
 
 // --- 3. Create User Mutation ---
-export async function createUser(prevState: any, formData: FormData) {
+export async function createUser(_prevState: any, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const role = formData.get('role') as string;

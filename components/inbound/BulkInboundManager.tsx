@@ -21,8 +21,11 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
     null,
   );
 
-  const handleDownload = async () => {
-    if (!selectedCat) return toast.error('กรุณาเลือกหมวดหมู่สินค้าก่อน');
+  const handleDownload = async (): Promise<void> => {
+    if (!selectedCat) {
+      toast.error('กรุณาเลือกหมวดหมู่สินค้าก่อน');
+      return;
+    }
     try {
       setLoading(true);
       const res = await downloadInboundTemplate(warehouseId, selectedCat);

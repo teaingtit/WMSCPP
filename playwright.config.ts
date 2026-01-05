@@ -6,6 +6,11 @@ export default defineConfig({
   use: {
     headless: true,
   },
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    reuseExistingServer: true,
+  },
   projects: [
     {
       name: 'chromium',

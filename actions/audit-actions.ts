@@ -247,7 +247,7 @@ export async function finalizeAuditSession(sessionId: string, warehouseId: strin
   }
 
   try {
-    const { data, error } = await supabase.rpc('process_audit_adjustment', {
+    const { error } = await supabase.rpc('process_audit_adjustment', {
       p_session_id: sessionId,
       p_user_id: user.id,
       p_user_email: user.email,

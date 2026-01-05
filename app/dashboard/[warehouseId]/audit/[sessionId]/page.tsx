@@ -16,7 +16,7 @@ import {
   Lock,
   AlertTriangle,
 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountingInterface from '@/components/audit/CountingInterface';
 import { AuditItem, AuditSession } from '@/types/inventory';
 import VarianceReport from '@/components/audit/VarianceReport';
@@ -38,7 +38,7 @@ import {
 export default function AuditDetailPage() {
   const params = useParams();
   const router = useTransitionRouter();
-  const sessionId = params.sessionId as string;
+  const sessionId = params['sessionId'] as string;
   const user = useUser();
   const isManager = user?.role === 'admin' || user?.role === 'manager';
 

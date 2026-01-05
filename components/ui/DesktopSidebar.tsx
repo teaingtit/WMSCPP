@@ -24,7 +24,7 @@ export default function DesktopSidebar() {
   const user = useUser();
 
   const isAdmin = user?.role === 'admin';
-  const warehouseId = params?.warehouseId as string;
+  const warehouseId = params?.['warehouseId'] as string;
 
   // Helper to render a link
   const renderLink = (item: (typeof MENU_ITEMS)[0]) => {

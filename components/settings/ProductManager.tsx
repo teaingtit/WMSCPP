@@ -23,6 +23,8 @@ interface ProductManagerProps {
 
 export default function ProductManager({ products, category }: ProductManagerProps) {
   const { setIsLoading } = useGlobalLoading();
+  const [loading, setLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
 
   if (!category) {
     return (
@@ -33,8 +35,6 @@ export default function ProductManager({ products, category }: ProductManagerPro
   }
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [importLoading, setImportLoading] = useState(false);
 
   const filtered = products.filter(
     (p) =>
@@ -54,6 +54,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
 
   async function handleCreate(formData: FormData) {
     setIsLoading(true);
+    setLoading(true);
     try {
       formData.append('category_id', category.id);
 
@@ -66,6 +67,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
       } else toast.error(res.message);
     } finally {
       setIsLoading(false);
+      setLoading(false);
     }
   }
 
@@ -84,6 +86,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
   }
 
   const handleDownload = async () => {
+    setImportLoading(true);
     setIsLoading(true);
     try {
       const res = await downloadMasterTemplate('product', category.id);
@@ -94,6 +97,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
         link.click();
       }
     } finally {
+      setImportLoading(false);
       setIsLoading(false);
     }
   };
@@ -103,6 +107,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
     if (!file) return;
     if (!confirm(`ยืนยัน Import สินค้าเข้าหมวด ${category.name}?`)) return;
 
+    setImportLoading(true);
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -115,6 +120,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
       else toast.error(res.message);
       e.target.value = '';
     } finally {
+      setImportLoading(false);
       setIsLoading(false);
     }
   };

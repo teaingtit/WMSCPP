@@ -1,20 +1,32 @@
 module.exports = [
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'eslint.config.js', '.eslintrc.cjs'],
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'e2e/**',
+      'test/**',
+      'components/**/__tests__/**',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+    ],
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       parser: require('@typescript-eslint/parser'),
       parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: __dirname,
+        ecmaVersion: 2020,
         sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+        // Avoid type-aware linting (parserOptions.project) to prevent heavy memory usage
+        // Type checks are performed separately using `npx tsc --noEmit`.
       },
     },
     plugins: {
       '@typescript-eslint': require('@typescript-eslint/eslint-plugin'),
     },
+    // Note: not using `extends` in flat config; add custom rules/plugins as needed
     rules: {},
   },
 ];

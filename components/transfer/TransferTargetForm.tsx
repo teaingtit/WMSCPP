@@ -5,12 +5,11 @@ import {
   MapPin,
   Save,
   Loader2,
-  CheckCircle2,
   ArrowRight,
   Plus,
   Trash2,
   ListChecks,
-  Package,
+  CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { submitBulkTransfer } from '@/actions/transfer-actions';
@@ -31,7 +30,7 @@ interface TransferQueueItem {
   id: string;
   sourceStock: StockWithDetails;
   targetLocation: LocationData;
-  targetWarehouseId?: string; // For Cross
+  targetWarehouseId: string | undefined; // For Cross (explicitly allow undefined for exactOptionalPropertyTypes)
   qty: number;
   mode: 'INTERNAL' | 'CROSS';
 }
@@ -75,13 +74,25 @@ export default function TransferTargetForm({
     setQueue([]);
   }, [activeTab]);
 
-  const handleAddToQueue = () => {
+  const handleAddToQueue = (): void => {
     // --- 1. Validation (จัดกลุ่มการตรวจสอบให้ชัดเจน) ---
-    if (!sourceStock) return toast.error('กรุณาเลือกสินค้าต้นทางก่อน');
-    if (!selectedTargetLocation) return toast.error('กรุณาระบุพิกัดปลายทาง');
+    if (!sourceStock) {
+      toast.error('กรุณาเลือกสินค้าต้นทางก่อน');
+      return;
+    }
+    if (!selectedTargetLocation) {
+      toast.error('กรุณาระบุพิกัดปลายทาง');
+      return;
+    }
     const qty = Number(transferQty);
-    if (!transferQty || qty <= 0) return toast.error('กรุณาระบุจำนวนที่ต้องการย้ายให้ถูกต้อง');
-    if (qty > sourceStock.quantity) return toast.error('จำนวนที่ย้ายเกินกว่าสินค้าคงคลัง');
+    if (!transferQty || qty <= 0) {
+      toast.error('กรุณาระบุจำนวนที่ต้องการย้ายให้ถูกต้อง');
+      return;
+    }
+    if (qty > sourceStock.quantity) {
+      toast.error('จำนวนที่ย้ายเกินกว่าสินค้าคงคลัง');
+      return;
+    }
 
     // Check duplicate (Optional logic: allow same stock to different location)
 

@@ -11,7 +11,7 @@ import TransferTargetForm from '@/components/transfer/TransferTargetForm';
 
 export default function TransferPage() {
   const params = useParams();
-  const warehouseId = params.warehouseId as string;
+  const warehouseId = params['warehouseId'] as string;
 
   const [activeTab, setActiveTab] = useState<'INTERNAL' | 'CROSS'>('INTERNAL');
   const [selectedStock, setSelectedStock] = useState<any>(null);

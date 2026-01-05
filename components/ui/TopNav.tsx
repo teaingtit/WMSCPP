@@ -8,7 +8,6 @@ import {
   Package,
   UserCircle,
   Shield,
-  Warehouse,
   LayoutGrid,
   Settings,
   ClipboardList,
@@ -18,7 +17,7 @@ import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants';
 import { logout } from '@/actions/auth-actions';
 import { useUser } from '@/components/providers/UserProvider';
 import { cn } from '@/lib/utils';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+// Note: DropdownMenu not used here; custom NavDropdown used instead
 
 // Simple Dropdown Component
 function NavDropdown({
@@ -76,7 +75,7 @@ export default function TopNav() {
   const user = useUser();
 
   const isAdmin = user?.role === 'admin';
-  const warehouseId = params?.warehouseId as string;
+  const warehouseId = params?.['warehouseId'] as string;
 
   const renderLink = (item: (typeof MENU_ITEMS)[0], onClick?: () => void) => {
     if (item.href.includes('/settings') && !isAdmin) return null;
@@ -89,7 +88,7 @@ export default function TopNav() {
       <Link
         key={item.href}
         href={realHref}
-        onClick={onClick}
+        onClick={onClick ?? (() => {})}
         className={cn(
           'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
           isActive
