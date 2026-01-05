@@ -7,6 +7,8 @@ module.exports = [
       'e2e/**',
       'test/**',
       'components/**/__tests__/**',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
     ],
   },
   {
