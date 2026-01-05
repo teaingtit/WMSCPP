@@ -11,6 +11,7 @@
     "prepare": "husky install",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest",
+    "check": "npx tsc --noEmit && npm run lint",
     "test:unit:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
     "tsc:strict": "tsc -p tsconfig.strict.json --noEmit"
