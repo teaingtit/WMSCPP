@@ -25,10 +25,9 @@ const buildHierarchy = (stocks: StockWithDetails[]) => {
     const lotKey = item.lot || 'Unassigned';
     const posKey = item.cart || 'No Position';
 
-    if (!hierarchy[lotKey]) hierarchy[lotKey] = {};
-    if (!hierarchy[lotKey][posKey]) hierarchy[lotKey][posKey] = [];
-
-    hierarchy[lotKey][posKey].push(item);
+    const lot = hierarchy[lotKey] || (hierarchy[lotKey] = {} as Record<string, StockWithDetails[]>);
+    const pos = lot[posKey] || (lot[posKey] = []);
+    pos.push(item);
   });
 
   return hierarchy;

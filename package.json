@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint \"app/**/*.{js,jsx,ts,tsx}\" \"components/**/*.{js,jsx,ts,tsx}\" \"lib/**/*.{js,jsx,ts,tsx}\" \"actions/**/*.{js,jsx,ts,tsx}\" \"types/**/*.{js,jsx,ts,tsx}\" --cache",
     "format": "prettier --write .",
     "prepare": "husky install",
     "test": "npm run test:unit && npm run test:e2e",
@@ -71,7 +71,7 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.7.2",
-    "typescript": "^5.4.5",
+    "typescript": "5.3.3",
     "vitest": "^4.0.16"
   },
   "overrides": {
