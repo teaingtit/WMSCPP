@@ -21,5 +21,9 @@ jobs:
         run: npx tsc --noEmit
       - name: Lint
         run: npm run lint
+      - name: Unit tests
+        run: npm run test:unit
+      - name: E2E tests
+        run: npm run test:e2e
       - name: Build
         run: npm run build
