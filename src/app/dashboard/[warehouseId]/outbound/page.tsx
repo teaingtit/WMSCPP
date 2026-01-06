@@ -18,6 +18,8 @@ import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal';
 import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
+import { useSearchParams } from 'next/navigation';
+import { supabaseBrowser } from '@/lib/supabase-browser';
 
 interface OutboundQueueItem {
   id: string; // unique ID
@@ -31,6 +33,7 @@ export default function OutboundPage() {
   const router = useRouter();
   const params = useParams();
   const warehouseId = params['warehouseId'] as string;
+  const searchParams = useSearchParams();
 
   // State
   const [queue, setQueue] = useState<OutboundQueueItem[]>([]);
@@ -74,6 +77,50 @@ export default function OutboundPage() {
 
     performSearch();
   }, [debouncedSearch, warehouseId, selectedStock]);
+
+  useEffect(() => {
+    // If `ids` present in query (from Inventory bulk action), prefill queue
+    const idsParam = searchParams?.get('ids');
+    if (idsParam) {
+      const ids = idsParam.split(',').filter(Boolean);
+      if (ids.length > 0) {
+        (async () => {
+          try {
+            const { data: stocks, error } = await supabaseBrowser
+              .from('stocks')
+              .select(
+                `id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code)`,
+              )
+              .in('id', ids)
+              .limit(100);
+
+            if (error) {
+              console.error('Prefill Outbound Error:', error);
+              return;
+            }
+
+            if (stocks && stocks.length > 0) {
+              // Map to queue items with default qty = 1
+              const prefilled = stocks.map((stock: any) => ({
+                id: Date.now().toString() + '-' + String(stock.id),
+                stock: stock,
+                qty: 1,
+                note: '',
+              }));
+              setQueue((prev) => {
+                // Avoid duplications: add only stocks not already present
+                const existingIds = new Set(prev.map((p) => p.stock.id));
+                const toAdd = prefilled.filter((p) => !existingIds.has(p.stock.id));
+                return [...prev, ...toAdd];
+              });
+            }
+          } catch (err) {
+            console.error('Failed to prefill outbound:', err);
+          }
+        })();
+      }
+    }
+  }, [searchParams]);
 
   // Handlers
   const handleSearchChange = (term: string) => {

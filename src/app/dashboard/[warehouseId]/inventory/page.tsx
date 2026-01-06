@@ -36,8 +36,13 @@ export default async function InventoryPage({
     );
   }
 
-  // Fetch product categories
-  const categories = await getProductCategories();
+  // Fetch product categories and all warehouses (for cross transfer modal)
+  const [categories, warehousesRes] = await Promise.all([
+    getProductCategories(),
+    supabase.from('warehouses').select('id, code, name').order('code'),
+  ]);
+
+  const warehouses = warehousesRes.data || [];
 
   // ✅ FIX 1: แก้ Query ให้ดึง lot, cart จากตาราง locations (Source of Truth)
   // ตัด lot, cart_id ที่ stocks ออก เพราะเราย้ายไป locations แล้ว
@@ -116,6 +121,7 @@ export default async function InventoryPage({
           stocks={formattedStocks}
           warehouseId={warehouseId}
           categories={categories} // Pass categories to InventoryDashboard
+          warehouses={warehouses} // Pass warehouses list
         />
       </div>
     </div>

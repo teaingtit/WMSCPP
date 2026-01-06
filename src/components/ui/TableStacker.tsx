@@ -28,14 +28,33 @@ export default function TableStacker() {
           );
           const rows = Array.from(table.querySelectorAll('tbody tr'));
           const container = document.createElement('div');
-          container.className = 'stacked-cards space-y-3 p-3';
+          container.className = 'stacked-cards space-y-6 p-5';
           container.id = wrapperId;
 
-          rows.forEach((tr) => {
+          rows.forEach((tr, rowIndex) => {
             const cells = Array.from(tr.querySelectorAll('td'));
             const card = document.createElement('div');
-            card.className = 'bg-white/5 border border-white/5 rounded-xl p-3';
+            card.className =
+              'card card-elevated focus:outline-none focus-visible:ring-2 focus-visible:ring-primary';
+            card.setAttribute('role', 'listitem');
+            card.setAttribute('tabindex', '0');
+
+            // Use first column as the visible heading for the card when available
+            const firstCell = cells[0];
+            if (firstCell) {
+              const headingId = `${wrapperId}-heading-${rowIndex}`;
+              const h = document.createElement('h3');
+              h.id = headingId;
+              h.className = 'text-sm font-semibold mb-2 text-card-foreground';
+              h.innerHTML = firstCell.innerHTML;
+              card.appendChild(h);
+              card.setAttribute('aria-labelledby', headingId);
+            }
+
+            // Render the rest of the cells as label/value pairs. Skip index 0
+            // because it is used as the card heading above.
             cells.forEach((td, i) => {
+              if (i === 0) return;
               const label = thead[i] || '';
               const rowItem = document.createElement('div');
               rowItem.className = 'flex justify-between text-sm mb-1';
@@ -43,7 +62,7 @@ export default function TableStacker() {
               spanLabel.className = 'text-muted-foreground text-xs';
               spanLabel.textContent = label;
               const spanValue = document.createElement('div');
-              spanValue.className = 'text-foreground font-medium';
+              spanValue.className = 'text-card-foreground font-medium';
               spanValue.innerHTML = td.innerHTML;
               rowItem.appendChild(spanLabel);
               rowItem.appendChild(spanValue);

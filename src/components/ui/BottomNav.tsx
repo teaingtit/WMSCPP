@@ -25,7 +25,7 @@ export default function BottomNav() {
   ].filter(Boolean) as typeof MENU_ITEMS;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 bg-slate-900/90 backdrop-blur-sm border-t border-white/10 lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border lg:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           {items.map((item) => {
@@ -37,14 +37,11 @@ export default function BottomNav() {
                 key={item.href}
                 href={realHref}
                 className={cn(
-                  'flex-1 flex flex-col items-center justify-center py-1 text-xs font-medium transition-colors',
-                  isActive ? 'text-primary-foreground' : 'text-slate-300',
+                  'flex-1 flex flex-col items-center justify-center py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  isActive ? 'text-primary' : 'text-muted-foreground',
                 )}
               >
-                <Icon
-                  size={18}
-                  className={isActive ? 'text-primary-foreground' : 'text-slate-400'}
-                />
+                <Icon size={18} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
                 <span className="mt-0.5">{item.title}</span>
               </Link>
             );

@@ -10,6 +10,7 @@ interface Props {
   activeTab: 'INTERNAL' | 'CROSS';
   selectedStock: any;
   onSelect: (stock: any) => void;
+  onAddToQueue?: (stock: any) => void;
 }
 
 export default function TransferSourceSelector({
@@ -17,6 +18,7 @@ export default function TransferSourceSelector({
   activeTab,
   selectedStock,
   onSelect,
+  onAddToQueue,
 }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch] = useDebounce(searchTerm, 500);
@@ -101,6 +103,8 @@ export default function TransferSourceSelector({
                     onSelect(stock);
                     setSearchTerm(stock.products.name);
                     setSearchResults([]);
+                    // Auto-add to queue if the parent provided handler
+                    onAddToQueue && onAddToQueue(stock);
                   }}
                   className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer group transition-colors"
                 >
@@ -196,6 +200,14 @@ export default function TransferSourceSelector({
             aria-label="Change selection"
           >
             <Box size={16} />
+          </button>
+          {/* Add to Queue Button */}
+          <button
+            onClick={() => onAddToQueue && onAddToQueue(selectedStock)}
+            className="absolute -bottom-3 -right-3 py-2 px-3 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition-all border border-indigo-700"
+            aria-label="เพิ่มลงคิว"
+          >
+            เพิ่มลงคิว
           </button>
         </div>
       )}

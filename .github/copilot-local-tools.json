@@ -1,0 +1,24 @@
+{
+  "version": "1.388.0",
+  "tools": [
+    {
+      "id": "postgres-mcp",
+      "name": "Postgres MCP",
+      "description": "Model Context Protocol (MCP) server exposing Postgres resources/tools over stdio",
+      "exec": {
+        "command": "node",
+        "args": ["C:\\Users\\nteai\\Desktop\\project\\my-mcp-server\\dist\\index.js"],
+        "cwd": ".",
+        "env": {
+          "DATABASE_URL": "postgresql://postgres:Pj-468278963@db.pbqiaqrrtyjarrkbvmyz.supabase.co:5432/postgres?sslmode=require"
+        }
+      },
+      "protocol": "mcp",
+      "communication": "stdio",
+      "mcpOptions": {
+        "stdin": true,
+        "stdout": true
+      }
+    }
+  ]
+}

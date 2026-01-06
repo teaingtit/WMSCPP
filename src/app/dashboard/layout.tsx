@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     // ✅ 2. Wrap ด้วย Provider เพื่อส่งข้อมูล User ไปทั่วทั้ง Dashboard (Client Side)
     <UserProvider user={user}>
-      <div className="flex h-screen overflow-hidden flex-col from-[#122247] to-[#1e293b]">
+      <div className="flex h-screen overflow-hidden flex-col bg-gradient-to-b from-[#122247] to-[#1e293b]">
         {/* Mobile Nav (Visible only on mobile) */}
         <MobileNav />
 

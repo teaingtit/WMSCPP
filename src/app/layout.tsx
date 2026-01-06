@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { Inter, Sarabun } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import './globals.css';
-import { Toaster } from 'sonner';
 import GlobalLoadingProvider from '@/components/providers/GlobalLoadingProvider';
 import BottomNav from '@/components/ui/BottomNav';
+import { Toaster } from 'sonner';
 import TableStacker from '@/components/ui/TableStacker';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });

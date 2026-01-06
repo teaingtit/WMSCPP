@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
+import { withAuth, processBulkAction } from '@/lib/action-utils';
 
 // --- Validation Schema ---
 const InboundSchema = z.object({
@@ -17,6 +18,7 @@ const InboundSchema = z.object({
 export type InboundFormData = z.infer<typeof InboundSchema>;
 
 // --- Data Fetching ---
+// ... (Previous fetch functions remain unchanged)
 
 export async function getProductCategories() {
   const supabase = await createClient();
@@ -65,7 +67,7 @@ export async function getInboundOptions(warehouseId: string, categoryId: string)
   }
 }
 
-// --- Location Selectors (จุดที่แก้ไข) ---
+// --- Location Selectors ---
 
 export async function getWarehouseLots(warehouseId: string) {
   const supabase = await createClient();
@@ -77,7 +79,7 @@ export async function getWarehouseLots(warehouseId: string) {
     .select('lot')
     .eq('warehouse_id', whId)
     .eq('is_active', true)
-    .order('lot'); // เรียงตาม Lot
+    .order('lot');
 
   return data ? Array.from(new Set(data.map((l) => l.lot))).filter(Boolean) : [];
 }
@@ -93,7 +95,7 @@ export async function getCartsByLot(warehouseId: string, lot: string) {
     .eq('warehouse_id', whId)
     .eq('lot', lot)
     .eq('is_active', true)
-    .order('cart'); // เรียงตาม Cart/Position
+    .order('cart');
 
   return data ? Array.from(new Set(data.map((l) => l.cart))).filter(Boolean) : [];
 }
@@ -103,7 +105,6 @@ export async function getLevelsByCart(warehouseId: string, lot: string, cart: st
   const whId = await getWarehouseId(supabase, warehouseId);
   if (!whId) return [];
 
-  // ✅ FIX: เพิ่ม .not('level', 'is', null) และ .order('level')
   const { data } = await supabase
     .from('locations')
     .select('id, level, code, type')
@@ -111,20 +112,14 @@ export async function getLevelsByCart(warehouseId: string, lot: string, cart: st
     .eq('lot', lot)
     .eq('cart', cart)
     .eq('is_active', true)
-    .not('level', 'is', null) // กรองค่า Null ออก
-    .order('level', { ascending: true }); // เรียงลำดับ Level ให้ถูกต้อง
+    .not('level', 'is', null)
+    .order('level', { ascending: true });
 
   return data || [];
 }
 
 // --- Submit Action ---
-export async function submitInbound(rawData: unknown) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user || !user.email) return { success: false, message: 'Unauthenticated' };
-
+const submitInboundHandler = async (rawData: unknown, { user, supabase }: any) => {
   const validated = InboundSchema.safeParse(rawData);
   if (!validated.success)
     return {
@@ -135,80 +130,50 @@ export async function submitInbound(rawData: unknown) {
 
   const { warehouseId, locationId, productId, quantity, attributes } = validated.data;
 
-  try {
-    const whId = await getWarehouseId(supabase, warehouseId);
-    if (!whId) throw new Error('Warehouse Not Found');
+  const whId = await getWarehouseId(supabase, warehouseId);
+  if (!whId) throw new Error('Warehouse Not Found');
 
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('process_inbound_transaction', {
-      p_warehouse_id: whId,
-      p_location_id: locationId,
-      p_product_id: productId,
-      p_quantity: quantity,
-      p_attributes: attributes,
-      p_user_id: user.id,
-      p_user_email: user.email,
-    });
-
-    if (rpcError) throw new Error(rpcError.message);
-    if (rpcResult && !rpcResult.success) throw new Error(rpcResult.message);
-
-    // --- Optimization: Fetch product and location details in parallel ---
-    // TODO: For further optimization, consider modifying the RPC function
-    // to return these details directly, avoiding additional queries.
-    const [productRes, locationRes] = await Promise.all([
-      supabase.from('products').select('name, uom, sku').eq('id', productId).single(),
-      supabase.from('locations').select('code').eq('id', locationId).single(),
-    ]);
-
-    const product = productRes.data;
-    const location = locationRes.data;
-
-    revalidatePath(`/dashboard/${warehouseId}/inventory`);
-    revalidatePath(`/dashboard/${warehouseId}/history`);
-
-    return {
-      success: true,
-      message: 'รับสินค้าเข้าเรียบร้อย',
-      details: {
-        type: 'INBOUND',
-        productName: product?.name || 'Unknown Product',
-        sku: product?.sku,
-        locationCode: location?.code || 'Unknown Location',
-        quantity: quantity,
-        uom: product?.uom || 'UNIT',
-        timestamp: new Date().toISOString(),
-      },
-    };
-  } catch (error: any) {
-    return { success: false, message: error.message };
-  }
-}
-
-export async function submitBulkInbound(items: (InboundFormData & { productName?: string })[]) {
-  const results = {
-    success: 0,
-    failed: 0,
-    errors: [] as string[],
-  };
-
-  const promises = items.map(async (item) => {
-    const result = await submitInbound(item);
-    if (result.success) {
-      results.success++;
-    } else {
-      results.failed++;
-      results.errors.push(`สินค้า ${item.productName || 'Unknown'}: ${result.message}`);
-    }
-    return result;
+  const { data: rpcResult, error: rpcError } = await supabase.rpc('process_inbound_transaction', {
+    p_warehouse_id: whId,
+    p_location_id: locationId,
+    p_product_id: productId,
+    p_quantity: quantity,
+    p_attributes: attributes,
+    p_user_id: user.id,
+    p_user_email: user.email,
   });
 
-  await Promise.all(promises);
+  if (rpcError) throw new Error(rpcError.message);
+  if (rpcResult && !rpcResult.success) throw new Error(rpcResult.message);
+
+  const [productRes, locationRes] = await Promise.all([
+    supabase.from('products').select('name, uom, sku').eq('id', productId).single(),
+    supabase.from('locations').select('code').eq('id', locationId).single(),
+  ]);
+
+  const product = productRes.data;
+  const location = locationRes.data;
+
+  revalidatePath(`/dashboard/${warehouseId}/inventory`);
+  revalidatePath(`/dashboard/${warehouseId}/history`);
 
   return {
-    success: results.failed === 0,
-    message: `บันทึกสำเร็จ ${results.success} รายการ${
-      results.failed > 0 ? `, ไม่สำเร็จ ${results.failed} รายการ` : ''
-    }`,
-    details: results,
+    success: true,
+    message: 'รับสินค้าเข้าเรียบร้อย',
+    details: {
+      type: 'INBOUND',
+      productName: product?.name || 'Unknown Product',
+      sku: product?.sku,
+      locationCode: location?.code || 'Unknown Location',
+      quantity: quantity,
+      uom: product?.uom || 'UNIT',
+      timestamp: new Date().toISOString(),
+    },
   };
+};
+
+export const submitInbound = withAuth(submitInboundHandler);
+
+export async function submitBulkInbound(items: (InboundFormData & { productName?: string })[]) {
+  return processBulkAction(items, submitInbound);
 }

@@ -27,7 +27,7 @@ export const StockLotSection = ({
   onToggleItem,
   onToggleMultiple,
 }: StockLotSectionProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { categoryFormSchemas } = useInventorySelection(); // Retrieve categoryFormSchemas from context
 
   const posKeys = useMemo(

@@ -9,15 +9,26 @@ import { StockWithDetails } from '@/types/inventory';
 import { StockLotSection } from './dashboard/StockLotSection';
 import { BulkActionBar } from './dashboard/BulkActionBar';
 import { Category } from '@/components/inbound/DynamicInboundForm';
+import { CartDrawer } from './CartDrawer';
+import { BulkTransferModal } from './modals/BulkTransferModal';
+import { BulkOutboundModal } from './modals/BulkOutboundModal';
+
+interface Warehouse {
+  id: string;
+  code: string;
+  name: string;
+}
 
 interface InventoryDashboardProps {
   stocks: StockWithDetails[];
   warehouseId: string;
-  categories: Category[]; // Add categories prop
+  categories: Category[];
+  warehouses: Warehouse[];
 }
 
 // Helper: จัดกลุ่มสินค้าตาม Lot -> Position
 const buildHierarchy = (stocks: StockWithDetails[]) => {
+  // ... existing code ...
   const hierarchy: Record<string, Record<string, StockWithDetails[]>> = {};
 
   stocks.forEach((item) => {
@@ -37,14 +48,17 @@ const buildHierarchy = (stocks: StockWithDetails[]) => {
 
 interface InventorySelectionContextType {
   selectedIds: Set<string>;
+  selectedItems: StockWithDetails[]; // ✅ Provide full objects
   hierarchy: Record<string, Record<string, StockWithDetails[]>>;
-  categoryFormSchemas: Record<string, any[]>; // Add categoryFormSchemas to context
+  categoryFormSchemas: Record<string, any[]>;
   toggleLot: (lot: string) => void;
   togglePos: (lot: string, pos: string) => void;
   toggleItem: (id: string) => void;
   toggleMultiple: (ids: string[]) => void;
   isLotSelected: (lot: string) => boolean;
   isPosSelected: (lot: string, pos: string) => boolean;
+  clearSelection: () => void;
+  removeById: (id: string) => void;
 }
 
 const InventorySelectionContext = createContext<InventorySelectionContextType | null>(null);
@@ -69,6 +83,20 @@ export const InventorySelectionProvider = ({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const hierarchy = useMemo(() => buildHierarchy(stocks), [stocks]);
+
+  // ✅ Create Map for fast lookup
+  const stockMap = useMemo(() => {
+    const map = new Map<string, StockWithDetails>();
+    stocks.forEach((s) => map.set(s.id, s));
+    return map;
+  }, [stocks]);
+
+  // ✅ Derive Selected Items
+  const selectedItems = useMemo(() => {
+    return Array.from(selectedIds)
+      .map((id) => stockMap.get(id))
+      .filter(Boolean) as StockWithDetails[];
+  }, [selectedIds, stockMap]);
 
   // Create memoized map of category_id to form_schema
   const categoryFormSchemas = useMemo(() => {
@@ -152,20 +180,22 @@ export const InventorySelectionProvider = ({
     });
   }, []);
 
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const removeById = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       selectedIds,
-      hierarchy,
-      categoryFormSchemas, // Provide categoryFormSchemas
-      toggleLot,
-      togglePos,
-      toggleItem,
-      toggleMultiple,
-      isLotSelected,
-      isPosSelected,
-    }),
-    [
-      selectedIds,
+      selectedItems,
       hierarchy,
       categoryFormSchemas,
       toggleLot,
@@ -174,6 +204,22 @@ export const InventorySelectionProvider = ({
       toggleMultiple,
       isLotSelected,
       isPosSelected,
+      clearSelection,
+      removeById,
+    }),
+    [
+      selectedIds,
+      selectedItems,
+      hierarchy,
+      categoryFormSchemas,
+      toggleLot,
+      togglePos,
+      toggleItem,
+      toggleMultiple,
+      isLotSelected,
+      isPosSelected,
+      clearSelection,
+      removeById,
     ],
   );
 
@@ -185,16 +231,28 @@ export const InventorySelectionProvider = ({
 };
 
 // --- Inner Component ---
-const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => {
+const InventoryDashboardContent = ({
+  warehouseId,
+  warehouses,
+}: {
+  warehouseId: string;
+  warehouses: Warehouse[];
+}) => {
   const router = useRouter();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<'INTERNAL' | 'CROSS' | 'OUTBOUND' | null>(null);
+
   const {
     hierarchy,
     selectedIds,
+    selectedItems,
     toggleLot,
     togglePos,
     toggleItem,
     toggleMultiple,
     categoryFormSchemas,
+    clearSelection,
+    removeById,
   } = useInventorySelection();
 
   const lotKeys = useMemo(
@@ -202,12 +260,19 @@ const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => 
     [hierarchy],
   );
 
-  const handleBulkAction = (action: 'transfer' | 'outbound') => {
-    const idsArray = Array.from(selectedIds);
-    if (idsArray.length === 0) return;
-    const params = new URLSearchParams();
-    params.set('ids', idsArray.join(','));
-    router.push(`/dashboard/${warehouseId}/${action}?${params.toString()}`);
+  const handleBulkAction = (action: 'internal' | 'cross' | 'outbound') => {
+    if (selectedItems.length === 0) return;
+
+    if (action === 'internal') setActiveModal('INTERNAL');
+    else if (action === 'cross') setActiveModal('CROSS');
+    else if (action === 'outbound') setActiveModal('OUTBOUND');
+
+    setIsCartOpen(false); // Close cart when action starts
+  };
+
+  const handleSuccess = () => {
+    clearSelection();
+    router.refresh();
   };
 
   return (
@@ -244,19 +309,55 @@ const InventoryDashboardContent = ({ warehouseId }: { warehouseId: string }) => 
           <StockLotSection
             key={lot}
             lot={lot}
-            positions={hierarchy[lot] || {}} // ✅ แก้ไขตรงนี้: ใส่ || {} เพื่อกัน undefined
+            positions={hierarchy[lot] || {}}
             selectedIds={selectedIds}
             onToggleLot={toggleLot}
             onTogglePos={togglePos}
             onToggleItem={toggleItem}
             onToggleMultiple={toggleMultiple}
-            categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas to StockLotSection
+            categoryFormSchemas={categoryFormSchemas}
           />
         ))}
       </div>
 
-      {/* Footer Action Bar */}
-      <BulkActionBar selectedCount={selectedIds.size} onAction={handleBulkAction} />
+      {/* ✅ Cart Drawer Component */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={selectedItems}
+        onRemove={removeById}
+        onAction={handleBulkAction}
+      />
+
+      {/* Footer Action Bar (Trigger) */}
+      <BulkActionBar
+        selectedCount={selectedIds.size}
+        onOpenCart={() => setIsCartOpen(true)}
+        onClear={clearSelection}
+      />
+
+      {/* ✅ Action Modals */}
+      {activeModal && (activeModal === 'INTERNAL' || activeModal === 'CROSS') && (
+        <BulkTransferModal
+          isOpen={true}
+          onClose={() => setActiveModal(null)}
+          items={selectedItems}
+          currentWarehouseId={warehouseId}
+          warehouses={warehouses}
+          mode={activeModal}
+          onSuccess={handleSuccess}
+        />
+      )}
+
+      {activeModal === 'OUTBOUND' && (
+        <BulkOutboundModal
+          isOpen={true}
+          onClose={() => setActiveModal(null)}
+          items={selectedItems}
+          currentWarehouseId={warehouseId}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 };
@@ -265,10 +366,11 @@ export default function InventoryDashboard({
   stocks,
   warehouseId,
   categories,
+  warehouses,
 }: InventoryDashboardProps) {
   return (
     <InventorySelectionProvider stocks={stocks} categories={categories}>
-      <InventoryDashboardContent warehouseId={warehouseId} />
+      <InventoryDashboardContent warehouseId={warehouseId} warehouses={warehouses} />
     </InventorySelectionProvider>
   );
 }

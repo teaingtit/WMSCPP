@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect, Suspense } from 'react';
 import LoadingOverlay from '@/components/ui/LoadingOverlay';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Toaster } from 'sonner';
 
 interface GlobalLoadingContextType {
   isLoading: boolean;
@@ -36,9 +35,6 @@ export default function GlobalLoadingProvider({ children }: { children: React.Re
 
   return (
     <GlobalLoadingContext.Provider value={{ isLoading, setIsLoading }}>
-      {/* Global Toaster: รองรับการแจ้งเตือนจาก Server Actions / Database */}
-      <Toaster position="top-center" richColors closeButton theme="light" />
-
       {isLoading && <LoadingOverlay />}
 
       {/* Wrap useSearchParams in Suspense to avoid de-opting static generation */}

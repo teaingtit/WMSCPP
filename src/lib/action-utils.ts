@@ -75,3 +75,38 @@ export const withAuth = <TInput, TOutput>(
     }
   };
 };
+
+export async function processBulkAction<T>(
+  items: T[],
+  action: (item: T) => Promise<ActionResponse<any>>,
+) {
+  const results = {
+    success: 0,
+    failed: 0,
+    errors: [] as string[],
+  };
+
+  // Simple chunked execution or parallel map
+  const promises = items.map(async (item) => {
+    try {
+      const result = await action(item);
+      if (result.success) {
+        results.success++;
+      } else {
+        results.failed++;
+        results.errors.push(result.message || 'Unknown Error');
+      }
+    } catch (err: any) {
+      results.failed++;
+      results.errors.push(err.message);
+    }
+  });
+
+  await Promise.all(promises);
+
+  return {
+    success: results.failed === 0,
+    message: `Processed ${results.success} successfully, ${results.failed} failed.`,
+    details: results,
+  };
+}

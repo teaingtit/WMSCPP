@@ -140,6 +140,15 @@ html {
   }
 }
 
+/* Fix iOS Zoom on Input Focus */
+@media screen and (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 @layer components {
   /* Mobile Optimized Inputs */
   .input-field {
@@ -156,7 +165,7 @@ html {
 
   /* App container for consistent responsive padding and max width */
   .app-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto px-0 sm:px-6 lg:px-8;
   }
 
   /* Custom Scrollbar */
@@ -189,5 +198,21 @@ html {
   }
   .data-grid td {
     @apply p-3 align-middle tabular-nums text-foreground;
+  }
+
+  /* Card component tokens & variants */
+  .card {
+    @apply bg-card border border-border rounded-lg p-5 text-card-foreground;
+  }
+  .card-elevated {
+    @apply shadow-lg ring-2 ring-primary/30;
+  }
+  .card-compact {
+    @apply p-2 text-sm;
+  }
+
+  /* Stacked cards container tweaks */
+  .stacked-cards {
+    @apply max-w-3xl mx-auto px-2;
   }
 }
