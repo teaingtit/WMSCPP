@@ -8,7 +8,7 @@ import { Trash2, Download, Upload, Loader2, BookOpen, Package, ArrowLeft } from 
 import { SubmitButton } from '@/components/SubmitButton';
 import ProductManager from './ProductManager';
 import CategoryForm from './CategoryForm';
-import { toast } from 'sonner';
+import { wrapFormAction, notify } from '@/lib/ui-helpers';
 import { Button } from '@/components/ui/button';
 
 interface Category {
@@ -17,9 +17,7 @@ interface Category {
   form_schema?: any;
 }
 
-const deleteCategoryWrapper = async (_prevState: any, formData: FormData) => {
-  return await deleteCategory(formData);
-};
+const deleteCategoryWrapper = wrapFormAction(deleteCategory);
 
 export default function CategoryManager({
   categories,
@@ -49,9 +47,7 @@ export default function CategoryManager({
 
   useEffect(() => {
     if (deleteState.message) {
-      if (deleteState.success) {
-        toast.success(deleteState.message);
-      } else toast.error(deleteState.message);
+      notify.ok(deleteState);
     }
   }, [deleteState]);
 
@@ -63,8 +59,7 @@ export default function CategoryManager({
     formData.append('file', file);
     const res = await importMasterData(formData, 'category');
     setLoading(false);
-    if (res.success) toast.success(res.message);
-    else toast.error(res.message);
+    notify.ok(res);
     e.target.value = '';
   };
 

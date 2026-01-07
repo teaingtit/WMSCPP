@@ -44,20 +44,41 @@ export default function TransferSourceSelector({
   }[activeTab];
 
   useEffect(() => {
-    if (!debouncedSearch || selectedStock) return;
+    if (!debouncedSearch || selectedStock) {
+      setSearchResults([]); // Ensure results are cleared if term is empty or item selected
+      return;
+    }
+
+    let active = true;
     const search = async () => {
       setIsSearching(true);
       try {
         const res = await searchStockForTransfer(warehouseId, debouncedSearch);
-        setSearchResults(res);
+        if (active) {
+          // Normalize the response to handle 'products' vs 'product'
+          const normalized = (res || []).map((s: any) => ({
+            ...s,
+            product: s.products || s.product,
+            location: s.locations || s.location,
+          }));
+          setSearchResults(normalized);
+        }
       } catch (error) {
-        setSearchResults([]);
-        console.error('Failed to search for stock:', error); // Suggestion 2: Improve error logging
+        if (active) {
+          setSearchResults([]);
+          console.error('Failed to search for stock:', error);
+        }
       } finally {
-        setIsSearching(false);
+        if (active) {
+          setIsSearching(false);
+        }
       }
     };
     search();
+
+    return () => {
+      active = false;
+    };
   }, [debouncedSearch, warehouseId, selectedStock]);
 
   return (
@@ -74,7 +95,7 @@ export default function TransferSourceSelector({
       </h3>
 
       {!selectedStock ? (
-        <div className="relative group">
+        <div className="relative group z-10">
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-slate-600">
               {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
@@ -91,56 +112,43 @@ export default function TransferSourceSelector({
 
           {/* Search Results Dropdown */}
           {searchResults.length > 0 && !selectedStock && (
-            <div className="mt-3 max-h-[320px] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-100 absolute w-full z-20 custom-scrollbar animate-in fade-in slide-in-from-top-2">
-              <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase bg-slate-50/50 border-b border-slate-50">
+            <div className="mt-3 max-h-[320px] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-100 absolute w-full z-20 custom-scrollbar animate-in fade-in slide-in-from-top-2 ring-1 ring-slate-900/5">
+              <div className="px-4 py-3 text-[11px] font-bold text-slate-400 uppercase bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 sticky top-0">
                 ผลการค้นหา ({searchResults.length})
               </div>
               {searchResults.map((stock) => (
                 <div
                   key={stock.id}
-                  // Suggestion 1: Improve selection UX by setting search term to product name
                   onClick={() => {
                     onSelect(stock);
-                    setSearchTerm(stock.products.name);
+                    setSearchTerm(stock.product?.name || '');
                     setSearchResults([]);
                     // Auto-add to queue if the parent provided handler
                     onAddToQueue && onAddToQueue(stock);
                   }}
-                  className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer group transition-colors"
+                  className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer group transition-colors flex items-center gap-3"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="font-bold text-slate-700 group-hover:text-slate-900 mb-1">
-                        {stock.products.name}
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="text-xs font-mono bg-slate-100 text-slate-500 px-1.5 rounded border border-slate-200">
-                          {stock.products.sku}
-                        </span>
-                      </div>
+                  <div className="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                    <Box size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-slate-700 group-hover:text-slate-900 truncate">
+                      {stock.product?.name || 'Unknown Product'}
                     </div>
-
-                    {/* Right Side: Location & Qty Badge */}
-                    <div className="text-right pl-4">
-                      <div className={`font-black text-lg ${themeColors.text}`}>
-                        {stock.quantity.toLocaleString()}{' '}
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">
-                          {stock.products.uom}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-end gap-1 text-xs font-bold text-slate-500 mt-1 bg-white px-2 py-0.5 rounded-full border border-slate-100 shadow-sm">
-                        <MapPin size={10} className={themeColors.text} /> {stock.locations.code}
-                      </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">
+                        {stock.product?.sku || 'NO SKU'}
+                      </span>
+                      <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
+                        <MapPin size={10} /> {stock.location?.code || '?'}
+                      </span>
+                      <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-auto">
+                        Qty: {stock.quantity} {stock.product?.uom}
+                      </span>
                     </div>
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-
-          {searchTerm && searchResults.length === 0 && !isSearching && (
-            <div className="absolute w-full mt-2 p-4 text-center bg-white border border-slate-100 rounded-2xl shadow-lg z-20 text-slate-500 text-sm">
-              ไม่พบสินค้าในสต็อก
             </div>
           )}
         </div>
@@ -151,38 +159,38 @@ export default function TransferSourceSelector({
             className={`p-5 rounded-2xl bg-white border border-white/50 shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between`}
           >
             {/* Product Info */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div
                 className={`text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70 ${themeColors.text}`}
               >
                 Source Stock
               </div>
-              <div className="font-black text-slate-800 text-xl leading-snug">
-                {selectedStock.products.name}
+              <div className="font-black text-slate-800 text-xl leading-snug truncate pr-8">
+                {selectedStock?.product?.name}
               </div>
               <div className="text-sm text-slate-500 font-mono mt-0.5">
-                {selectedStock.products.sku}
+                {selectedStock?.product?.sku}
               </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="flex items-stretch gap-2 w-full md:w-auto">
+            <div className="flex items-stretch gap-2 w-full md:w-auto mt-2 md:mt-0">
               <div
-                className={`px-4 py-2 rounded-xl border flex flex-col items-center justify-center min-w-[80px] ${themeColors.bg} ${themeColors.border}`}
+                className={`px-4 py-2 rounded-xl border flex flex-col items-center justify-center min-w-[90px] ${themeColors.bg} ${themeColors.border}`}
               >
                 <span className="text-[10px] uppercase font-bold text-slate-400">Location</span>
                 <div className={`font-bold flex items-center gap-1 ${themeColors.text}`}>
-                  <MapPin size={14} /> {selectedStock.locations.code}
+                  <MapPin size={14} /> {selectedStock?.location?.code}
                 </div>
               </div>
               <div
-                className={`px-4 py-2 rounded-xl border flex flex-col items-center justify-center min-w-[80px] bg-slate-800 border-slate-700 text-white shadow-lg`}
+                className={`px-4 py-2 rounded-xl border flex flex-col items-center justify-center min-w-[90px] bg-slate-800 border-slate-700 text-white shadow-lg`}
               >
                 <span className="text-[10px] uppercase font-bold text-slate-400">Available</span>
                 <div className="font-black text-lg">
-                  {selectedStock.quantity}{' '}
+                  {selectedStock?.quantity}{' '}
                   <span className="text-[10px] font-normal opacity-70">
-                    {selectedStock.products.uom}
+                    {selectedStock?.product?.uom}
                   </span>
                 </div>
               </div>
@@ -196,19 +204,22 @@ export default function TransferSourceSelector({
               onSelect(null);
               setTimeout(() => inputRef.current?.focus(), 100);
             }}
-            className="absolute -top-3 -right-3 p-2 bg-white rounded-full shadow-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all border border-slate-100 hover:scale-110"
+            className="absolute -top-3 -right-3 p-2 bg-white rounded-full shadow-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all border border-slate-100 hover:scale-110 z-10"
             aria-label="Change selection"
           >
             <Box size={16} />
           </button>
-          {/* Add to Queue Button */}
-          <button
-            onClick={() => onAddToQueue && onAddToQueue(selectedStock)}
-            className="absolute -bottom-3 -right-3 py-2 px-3 bg-indigo-600 text-white rounded-full shadow-md hover:bg-indigo-700 transition-all border border-indigo-700"
-            aria-label="เพิ่มลงคิว"
-          >
-            เพิ่มลงคิว
-          </button>
+
+          {/* Add to Queue Button - Only show if callback exists */}
+          {onAddToQueue && (
+            <button
+              onClick={() => onAddToQueue(selectedStock)}
+              className="absolute -bottom-3 -right-3 py-2 px-4 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all border-2 border-white flex items-center gap-2 font-bold text-sm"
+            >
+              <PackageSearch size={16} />
+              เพิ่มลงคิว
+            </button>
+          )}
         </div>
       )}
     </div>

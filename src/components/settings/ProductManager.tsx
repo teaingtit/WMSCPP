@@ -14,7 +14,7 @@ import {
   FileSpreadsheet,
   AlertCircle,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 interface ProductManagerProps {
   products: any[];
@@ -60,11 +60,8 @@ export default function ProductManager({ products, category }: ProductManagerPro
 
       const res = await createProduct(formData);
       setLoading(false);
-
-      if (res.success) {
-        toast.success(res.message);
-        (document.getElementById('create-product-form') as HTMLFormElement).reset();
-      } else toast.error(res.message);
+      notify.ok(res);
+      if (res.success) (document.getElementById('create-product-form') as HTMLFormElement).reset();
     } finally {
       setIsLoading(false);
       setLoading(false);
@@ -78,8 +75,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
       const formData = new FormData();
       formData.append('id', id);
       const res = await deleteProduct(formData);
-      if (res.success) toast.success(res.message);
-      else toast.error(res.message);
+      notify.ok(res);
     } finally {
       setIsLoading(false);
     }
@@ -115,9 +111,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
       formData.append('categoryId', category.id);
 
       const res = await importMasterData(formData, 'product');
-
-      if (res.success) toast.success(res.message);
-      else toast.error(res.message);
+      notify.ok(res);
       e.target.value = '';
     } finally {
       setImportLoading(false);

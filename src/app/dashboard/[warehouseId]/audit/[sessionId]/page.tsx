@@ -21,11 +21,12 @@ import CountingInterface from '@/components/audit/CountingInterface';
 import { AuditItem, AuditSession } from '@/types/inventory';
 import VarianceReport from '@/components/audit/VarianceReport';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import { useUser } from '@/components/providers/UserProvider';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import AuditLoadingSkeleton from '@/components/audit/AuditLoadingSkeleton';
-import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
+import SuccessReceiptModal from '@/components/shared/SuccessReceiptModal';
+import useSuccessReceipt from '@/hooks/useSuccessReceipt';
 import {
   Dialog,
   DialogContent,
@@ -54,9 +55,8 @@ export default function AuditDetailPage() {
   // Filter State
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Success Modal State
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  // Success modal state handled by shared hook
+  const { successInfo, setSuccessInfo, handleSuccessModalClose } = useSuccessReceipt();
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export default function AuditDetailPage() {
         setSession(sessionData);
         setItems(itemsData);
       } catch (error) {
-        toast.error('ไม่สามารถโหลดข้อมูลรอบการนับได้');
+        notify.error('ไม่สามารถโหลดข้อมูลรอบการนับได้');
       } finally {
         setIsLoading(false);
       }
@@ -136,16 +136,18 @@ export default function AuditDetailPage() {
         const matched = totalCounted - varianceCount;
         const accuracy = totalCounted > 0 ? (matched / totalCounted) * 100 : 0;
 
-        setSuccessData({
-          type: 'AUDIT',
-          title: 'ปิดรอบการนับสำเร็จ',
-          sessionName: session.name,
-          accuracy: accuracy.toFixed(1) + '%',
-          totalCounted: totalCounted,
-          varianceCount: varianceCount,
-          timestamp: new Date().toISOString(),
+        setSuccessInfo({
+          data: {
+            type: 'AUDIT',
+            title: 'ปิดรอบการนับสำเร็จ',
+            sessionName: session.name,
+            accuracy: accuracy.toFixed(1) + '%',
+            totalCounted: totalCounted,
+            varianceCount: varianceCount,
+            timestamp: new Date().toISOString(),
+          },
+          redirect: false,
         });
-        setShowSuccessModal(true);
 
         const [sessionData, itemsData] = await Promise.all([
           getAuditSessionById(sessionId),
@@ -155,10 +157,10 @@ export default function AuditDetailPage() {
         setItems(itemsData);
         router.refresh();
       } else {
-        toast.error(res.message);
+        notify.error(res.message);
       }
     } catch (error) {
-      toast.error('เกิดข้อผิดพลาด');
+      notify.error('เกิดข้อผิดพลาด');
     } finally {
       setIsFinalizing(false);
     }
@@ -455,9 +457,9 @@ export default function AuditDetailPage() {
 
       {/* Success Modal */}
       <SuccessReceiptModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        data={successData}
+        isOpen={!!successInfo}
+        onClose={handleSuccessModalClose}
+        data={successInfo?.data ?? null}
       />
 
       {/* Finalize Confirmation Dialog */}

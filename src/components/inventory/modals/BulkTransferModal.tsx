@@ -13,7 +13,7 @@ import { ArrowRightLeft, Loader2, Package } from 'lucide-react';
 import LocationSelector, { LocationData } from '@/components/shared/LocationSelector';
 import { StockWithDetails } from '@/types/inventory';
 import { submitBulkTransfer } from '@/actions/transfer-actions';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 
 interface Warehouse {
   id: string;
@@ -65,11 +65,11 @@ export const BulkTransferModal = ({
 
   const handleSubmit = async () => {
     if (!selectedLocation) {
-      toast.error('กรุณาระบุตำแหน่งปลายทาง');
+      notify.error('กรุณาระบุตำแหน่งปลายทาง');
       return;
     }
     if (mode === 'CROSS' && !targetWarehouseId) {
-      toast.error('กรุณาระบุคลังปลายทาง');
+      notify.error('กรุณาระบุคลังปลายทาง');
       return;
     }
 
@@ -79,7 +79,7 @@ export const BulkTransferModal = ({
       return !qty || qty <= 0;
     });
     if (invalidItem) {
-      toast.error('กรุณาระบุจำนวนที่ถูกต้อง (มากกว่า 0) ให้ครบทุกรายการ');
+      notify.error('กรุณาระบุจำนวนที่ถูกต้อง (มากกว่า 0) ให้ครบทุกรายการ');
       return;
     }
 
@@ -98,7 +98,7 @@ export const BulkTransferModal = ({
       const result = await submitBulkTransfer(payload);
 
       if (result.success) {
-        toast.success(result.message);
+        notify.ok(result);
         onSuccess();
         onClose();
       } else {
@@ -107,10 +107,10 @@ export const BulkTransferModal = ({
           result.details?.errors && result.details.errors.length > 0
             ? result.details.errors[0]
             : result.message || 'เกิดข้อผิดพลาด';
-        toast.error(errorMsg);
+        notify.error(errorMsg);
       }
     } catch (error: any) {
-      toast.error(error.message || 'เกิดข้อผิดพลาดในการย้ายสินค้า');
+      notify.error(error.message || 'เกิดข้อผิดพลาดในการย้ายสินค้า');
     } finally {
       setIsSubmitting(false);
     }
@@ -135,6 +135,7 @@ export const BulkTransferModal = ({
                   คลังสินค้าปลายทาง
                 </label>
                 <select
+                  aria-label="Select destination warehouse"
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none"
                   value={targetWarehouseId}
                   onChange={(e) => {
@@ -207,6 +208,8 @@ export const BulkTransferModal = ({
                     <div className="relative">
                       <input
                         type="number"
+                        aria-label={`Quantity for ${item.product?.name || item.id}`}
+                        placeholder="0"
                         min={1}
                         max={item.quantity}
                         value={quantities[item.id] ?? item.quantity}

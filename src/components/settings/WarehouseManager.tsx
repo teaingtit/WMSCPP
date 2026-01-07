@@ -7,34 +7,27 @@ import { Save } from 'lucide-react';
 import { SubmitButton } from '@/components/SubmitButton';
 import { DimensionConfig } from './warehouse/DimensionConfig'; // Import ที่แยกมา
 import { WarehouseList } from './warehouse/WarehouseList'; // Import ที่แยกมา
+import { wrapFormAction, notify } from '@/lib/ui-helpers';
 
 const initialState = { success: false, message: '' };
 
 export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [createState, createAction] = useFormState(async (_prev: any, formData: FormData) => {
-    return await createWarehouse(formData);
-  }, initialState);
+  const [createState, createAction] = useFormState(wrapFormAction(createWarehouse), initialState);
 
-  const [deleteState, deleteAction] = useFormState(async (_prev: any, formData: FormData) => {
-    return await deleteWarehouse(formData);
-  }, initialState);
+  const [deleteState, deleteAction] = useFormState(wrapFormAction(deleteWarehouse), initialState);
 
   useEffect(() => {
     if (createState.message) {
-      if (createState.success) {
-        alert(`✅ ${createState.message}`);
-        formRef.current?.reset();
-      } else {
-        alert(`❌ ${createState.message}`);
-      }
+      notify.ok(createState);
+      if (createState.success) formRef.current?.reset();
     }
   }, [createState]);
 
   useEffect(() => {
     if (deleteState.message) {
-      alert(deleteState.success ? `✅ ${deleteState.message}` : `❌ ${deleteState.message}`);
+      notify.ok(deleteState);
     }
   }, [deleteState]);
 

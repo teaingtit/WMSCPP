@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { createUser, deleteUser, reactivateUser } from '@/actions/user-actions';
 import { Button } from '@/components/ui/button';
 import { Users, Trash2, Warehouse, Mail, Lock, Unlock, RefreshCw, User } from 'lucide-react';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 
 interface UserManagerProps {
@@ -26,15 +26,13 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
       }
 
       const result = await createUser(null, formData);
+      notify.ok(result);
       if (result.success) {
-        toast.success(result.message);
         formRef.current?.reset();
         setInviteMode(false);
-      } else {
-        toast.error(result.message);
       }
-    } catch (err) {
-      toast.error('เกิดข้อผิดพลาด');
+    } catch (err: any) {
+      notify.error(err?.message || 'เกิดข้อผิดพลาด');
     } finally {
       setIsLoading(false);
     }
@@ -45,8 +43,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
     setIsLoading(true);
     try {
       const result = await deleteUser(id);
-      if (result.success) toast.success(result.message);
-      else toast.error(result.message);
+      notify.ok(result);
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +54,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
     setIsLoading(true);
     try {
       const result = await reactivateUser(id);
-      if (result.success) toast.success(result.message);
-      else toast.error(result.message);
+      notify.ok(result);
     } finally {
       setIsLoading(false);
     }

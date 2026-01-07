@@ -6,12 +6,10 @@ import { Plus, Info } from 'lucide-react';
 import SchemaBuilder from './SchemaBuilder';
 import { SubmitButton } from '@/components/SubmitButton';
 import { useState, useRef, useEffect } from 'react';
-import { toast } from 'sonner';
+import { wrapFormAction, notify } from '@/lib/ui-helpers';
 
-// Wrapper เพื่อแก้ปัญหา Type Mismatch ของ useFormState
-const createCategoryWrapper = async (_prevState: any, formData: FormData) => {
-  return await createCategory(formData);
-};
+// Use helper wrapper for `useFormState` signature
+const createCategoryWrapper = wrapFormAction(createCategory);
 
 export default function CategoryForm() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -21,11 +19,11 @@ export default function CategoryForm() {
 
   useEffect(() => {
     if (state.message) {
+      notify.ok(state);
       if (state.success) {
-        toast.success(state.message);
         formRef.current?.reset();
         setSchemaJson('[]');
-      } else toast.error(state.message);
+      }
     }
   }, [state]);
 

@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { login } from '@/actions/auth-actions';
 import { KeyRound, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 // 1. กำหนดค่าเริ่มต้นให้ตรงกับ Type (LoginState)
 const initialState = {
   success: false,
@@ -30,11 +30,7 @@ export default function LoginForm() {
   // ✅ ใช้ useEffect ดักจับ state เพื่อแสดง Toast
   useEffect(() => {
     if (state?.message) {
-      if (state.success === false) {
-        toast.error(state.message); // ❌ แสดง Error สีแดง
-      } else {
-        toast.success(state.message); // ✅ แสดง Success สีเขียว
-      }
+      notify.ok(state);
     }
   }, [state]);
 

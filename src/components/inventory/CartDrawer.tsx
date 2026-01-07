@@ -39,6 +39,7 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
           </div>
           <button
             onClick={onClose}
+            aria-label="Close cart"
             className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400 hover:text-slate-600"
           >
             <X size={20} />
@@ -77,6 +78,11 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
                     </h4>
                     <button
                       onClick={() => onRemove(item.id)}
+                      aria-label={
+                        item.product?.name
+                          ? `Remove ${item.product.name}`
+                          : `Remove item ${item.id}`
+                      }
                       className="text-slate-300 hover:text-red-500 transition-colors p-1 -mr-1"
                     >
                       <Trash2 size={14} />

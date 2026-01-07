@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { searchStockForOutbound, submitBulkOutbound } from '@/actions/outbound-actions';
 import {
   LogOut,
@@ -15,11 +15,14 @@ import {
 } from 'lucide-react';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 import { useDebounce } from 'use-debounce';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal';
-import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
+import SuccessReceiptModal from '@/components/shared/SuccessReceiptModal';
+import useTransactionFlow from '@/hooks/useTransactionFlow';
 import { useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase-browser';
+import { BaseCartDrawer } from '@/components/shared/BaseCartDrawer';
+import { CartFloatingButton } from '@/components/shared/CartFloatingButton';
 
 interface OutboundQueueItem {
   id: string; // unique ID
@@ -29,8 +32,7 @@ interface OutboundQueueItem {
 }
 
 export default function OutboundPage() {
-  const { setIsLoading } = useGlobalLoading();
-  const router = useRouter();
+  useGlobalLoading();
   const params = useParams();
   const warehouseId = params['warehouseId'] as string;
   const searchParams = useSearchParams();
@@ -45,12 +47,42 @@ export default function OutboundPage() {
   const [pickQty, setPickQty] = useState('');
   const [note, setNote] = useState('');
 
-  const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  // State for Success Modal
-  const [successInfo, setSuccessInfo] = useState<{ data: SuccessData; redirect: boolean } | null>(
-    null,
-  );
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const executor = async () => {
+    const payload = queue.map((item) => ({
+      warehouseId,
+      stockId: item.stock.id,
+      qty: item.qty,
+      note: item.note,
+    }));
+    const result = await submitBulkOutbound(payload);
+    return {
+      success: result.success,
+      data: result.success
+        ? {
+            title: 'บันทึกการเบิกจ่ายสำเร็จ',
+            details: [
+              { label: 'จำนวนรายการ', value: `${queue.length} รายการ` },
+              { label: 'เวลา', value: new Date().toLocaleString('th-TH') },
+            ],
+          }
+        : undefined,
+      message: result.message,
+      redirect: true,
+    } as const;
+  };
+
+  const {
+    isOpen,
+    isLoading,
+    openConfirm,
+    closeConfirm,
+    execute,
+    successInfo,
+    handleSuccessModalClose,
+  } = useTransactionFlow(executor);
 
   // Suggestion 2: Use useDebounce hook for consistency and cleaner code
   const [debouncedSearch] = useDebounce(searchTerm, 500);
@@ -149,15 +181,15 @@ export default function OutboundPage() {
     e.preventDefault();
     const qty = Number(pickQty);
     if (!selectedStock) {
-      toast.error('กรุณาเลือกสินค้า');
+      notify.error('กรุณาเลือกสินค้า');
       return;
     }
     if (!pickQty || qty <= 0) {
-      toast.error('ระบุจำนวนที่ถูกต้อง');
+      notify.error('ระบุจำนวนที่ถูกต้อง');
       return;
     }
     if (qty > selectedStock.quantity) {
-      toast.error('ยอดเบิกเกินกว่าที่มีในสต็อก');
+      notify.error('ยอดเบิกเกินกว่าที่มีในสต็อก');
       return;
     }
 
@@ -169,7 +201,7 @@ export default function OutboundPage() {
     };
 
     setQueue((prev) => [...prev, newItem]);
-    toast.success('เพิ่มลงรายการเบิกแล้ว');
+    notify.success('เพิ่มลงรายการเบิกแล้ว');
 
     resetForm();
   };
@@ -180,53 +212,27 @@ export default function OutboundPage() {
 
   const handleConfirmAll = () => {
     if (queue.length === 0) return;
-    setShowConfirm(true);
+    openConfirm();
   };
 
   const executeSubmission = async () => {
-    setShowConfirm(false);
-    setIsLoading(true);
     setSubmitting(true);
-
-    const payload = queue.map((item) => ({
-      warehouseId,
-      stockId: item.stock.id,
-      qty: item.qty,
-      note: item.note,
-    }));
-
     try {
-      const result = await submitBulkOutbound(payload);
-      if (result.success) {
+      const res = await execute();
+      if (res.success) {
         setQueue([]);
-        setSuccessInfo({
-          data: {
-            title: 'บันทึกการเบิกจ่ายสำเร็จ',
-            details: [
-              { label: 'จำนวนรายการ', value: `${queue.length} รายการ` }, // Assuming success count matches queue for now or use result.details
-              { label: 'เวลา', value: new Date().toLocaleString('th-TH') },
-            ],
-          },
-          redirect: true,
-        });
+        setIsCartOpen(false); // Close cart on success
       } else {
-        toast.error(`มีบางรายการล้มเหลว: ${result.message}`);
+        notify.error(`มีบางรายการล้มเหลว: ${res.message}`);
       }
-    } catch (error) {
-      toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    } catch (err) {
+      notify.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
     } finally {
-      setIsLoading(false);
       setSubmitting(false);
     }
   };
 
-  const handleSuccessClose = () => {
-    const shouldRedirect = successInfo?.redirect;
-    setSuccessInfo(null);
-    if (shouldRedirect) {
-      router.push(`/dashboard/${warehouseId}/history`);
-    }
-  };
+  // success modal close handled by hook
 
   return (
     <div className="max-w-7xl mx-auto pb-20">
@@ -241,9 +247,9 @@ export default function OutboundPage() {
         <p className="text-slate-500 ml-12">ค้นหาตำแหน่งสินค้าและตัดสต็อกออกจากระบบ</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Search (5 cols) */}
-        <div className="lg:col-span-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Search */}
+        <div>
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 min-h-[400px]">
               <h3 className="font-bold text-slate-700 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
@@ -380,8 +386,8 @@ export default function OutboundPage() {
           </div>
         </div>
 
-        {/* Middle: Action Form (4 cols) */}
-        <div className="lg:col-span-4">
+        {/* Right: Action Form */}
+        <div>
           <div
             className={`space-y-6 transition-all ${
               !selectedStock ? 'opacity-50 pointer-events-none grayscale' : 'opacity-100'
@@ -444,72 +450,78 @@ export default function OutboundPage() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Right: Pick List (3 cols) - NEW */}
-        <div className="lg:col-span-3">
-          <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl sticky top-6 h-fit">
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-              <PackageCheck className="text-rose-400" /> รายการรอเบิก ({queue.length})
-            </h3>
+      {/* Cart Trigger */}
+      <CartFloatingButton
+        itemCount={queue.length}
+        onClick={() => setIsCartOpen(true)}
+        label="รายการเบิก"
+      />
 
-            <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 mb-6">
-              {queue.length === 0 ? (
-                <div className="text-slate-500 text-center py-8 border-2 border-dashed border-slate-700 rounded-xl">
-                  ยังไม่มีรายการ
-                </div>
-              ) : (
-                queue.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className="bg-slate-800 p-3 rounded-xl border border-slate-700 flex justify-between items-start animate-in fade-in slide-in-from-right-4 relative group"
-                  >
-                    <div className="flex-1 min-w-0 pr-2">
-                      <div className="font-bold text-sm truncate text-slate-200">
-                        {idx + 1}. {item.stock.products.name}
-                      </div>
-                      <div className="text-xs text-slate-400 font-mono mt-1">
-                        {item.stock.locations.code}
-                      </div>
-                    </div>
-                    <div className="text-right flex flex-col items-end gap-2">
-                      <span className="text-rose-400 font-black text-lg">-{item.qty}</span>
-                      <button
-                        onClick={() => removeFromQueue(item.id)}
-                        aria-label="ลบรายการ"
-                        className="text-slate-500 hover:text-rose-400 transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
+      {/* Cart Drawer */}
+      <BaseCartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        title="รายการรอเบิกจ่าย"
+        icon={<LogOut size={20} />}
+        itemCount={queue.length}
+        onClearAll={() => setQueue([])}
+        footer={
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-sm font-bold text-slate-600">
+              <span>Total Items:</span>
+              <span className="text-lg text-rose-600">{queue.length}</span>
             </div>
-
-            <div className="border-t border-slate-700 pt-4">
-              <div className="flex justify-between mb-4 text-sm text-slate-400">
-                <span>รวมทั้งสิ้น</span>
-                <span className="text-white font-bold">{queue.length} รายการ</span>
+            <button
+              onClick={handleConfirmAll}
+              disabled={queue.length === 0 || submitting}
+              className="w-full py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-rose-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale"
+            >
+              {submitting ? <Loader2 className="animate-spin" /> : <LogOut size={20} />}
+              ยืนยันเบิกทั้งหมด
+            </button>
+          </div>
+        }
+      >
+        {queue.map((item, idx) => (
+          <div
+            key={item.id}
+            className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-rose-200 transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-start">
+                <h4 className="font-bold text-slate-700 truncate text-sm">
+                  {idx + 1}. {item.stock.products.name}
+                </h4>
+                <button
+                  onClick={() => removeFromQueue(item.id)}
+                  aria-label="ลบรายการ"
+                  className="text-slate-300 hover:text-rose-500 transition-colors p-1 -mr-1"
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
-              <button
-                onClick={handleConfirmAll}
-                disabled={queue.length === 0 || submitting}
-                className="w-full py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-rose-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale"
-              >
-                {submitting ? <Loader2 className="animate-spin" /> : <LogOut size={20} />}
-                ยืนยันเบิกทั้งหมด
-              </button>
+              <div className="text-xs text-slate-500 font-mono mt-1">
+                {item.stock.locations.code}
+              </div>
+              {item.note && (
+                <div className="text-xs text-slate-400 mt-1 italic">Note: {item.note}</div>
+              )}
+              <div className="flex justify-end mt-2">
+                <span className="text-rose-600 font-black text-lg">-{item.qty}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        ))}
+      </BaseCartDrawer>
 
       {/* Modals */}
       <TransactionConfirmModal
-        isOpen={showConfirm}
-        onClose={() => setShowConfirm(false)}
+        isOpen={isOpen}
+        onClose={closeConfirm}
         onConfirm={executeSubmission}
-        isLoading={submitting}
+        isLoading={isLoading || submitting}
         title="ยืนยันการเบิกสินค้า"
         type="OUTBOUND"
         confirmText="ยืนยันการเบิก"
@@ -529,7 +541,7 @@ export default function OutboundPage() {
 
       <SuccessReceiptModal
         isOpen={!!successInfo}
-        onClose={handleSuccessClose}
+        onClose={handleSuccessModalClose}
         data={successInfo?.data || null}
       />
     </div>

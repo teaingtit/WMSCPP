@@ -1,17 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { submitBulkInbound } from '@/actions/inbound-actions';
 import { Loader2, Save, MapPin, Package, Plus, ListChecks, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import { Product } from '@/types/inventory';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 // Import Components ที่เราแยกออกมา
 import LocationSelector, { LocationData } from '@/components/shared/LocationSelector';
 import ProductAutocomplete from './ProductAutocomplete';
 import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal';
-import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
+import SuccessReceiptModal from '@/components/shared/SuccessReceiptModal';
+import useTransactionFlow from '@/hooks/useTransactionFlow';
+import { BaseCartDrawer } from '@/components/shared/BaseCartDrawer';
+import { CartFloatingButton } from '@/components/shared/CartFloatingButton';
 
 // --- Interfaces ---
 interface FormSchemaField {
@@ -47,15 +50,9 @@ export default function DynamicInboundForm({
   category,
   products,
 }: DynamicInboundFormProps) {
-  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const { setIsLoading } = useGlobalLoading();
-  const [showConfirm, setShowConfirm] = useState(false);
   const [formResetKey, setFormResetKey] = useState(Date.now());
-  // State สำหรับ Success Modal
-  const [successInfo, setSuccessInfo] = useState<{ data: SuccessData; redirect: boolean } | null>(
-    null,
-  );
   // ✅ Queue State
   const [queue, setQueue] = useState<InboundQueueItem[]>([]);
   // 1. Product State
@@ -67,6 +64,7 @@ export default function DynamicInboundForm({
   // 3. Other States
   const [quantity, setQuantity] = useState('');
   const [attributes, setAttributes] = useState<Record<string, any>>({});
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Suggestion 1: Memoize schema extraction for performance and clarity.
   const lotSchema = useMemo(
@@ -94,22 +92,22 @@ export default function DynamicInboundForm({
   const handleAddToQueue = (e: React.FormEvent): void => {
     e.preventDefault();
     if (!selectedLocation?.id) {
-      toast.error('กรุณาระบุพิกัด');
+      notify.error('กรุณาระบุพิกัด');
       return;
     }
     if (!selectedProduct) {
-      toast.error('กรุณาเลือกสินค้า');
+      notify.error('กรุณาเลือกสินค้า');
       return;
     }
     const qty = Number(quantity);
     if (!quantity || qty <= 0) {
-      toast.error('จำนวนไม่ถูกต้อง');
+      notify.error('จำนวนไม่ถูกต้อง');
       return;
     }
 
     for (const field of lotSchema) {
       if (field.required && !attributes[field.key]) {
-        toast.error(`กรุณากรอก: ${field.label}`);
+        notify.error(`กรุณากรอก: ${field.label}`);
         return;
       }
     }
@@ -123,7 +121,7 @@ export default function DynamicInboundForm({
     };
 
     setQueue((prev) => [...prev, newItem]);
-    toast.success('เพิ่มรายการแล้ว');
+    notify.success('เพิ่มรายการแล้ว');
     resetInput(); // เคลียร์ฟอร์มเพื่อให้กรอกต่อได้ทันที
   };
 
@@ -134,15 +132,12 @@ export default function DynamicInboundForm({
   // ✅ ฟังก์ชันบันทึกทั้งหมด
   const handleConfirmAll = () => {
     if (queue.length === 0) return;
-    setShowConfirm(true);
+    openConfirm();
   };
 
-  const executeSubmission = async () => {
-    setShowConfirm(false);
+  const executor = async () => {
     setIsLoading(true);
     setSubmitting(true);
-
-    // Prepare Payload
     const payload = queue.map((item) => ({
       warehouseId,
       locationId: item.location.id,
@@ -150,47 +145,53 @@ export default function DynamicInboundForm({
       isNewProduct: false,
       productId: item.product.id,
       attributes: item.attributes,
-      productName: item.product.name, // ส่งไปเพื่อ Log Error ถ้ามี
+      productName: item.product.name,
     }));
 
     try {
       const result = await submitBulkInbound(payload);
       if (result.success) {
-        setQueue([]); // Clear Queue
-        setSuccessInfo({
+        return {
+          success: true,
           data: {
+            title: 'บันทึกการรับเข้าสินค้าเรียบร้อย',
             details: [
               { label: 'จำนวนรายการ', value: `${result.details.success} รายการ` },
               { label: 'เวลา', value: new Date().toLocaleString('th-TH') },
             ],
           },
           redirect: true,
-        });
-      } else {
-        toast.error('มีบางรายการผิดพลาด กรุณาตรวจสอบ');
-        // อาจจะลบรายการที่สำเร็จออก หรือเหลือไว้ทั้งหมด (ในที่นี้ขอเหลือไว้)
-        console.error(result.details);
+        } as const;
       }
+      notify.error('มีบางรายการผิดพลาด กรุณาตรวจสอบ');
+      console.error(result.details);
+      return { success: false, details: result.details } as const;
     } catch (error) {
-      toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      notify.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      return { success: false } as const;
     } finally {
       setIsLoading(false);
       setSubmitting(false);
+      setIsCartOpen(false); // Close cart on finish
     }
   };
 
-  const handleSuccessClose = () => {
-    const shouldRedirect = successInfo?.redirect;
-    setSuccessInfo(null);
-    if (shouldRedirect) {
-      router.push(`/dashboard/${warehouseId}/inventory`);
-    }
-  };
+  const {
+    isOpen,
+    isLoading,
+    openConfirm,
+    closeConfirm,
+    execute,
+    successInfo,
+    handleSuccessModalClose,
+  } = useTransactionFlow(executor, (info) =>
+    info?.redirect ? `/dashboard/${warehouseId}/inventory` : undefined,
+  );
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 pb-20">
-      {/* --- Left Column: Form (2/3 width) --- */}
-      <div className="xl:col-span-2">
+    <div className="pb-20 max-w-4xl mx-auto">
+      {/* --- Main Form --- */}
+      <div>
         <form onSubmit={handleAddToQueue} className="space-y-6">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
             <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
@@ -268,65 +269,26 @@ export default function DynamicInboundForm({
         </form>
       </div>
 
-      {/* --- Right Column: Queue List (1/3 width) --- */}
-      <div className="xl:col-span-1">
-        <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl sticky top-6">
-          <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-            <ListChecks className="text-emerald-400" /> รายการรอรับเข้า ({queue.length})
-          </h3>
+      {/* --- Cart Trigger --- */}
+      <CartFloatingButton
+        itemCount={queue.length}
+        onClick={() => setIsCartOpen(true)}
+        label="รายการรับเข้า"
+      />
 
-          <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-2 mb-6">
-            {queue.length === 0 ? (
-              <div className="text-slate-500 text-center py-8 border-2 border-dashed border-slate-700 rounded-xl">
-                ยังไม่มีรายการ
-              </div>
-            ) : (
-              queue.map((item, idx) => (
-                <div
-                  key={item.id}
-                  className="bg-slate-800 p-3 rounded-xl border border-slate-700 flex justify-between items-start animate-in fade-in slide-in-from-right-4"
-                >
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="font-bold text-sm truncate text-slate-200">
-                      {idx + 1}. {item.product.name}
-                    </div>
-                    <div className="text-xs text-slate-400 font-mono mt-1">
-                      {item.location.code}{' '}
-                      {lotSchema.length > 0 && Object.keys(item.attributes).length > 0 && '•'}{' '}
-                      {lotSchema
-                        .map((field) => {
-                          const value = item.attributes[field.key];
-                          return value ? (
-                            <span
-                              key={field.key}
-                              className="inline-flex items-center rounded-md bg-slate-700 px-2 py-1 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-600 mr-1"
-                            >
-                              {field.label}: {String(value)}
-                            </span>
-                          ) : null;
-                        })
-                        .filter(Boolean)}
-                    </div>
-                  </div>
-                  <div className="text-right flex flex-col items-end gap-2">
-                    <span className="text-emerald-400 font-black text-lg">{item.quantity}</span>
-                    <button
-                      onClick={() => removeFromQueue(item.id)}
-                      aria-label="ลบรายการ"
-                      className="text-rose-400 hover:text-rose-300"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="border-t border-slate-700 pt-4">
-            <div className="flex justify-between mb-4 text-sm text-slate-400">
-              <span>รวมทั้งสิ้น</span>
-              <span className="text-white font-bold">{queue.length} รายการ</span>
+      {/* --- Drawer --- */}
+      <BaseCartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        title="รายการรอรับเข้า"
+        icon={<ListChecks size={20} />}
+        itemCount={queue.length}
+        onClearAll={() => setQueue([])}
+        footer={
+          <div className="space-y-3">
+            <div className="flex justify-between items-center text-sm font-bold text-slate-600">
+              <span>Total Items:</span>
+              <span className="text-lg text-emerald-600">{queue.length}</span>
             </div>
             <button
               onClick={handleConfirmAll}
@@ -337,14 +299,62 @@ export default function DynamicInboundForm({
               ยืนยันรับเข้าทั้งหมด
             </button>
           </div>
-        </div>
-      </div>
+        }
+      >
+        {queue.map((item, idx) => (
+          <div
+            key={item.id}
+            className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-emerald-200 transition-colors"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-start">
+                <h4 className="font-bold text-slate-700 truncate text-sm">
+                  {idx + 1}. {item.product.name}
+                </h4>
+                <button
+                  onClick={() => removeFromQueue(item.id)}
+                  className="text-slate-300 hover:text-rose-500 transition-colors p-1 -mr-1"
+                >
+                  <span className="sr-only">Remove {item.product.name} from queue</span>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              <div className="text-xs text-slate-500 mb-1 font-mono">{item.location.code}</div>
+
+              {lotSchema.length > 0 && Object.keys(item.attributes).length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {lotSchema.map((field) => {
+                    const value = item.attributes[field.key];
+                    return value ? (
+                      <span
+                        key={field.key}
+                        className="bg-slate-100 text-slate-500 text-[10px] px-1.5 py-0.5 rounded border border-slate-200"
+                      >
+                        {field.label}: {value}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                  +{item.quantity} {item.product.uom}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </BaseCartDrawer>
 
       {/* --- Modals --- */}
       <TransactionConfirmModal
-        isOpen={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        onConfirm={executeSubmission}
+        isOpen={isOpen}
+        onClose={closeConfirm}
+        onConfirm={async () => {
+          const res = await execute();
+          if (res.success) setQueue([]);
+        }}
         title="ยืนยันการรับเข้าสินค้า"
         details={
           <div className="flex flex-col gap-2 text-sm">
@@ -359,12 +369,12 @@ export default function DynamicInboundForm({
           </div>
         }
         confirmText="ยืนยันรับเข้า"
-        isLoading={submitting}
+        isLoading={isLoading || submitting}
       />
 
       <SuccessReceiptModal
         isOpen={!!successInfo}
-        onClose={handleSuccessClose}
+        onClose={handleSuccessModalClose}
         data={successInfo?.data ?? null}
       />
     </div>

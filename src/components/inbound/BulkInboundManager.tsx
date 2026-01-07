@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { downloadInboundTemplate, importInboundStock } from '@/actions/bulk-import-actions';
 import { Button } from '@/components/ui/button';
 import { FileDown, Upload, Loader2, FileSpreadsheet, CheckCircle2, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 
 interface Props {
   warehouseId: string;
@@ -23,7 +23,7 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
 
   const handleDownload = async (): Promise<void> => {
     if (!selectedCat) {
-      toast.error('กรุณาเลือกหมวดหมู่สินค้าก่อน');
+      notify.error('กรุณาเลือกหมวดหมู่สินค้าก่อน');
       return;
     }
     try {
@@ -36,12 +36,12 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast.success('ดาวน์โหลด Template สำเร็จ');
+        notify.success('ดาวน์โหลด Template สำเร็จ');
       } else {
-        toast.error('ไม่สามารถสร้าง Template ได้');
+        notify.error('ไม่สามารถสร้าง Template ได้');
       }
     } catch (error: any) {
-      toast.error(error.message || 'เกิดข้อผิดพลาดในการดาวน์โหลด');
+      notify.error(error.message || 'เกิดข้อผิดพลาดในการดาวน์โหลด');
     } finally {
       setLoading(false);
     }
@@ -67,10 +67,10 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
     e.target.value = '';
 
     if (res.success) {
-      toast.success(res.message);
+      notify.ok(res);
       setReport({ total: res.report?.total || 0, failed: 0, errors: [] });
     } else {
-      toast.error('การนำเข้าข้อมูลไม่สำเร็จ');
+      notify.error('การนำเข้าข้อมูลไม่สำเร็จ');
       if (res.report) {
         setReport(res.report);
       } else {

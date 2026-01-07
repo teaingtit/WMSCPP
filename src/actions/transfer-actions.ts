@@ -39,6 +39,7 @@ export async function searchStockForTransfer(warehouseId: string, query: string)
     .eq('locations.warehouse_id', whId)
     .gt('quantity', 0)
     .or(`name.ilike.%${query}%,sku.ilike.%${query}%`, { foreignTable: 'products' })
+    .order('quantity', { ascending: false })
     .limit(20);
 
   if (error) {
