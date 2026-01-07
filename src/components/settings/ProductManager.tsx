@@ -183,6 +183,34 @@ export default function ProductManager({ products, category }: ProductManagerPro
               className="w-full border border-slate-200 p-2.5 rounded-lg text-sm outline-none"
             />
           </div>
+          <div className="md:col-span-3">
+            <label htmlFor="uom-select" className="text-xs font-bold text-slate-500 mb-1 block">
+              หน่วยนับ
+            </label>
+            {category?.units && category.units.length > 0 ? (
+              <select
+                id="uom-select"
+                name="uom"
+                title="เลือกหน่วยนับสินค้า"
+                className="w-full border border-slate-200 p-2.5 rounded-lg text-sm outline-none bg-white"
+                defaultValue={category.units[0]}
+              >
+                {category.units.map((unit: string) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                id="uom-select"
+                name="uom"
+                placeholder="UNIT"
+                defaultValue="UNIT"
+                className="w-full border border-slate-200 p-2.5 rounded-lg text-sm outline-none uppercase"
+              />
+            )}
+          </div>
 
           {productSchema.length > 0 && (
             <div className="md:col-span-12 bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">

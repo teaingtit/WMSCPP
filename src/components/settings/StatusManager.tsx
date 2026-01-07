@@ -11,7 +11,9 @@ import {
   StatusDefinition,
   STATUS_EFFECT_OPTIONS,
   STATUS_COLOR_PALETTE,
+  STATUS_TYPE_OPTIONS,
   StatusEffect,
+  StatusType,
   getEffectBadgeClasses,
 } from '@/types/status';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
@@ -58,6 +60,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
   const [editingStatus, setEditingStatus] = useState<StatusDefinition | null>(null);
   const [selectedColor, setSelectedColor] = useState<ColorOption>(STATUS_COLOR_PALETTE[0]);
   const [selectedEffect, setSelectedEffect] = useState<StatusEffect>('TRANSACTIONS_ALLOWED');
+  const [selectedStatusType, setSelectedStatusType] = useState<StatusType>('PRODUCT');
 
   const [createState, createAction] = useFormState(createStatusWrapper, {
     success: false,
@@ -104,6 +107,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
   const resetForm = () => {
     setSelectedColor(STATUS_COLOR_PALETTE[0]);
     setSelectedEffect('TRANSACTIONS_ALLOWED');
+    setSelectedStatusType('PRODUCT');
   };
 
   const handleEditClick = (status: StatusDefinition) => {
@@ -116,6 +120,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
     };
     setSelectedColor(color as any);
     setSelectedEffect(status.effect);
+    setSelectedStatusType(status.status_type || 'PRODUCT');
   };
 
   return (
@@ -148,6 +153,8 @@ export function StatusManager({ statuses }: StatusManagerProps) {
               setSelectedColor={setSelectedColor}
               selectedEffect={selectedEffect}
               setSelectedEffect={setSelectedEffect}
+              selectedStatusType={selectedStatusType}
+              setSelectedStatusType={setSelectedStatusType}
               isSubmitting={false}
             />
           </DialogContent>
@@ -191,6 +198,8 @@ export function StatusManager({ statuses }: StatusManagerProps) {
               setSelectedColor={setSelectedColor}
               selectedEffect={selectedEffect}
               setSelectedEffect={setSelectedEffect}
+              selectedStatusType={selectedStatusType}
+              setSelectedStatusType={setSelectedStatusType}
               isSubmitting={false}
             />
           )}
@@ -211,6 +220,7 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const effectOption = STATUS_EFFECT_OPTIONS.find((e) => e.value === status.effect);
+  const statusTypeOption = STATUS_TYPE_OPTIONS.find((t) => t.value === status.status_type);
 
   return (
     <div
@@ -239,9 +249,18 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
                 {status.code}
+              </span>
+              <span
+                className={`text-xs px-2 py-0.5 rounded border ${
+                  status.status_type === 'LOCATION'
+                    ? 'bg-cyan-100 text-cyan-800 border-cyan-200'
+                    : 'bg-violet-100 text-violet-800 border-violet-200'
+                }`}
+              >
+                {statusTypeOption?.icon} {statusTypeOption?.label || 'Product'}
               </span>
               <span
                 className={`text-xs px-2 py-0.5 rounded border ${getEffectBadgeClasses(
@@ -307,6 +326,8 @@ interface StatusFormProps {
   setSelectedColor: (color: ColorOption) => void;
   selectedEffect: StatusEffect;
   setSelectedEffect: (effect: StatusEffect) => void;
+  selectedStatusType: StatusType;
+  setSelectedStatusType: (type: StatusType) => void;
   isSubmitting: boolean;
 }
 
@@ -317,6 +338,8 @@ function StatusForm({
   setSelectedColor,
   selectedEffect,
   setSelectedEffect,
+  selectedStatusType,
+  setSelectedStatusType,
 }: StatusFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [code, setCode] = useState(initialData?.code || '');
@@ -339,8 +362,37 @@ function StatusForm({
       <input type="hidden" name="bg_color" value={selectedColor.bg} />
       <input type="hidden" name="text_color" value={selectedColor.text} />
       <input type="hidden" name="effect" value={selectedEffect} />
+      <input type="hidden" name="status_type" value={selectedStatusType} />
       <input type="hidden" name="is_default" value={isDefault.toString()} />
       <input type="hidden" name="sort_order" value={sortOrder.toString()} />
+
+      {/* Status Type Selection */}
+      <div>
+        <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+          <Tag size={14} />
+          Status Type
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          {STATUS_TYPE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setSelectedStatusType(option.value)}
+              className={`text-left p-3 rounded-lg border-2 transition-all ${
+                selectedStatusType === option.value
+                  ? 'border-amber-500 bg-amber-50'
+                  : 'border-slate-200 hover:border-slate-300 bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{option.icon}</span>
+                <span className="font-medium text-slate-800">{option.label}</span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 ml-7">{option.description}</p>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Name & Code */}
       <div className="grid grid-cols-2 gap-4">

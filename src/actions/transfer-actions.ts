@@ -103,6 +103,32 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
 
   if (!sourceStock) throw new Error('ไม่พบสต็อกต้นทาง');
 
+  // ✅ Check status restrictions before transfer
+  const { data: stockStatus } = await supabase
+    .from('entity_statuses')
+    .select('status_definitions!inner(effect, name)')
+    .eq('entity_type', 'stock')
+    .eq('entity_id', stockId)
+    .maybeSingle();
+
+  if (stockStatus) {
+    const effect = stockStatus.status_definitions.effect;
+    const statusName = stockStatus.status_definitions.name;
+
+    // Block transfer if status prohibits transactions or is outbound-only
+    if (
+      effect === 'TRANSACTIONS_PROHIBITED' ||
+      effect === 'CLOSED' ||
+      effect === 'OUTBOUND_ONLY' ||
+      effect === 'AUDIT_ONLY'
+    ) {
+      return {
+        success: false,
+        message: `ไม่สามารถย้ายสินค้านี้ได้ สถานะ: ${statusName}`,
+      };
+    }
+  }
+
   // ✅ Validate: Prevent transfer to same location
   if (sourceStock.location_id === targetLocId) {
     return {

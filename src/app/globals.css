@@ -274,14 +274,13 @@ html {
 
   /* App Container with Safe Areas */
   .app-container {
-    @apply max-w-7xl mx-auto;
-    @apply px-4 sm:px-6 lg:px-8;
+    @apply w-full min-h-screen;
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   /* Page Container */
   .page-container {
-    @apply min-h-screen pb-20 lg:pb-8;
+    @apply min-h-screen pb-20 md:pb-8;
     @apply animate-fade-in;
   }
 

@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { Grid3X3, Layers, ChevronDown } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
+import { EntityStatus } from '@/types/status';
 import { StockItemCard } from './StockItemCard';
 import { InventoryCheckbox } from './InventoryCheckbox';
 
@@ -14,7 +15,11 @@ interface StockPositionGroupProps {
   onTogglePos: (lot: string, pos: string) => void;
   onToggleItem: (id: string) => void;
   onToggleMultiple: (ids: string[]) => void;
-  categoryFormSchemas: Record<string, any[]>; // Add categoryFormSchemas
+  onCardClick?: ((item: StockWithDetails) => void) | undefined;
+  categoryFormSchemas: Record<string, any[]>;
+  statusMap?: Map<string, EntityStatus> | undefined;
+  noteCountMap?: Map<string, number> | undefined;
+  onStatusClick?: ((item: StockWithDetails) => void) | undefined;
 }
 
 const getLevelStyles = (level: string) => {
@@ -67,7 +72,11 @@ export const StockPositionGroup = ({
   onTogglePos,
   onToggleItem,
   onToggleMultiple,
-  categoryFormSchemas, // Receive categoryFormSchemas
+  onCardClick,
+  categoryFormSchemas,
+  statusMap,
+  noteCountMap,
+  onStatusClick,
 }: StockPositionGroupProps) => {
   // Logic: ตรวจสอบว่าเลือกสินค้าครบทุกชิ้นใน Position นี้หรือไม่
   const isPosSelected = items.length > 0 && items.every((item) => selectedIds.has(item.id));
@@ -163,7 +172,11 @@ export const StockPositionGroup = ({
                       item={item}
                       isSelected={selectedIds.has(item.id)}
                       onToggle={onToggleItem}
-                      categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas
+                      onCardClick={onCardClick}
+                      categoryFormSchemas={categoryFormSchemas}
+                      status={statusMap?.get(item.id)}
+                      noteCount={noteCountMap?.get(item.id) || 0}
+                      onStatusClick={onStatusClick}
                     />
                   ))}
                 </div>

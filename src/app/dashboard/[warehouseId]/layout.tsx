@@ -17,13 +17,18 @@ export default async function WarehouseLayout({
 
   const supabase = await createClient();
   const { warehouseId } = params;
+  const decodedId = decodeURIComponent(warehouseId);
 
   // ✅ FIX: เพิ่ม is_active ใน select เพื่อให้ WarehouseHeader ไม่ error
-  const { data: warehouse } = await supabase
+  const { data: warehouse, error } = await supabase
     .from('warehouses')
     .select('id, name, code, is_active')
-    .eq('code', warehouseId)
+    .eq('code', decodedId)
     .single();
+
+  if (error) {
+    console.error(`Error fetching warehouse ${decodedId} (raw: ${warehouseId}):`, error);
+  }
 
   if (!warehouse) {
     if (user.role === 'admin') {

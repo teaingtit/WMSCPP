@@ -49,6 +49,27 @@ const submitOutboundHandler = async (formData: OutboundFormData, { user, supabas
 
   if (!stockInfo) throw new Error('ไม่พบข้อมูลสต็อก');
 
+  // ✅ Check status restrictions before outbound
+  const { data: entityStatus } = await supabase
+    .from('entity_statuses')
+    .select('status:status_definitions(name, effect)')
+    .eq('entity_type', 'STOCK')
+    .eq('entity_id', stockId)
+    .single();
+
+  if (entityStatus?.status) {
+    const effect = entityStatus.status.effect;
+    const statusName = entityStatus.status.name;
+
+    // Block outbound for restricted statuses
+    if (['TRANSACTIONS_PROHIBITED', 'CLOSED', 'INBOUND_ONLY', 'AUDIT_ONLY'].includes(effect)) {
+      return {
+        success: false,
+        message: `ไม่สามารถเบิกจ่ายได้: สินค้านี้มีสถานะ "${statusName}" ที่ไม่อนุญาตให้เบิกจ่าย`,
+      };
+    }
+  }
+
   // ✅ Validate: Check quantity before sending to RPC
   if (deductQty > stockInfo.quantity) {
     return {

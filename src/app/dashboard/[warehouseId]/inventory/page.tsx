@@ -119,7 +119,7 @@ export default async function InventoryPage({
       <div className="mx-auto max-w-7xl">
         <InventoryDashboard
           stocks={formattedStocks}
-          warehouseId={warehouseId}
+          warehouseId={wh.id}
           categories={categories} // Pass categories to InventoryDashboard
           warehouses={warehouses} // Pass warehouses list
         />

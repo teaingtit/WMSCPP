@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, AlertTriangle, MapPin, Shield, Settings2 } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
+import { EntityStatus, StatusDefinition, createStatusStyle } from '@/types/status';
 import { StockPositionGroup } from './StockPositionGroup';
 import { InventoryCheckbox } from './InventoryCheckbox';
-import { useInventorySelection } from '@/components/inventory/InventoryDashboard'; // Import useInventorySelection
+import { useInventorySelection } from '@/components/inventory/InventoryDashboard';
+import { LotStatus } from '@/actions/status-actions';
+import { isRestricted } from '../utils';
 
 interface StockLotSectionProps {
   lot: string;
@@ -15,7 +18,14 @@ interface StockLotSectionProps {
   onTogglePos: (lot: string, pos: string) => void;
   onToggleItem: (id: string) => void;
   onToggleMultiple: (ids: string[]) => void;
+  onCardClick?: ((item: StockWithDetails) => void) | undefined;
   categoryFormSchemas: Record<string, any[]>;
+  statusMap?: Map<string, EntityStatus> | undefined;
+  noteCountMap?: Map<string, number> | undefined;
+  onStatusClick?: ((item: StockWithDetails) => void) | undefined;
+  lotStatus?: LotStatus | null;
+  isAdmin?: boolean;
+  onLotStatusClick?: (lot: string) => void;
 }
 
 export const StockLotSection = ({
@@ -26,9 +36,16 @@ export const StockLotSection = ({
   onTogglePos,
   onToggleItem,
   onToggleMultiple,
+  onCardClick,
+  statusMap,
+  noteCountMap,
+  onStatusClick,
+  lotStatus,
+  isAdmin,
+  onLotStatusClick,
 }: StockLotSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { categoryFormSchemas } = useInventorySelection(); // Retrieve categoryFormSchemas from context
+  const { categoryFormSchemas } = useInventorySelection();
 
   const posKeys = useMemo(
     () => Object.keys(positions).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
@@ -37,6 +54,12 @@ export const StockLotSection = ({
 
   const allItems = useMemo(() => Object.values(positions).flat(), [positions]);
   const totalItemsInLot = allItems.length;
+
+  // Count restricted items in lot
+  const restrictedCount = useMemo(() => {
+    if (!statusMap) return 0;
+    return allItems.filter((item) => isRestricted(statusMap.get(item.id))).length;
+  }, [allItems, statusMap]);
 
   const isLotSelected = useMemo(() => {
     return allItems.length > 0 && allItems.every((item) => selectedIds.has(item.id));
@@ -66,11 +89,51 @@ export const StockLotSection = ({
           <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             Lot / Zone
           </div>
-          <div className="font-bold text-lg text-slate-800">{lot}</div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-lg text-slate-800">{lot}</span>
+            {/* Lot Status Badge */}
+            {lotStatus?.status && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isAdmin && onLotStatusClick) onLotStatusClick(lot);
+                }}
+                className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg border transition-all ${
+                  isAdmin ? 'hover:opacity-80 cursor-pointer' : 'cursor-default'
+                }`}
+                style={createStatusStyle(lotStatus.status)}
+                title={isAdmin ? 'Click to change lot status' : lotStatus.status.description || ''}
+              >
+                <MapPin size={12} />
+                {lotStatus.status.name}
+              </button>
+            )}
+            {/* Add Status Button (Admin only, when no status) */}
+            {isAdmin && !lotStatus?.status && onLotStatusClick && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLotStatusClick(lot);
+                }}
+                className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-cyan-600 px-2 py-1 rounded-lg border border-dashed border-slate-300 hover:border-cyan-400 transition-all"
+                title="Set lot status"
+              >
+                <Settings2 size={12} />
+                Set Status
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200 text-slate-500">
-          {totalItemsInLot} Items
+        <div className="flex items-center gap-2">
+          {restrictedCount > 0 && (
+            <span className="flex items-center gap-1 text-[10px] font-bold bg-red-100 text-red-700 px-2 py-1 rounded-full border border-red-200">
+              <AlertTriangle size={12} /> {restrictedCount} restricted
+            </span>
+          )}
+          <span className="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200 text-slate-500">
+            {totalItemsInLot} Items
+          </span>
         </div>
       </div>
 
@@ -82,12 +145,16 @@ export const StockLotSection = ({
               key={pos}
               lot={lot}
               pos={pos}
-              items={positions[pos] || []} // ✅ แก้ไขตรงนี้: ใส่ || [] เพื่อกัน undefined
+              items={positions[pos] || []}
               selectedIds={selectedIds}
               onTogglePos={onTogglePos}
               onToggleItem={onToggleItem}
               onToggleMultiple={onToggleMultiple}
-              categoryFormSchemas={categoryFormSchemas} // Pass categoryFormSchemas
+              onCardClick={onCardClick}
+              categoryFormSchemas={categoryFormSchemas}
+              statusMap={statusMap}
+              noteCountMap={noteCountMap}
+              onStatusClick={onStatusClick}
             />
           ))}
         </div>

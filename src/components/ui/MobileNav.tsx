@@ -39,7 +39,7 @@ export default function MobileNav() {
   }, [isOpen]);
 
   return (
-    <div className="lg:hidden sticky top-0 z-50">
+    <div className="md:hidden sticky top-0 z-50">
       {/* Navbar - Glass morphism style */}
       <div className="glass-dark px-4 py-3.5 flex items-center justify-between safe-area-top">
         <Link href="/dashboard" className="flex items-center gap-3 group">

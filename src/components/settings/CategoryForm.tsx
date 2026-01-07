@@ -4,6 +4,7 @@ import { useFormState } from 'react-dom';
 import { createCategory } from '@/actions/settings-actions';
 import { Plus, Info } from 'lucide-react';
 import SchemaBuilder from './SchemaBuilder';
+import UnitsBuilder from './UnitsBuilder';
 import { SubmitButton } from '@/components/SubmitButton';
 import { useState, useRef, useEffect } from 'react';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
@@ -14,6 +15,7 @@ const createCategoryWrapper = wrapFormAction(createCategory);
 export default function CategoryForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [schemaJson, setSchemaJson] = useState('[]');
+  const [unitsJson, setUnitsJson] = useState('[]');
 
   const [state, action] = useFormState(createCategoryWrapper, { success: false, message: '' });
 
@@ -23,6 +25,7 @@ export default function CategoryForm() {
       if (state.success) {
         formRef.current?.reset();
         setSchemaJson('[]');
+        setUnitsJson('[]');
       }
     }
   }, [state]);
@@ -57,6 +60,12 @@ export default function CategoryForm() {
       </div>
 
       <input type="hidden" name="schema" value={schemaJson} />
+      <input type="hidden" name="units" value={unitsJson} />
+
+      {/* Units Builder */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <UnitsBuilder onUnitsChange={setUnitsJson} />
+      </div>
 
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <h4 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">

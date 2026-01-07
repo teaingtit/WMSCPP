@@ -4,6 +4,15 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { ActionResponse } from '@/types/action-response';
+import {
+  validateFormData,
+  extractFormFields,
+  ok,
+  fail,
+  handleDuplicateError,
+  softDelete,
+  modifyCategoryUnits,
+} from '@/lib/action-utils';
 
 // --- Zod Schemas ---
 const CreateWarehouseSchema = z.object({
@@ -30,6 +39,7 @@ const CreateProductSchema = z.object({
     .min(1, 'Product Name is required')
     .transform((val) => val.trim()),
   category_id: z.string().min(1, 'Product Category is required'),
+  uom: z.string().optional().default('UNIT'),
   image_url: z.string().optional(),
 });
 
@@ -40,6 +50,12 @@ const CreateCategorySchema = z.object({
     .transform((val) => val.trim().toUpperCase()),
   name: z.string().min(1, 'Name is required'),
   schema: z.string().optional().default('[]'),
+  units: z.string().optional().default('[]'),
+});
+
+const UpdateCategoryUnitsSchema = z.object({
+  id: z.string().min(1, 'Category ID is required'),
+  units: z.string().optional().default('[]'),
 });
 
 // --- 1. Getters (ดึงเฉพาะ Active) ---
@@ -78,29 +94,20 @@ export async function getProducts() {
 
 export async function createProduct(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
+  const rawData = extractFormFields(formData, ['sku', 'name', 'category_id', 'uom', 'image_url']);
+  rawData.uom = rawData.uom || 'UNIT';
 
-  const rawData = {
-    sku: formData.get('sku'),
-    name: formData.get('name'),
-    category_id: formData.get('category_id'),
-    image_url: formData.get('image_url'),
-  };
+  const validation = validateFormData(CreateProductSchema, rawData);
+  if (!validation.success) return validation.response;
 
-  const validated = CreateProductSchema.safeParse(rawData);
-  if (!validated.success) {
-    return {
-      success: false,
-      message: validated.error.issues[0]?.message ?? 'Invalid Data',
-      errors: validated.error.flatten().fieldErrors as Record<string, string[]>,
-    };
-  }
-
-  const { sku, name, category_id, image_url } = validated.data;
+  const { sku, name, category_id, uom, image_url } = validation.data;
   const { data: category } = await supabase
     .from('product_categories')
-    .select('form_schema')
+    .select('form_schema, units')
     .eq('id', category_id)
     .single();
+
+  // Build dynamic attributes from category schema
   const attributes: Record<string, any> = {};
   if (category?.form_schema) {
     (category.form_schema as any[]).forEach((field) => {
@@ -109,122 +116,81 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
     });
   }
 
+  const finalUom = uom || category?.units?.[0] || 'UNIT';
+
   try {
     const { error } = await supabase.from('products').insert({
       sku,
       name,
       category_id: category_id || 'GENERAL',
+      uom: finalUom,
       image_url: image_url || null,
-      attributes: attributes,
-      is_active: true, // ✅ Default เป็น True เสมอ
+      attributes,
+      is_active: true,
     });
 
     if (error) {
-      if (error.code === '23505') return { success: false, message: `SKU "${sku}" มีอยู่แล้ว` };
+      const dupError = handleDuplicateError(error, 'SKU', sku);
+      if (dupError) return dupError;
       throw error;
     }
     revalidatePath('/dashboard/settings');
-    return { success: true, message: 'สร้างสินค้าสำเร็จ' };
+    return ok('สร้างสินค้าสำเร็จ');
   } catch (err: any) {
-    return { success: false, message: err.message };
+    return fail(err.message);
   }
 }
 
-// ✅ RE-DESIGNED: Soft Delete Product
+// ✅ Soft Delete Product
 export async function deleteProduct(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const id = formData.get('id') as string;
 
-  try {
-    // 1. เช็คสินค้าคงเหลือ (ถ้ายังมีของอยู่ ห้ามลบเด็ดขาด!)
-    const { count } = await supabase
-      .from('stocks')
-      .select('*', { count: 'exact', head: true })
-      .eq('product_id', id);
-    if (count && count > 0)
-      return { success: false, message: '❌ ลบไม่ได้: มีสินค้าคงเหลือในสต็อก' };
+  // Get current SKU for rename
+  const { data: product } = await supabase.from('products').select('sku').eq('id', id).single();
+  if (!product) return fail('ไม่พบสินค้า');
 
-    // 2. ดึงข้อมูลสินค้าเดิมเพื่อเอา SKU
-    const { data: product } = await supabase.from('products').select('sku').eq('id', id).single();
-    if (!product) return { success: false, message: 'ไม่พบสินค้า' };
-
-    // 3. ทำ Soft Delete + Rename SKU
-    // เราต้องแก้ชื่อ SKU เพื่อให้ User สามารถสร้างสินค้าใหม่ด้วย SKU เดิมได้ทันที
-    const archivedSku = `${product.sku}_DEL_${Date.now()}`;
-
-    const { error } = await supabase
-      .from('products')
-      .update({
-        is_active: false,
-        sku: archivedSku, // เปลี่ยนชื่อ SKU เพื่อคืนค่าให้ระบบ
-      })
-      .eq('id', id);
-
-    if (error) throw error;
-
-    revalidatePath('/dashboard/settings');
-    return { success: true, message: 'ลบสินค้าสำเร็จ (ย้ายไปถังขยะ)' };
-  } catch (err: any) {
-    return { success: false, message: err.message };
-  }
+  return softDelete({
+    table: 'products',
+    id,
+    checkTable: 'stocks',
+    checkColumn: 'product_id',
+    errorMessage: '❌ ลบไม่ได้: มีสินค้าคงเหลือในสต็อก',
+    renameField: { field: 'sku', currentValue: product.sku },
+    successMessage: 'ลบสินค้าสำเร็จ (ย้ายไปถังขยะ)',
+  });
 }
 
-// ✅ RE-DESIGNED: Soft Delete Warehouse
+// ✅ Soft Delete Warehouse
 export async function deleteWarehouse(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-  const id = formData.get('id') as string;
-  try {
-    // 1. เช็คสินค้าคงเหลือ
-    const { count } = await supabase
-      .from('stocks')
-      .select('*', { count: 'exact', head: true })
-      .eq('warehouse_id', id);
-    if (count && count > 0) return { success: false, message: '❌ มีสินค้าคงเหลือ ลบไม่ได้' };
-
-    // 2. Soft Delete (ปิดการใช้งาน)
-    const { error } = await supabase.from('warehouses').update({ is_active: false }).eq('id', id);
-
-    if (error) throw error;
-
-    revalidatePath('/dashboard/settings');
-    revalidatePath('/dashboard');
-    return { success: true, message: 'ปิดใช้งานคลังสินค้าเรียบร้อย' };
-  } catch (err: any) {
-    return { success: false, message: err.message };
-  }
+  return softDelete({
+    table: 'warehouses',
+    id: formData.get('id') as string,
+    checkTable: 'stocks',
+    checkColumn: 'warehouse_id',
+    errorMessage: '❌ มีสินค้าคงเหลือ ลบไม่ได้',
+    revalidatePaths: ['/dashboard/settings', '/dashboard'],
+    successMessage: 'ปิดใช้งานคลังสินค้าเรียบร้อย',
+  });
 }
 
 export async function createWarehouse(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
+  const rawData = extractFormFields(formData, ['code', 'name', 'axis_x', 'axis_y', 'axis_z']);
 
-  const rawData = {
-    code: formData.get('code'),
-    name: formData.get('name'),
-    axis_x: formData.get('axis_x'),
-    axis_y: formData.get('axis_y'),
-    axis_z: formData.get('axis_z'),
-  };
+  const validation = validateFormData(CreateWarehouseSchema, rawData);
+  if (!validation.success) return validation.response;
 
-  const validated = CreateWarehouseSchema.safeParse(rawData);
-  if (!validated.success) {
-    return {
-      success: false,
-      message: validated.error.issues[0]?.message ?? 'Invalid Data',
-      errors: validated.error.flatten().fieldErrors as Record<string, string[]>,
-    };
-  }
-  const { code, name, axis_x, axis_y, axis_z } = validated.data;
-
-  const payload = {
-    p_code: code,
-    p_name: name,
-    p_axis_x: axis_x,
-    p_axis_y: axis_y,
-    p_axis_z: axis_z,
-  };
+  const { code, name, axis_x, axis_y, axis_z } = validation.data;
 
   try {
-    const { data, error } = await supabase.rpc('create_warehouse_xyz_grid', payload);
+    const { data, error } = await supabase.rpc('create_warehouse_xyz_grid', {
+      p_code: code,
+      p_name: name,
+      p_axis_x: axis_x,
+      p_axis_y: axis_y,
+      p_axis_z: axis_z,
+    });
 
     if (error) throw error;
     const result = data as { success: boolean; message: string };
@@ -232,64 +198,96 @@ export async function createWarehouse(formData: FormData): Promise<ActionRespons
     if (result.success) {
       revalidatePath('/dashboard/settings');
       revalidatePath('/dashboard');
-      return { success: true, message: result.message };
-    } else {
-      return { success: false, message: result.message };
+      return ok(result.message);
     }
+    return fail(result.message);
   } catch (err: any) {
     console.error('RPC Error:', err);
-    return { success: false, message: 'System Error: ' + err.message };
+    return fail('System Error: ' + err.message);
   }
 }
 
 export async function createCategory(formData: FormData): Promise<ActionResponse> {
-  const rawData = {
-    id: formData.get('id'),
-    name: formData.get('name'),
-    schema: formData.get('schema'),
-  };
+  const rawData = extractFormFields(formData, ['id', 'name', 'schema', 'units']);
 
-  const validated = CreateCategorySchema.safeParse(rawData);
-  if (!validated.success) {
-    return {
-      success: false,
-      message: validated.error.issues[0]?.message ?? 'Invalid Data',
-      errors: validated.error.flatten().fieldErrors as Record<string, string[]>,
-    };
-  }
-  const { id, name, schema } = validated.data;
+  const validation = validateFormData(CreateCategorySchema, rawData);
+  if (!validation.success) return validation.response;
 
+  const { id, name, schema, units } = validation.data;
   const supabase = await createClient();
+
   try {
-    let parsedSchema = JSON.parse(schema);
-    const { error } = await supabase
-      .from('product_categories')
-      .insert([{ id, name, form_schema: parsedSchema }]);
+    const { error } = await supabase.from('product_categories').insert([
+      {
+        id,
+        name,
+        form_schema: JSON.parse(schema),
+        units: JSON.parse(units),
+      },
+    ]);
+
     if (error) {
-      if (error.code === '23505') return { success: false, message: 'ID ซ้ำ' };
+      const dupError = handleDuplicateError(error, 'ID', id);
+      if (dupError) return dupError;
       throw error;
     }
     revalidatePath('/dashboard/settings');
-    return { success: true, message: 'สร้างประเภทสินค้าสำเร็จ' };
+    return ok('สร้างประเภทสินค้าสำเร็จ');
   } catch (err: any) {
-    return { success: false, message: 'Error: ' + err.message };
+    return fail('Error: ' + err.message);
   }
 }
 
 export async function deleteCategory(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const id = formData.get('id') as string;
+
   try {
     const { count } = await supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
       .eq('category_id', id);
-    if (count && count > 0) return { success: false, message: '❌ มีสินค้าใช้ประเภทนี้อยู่' };
+
+    if (count && count > 0) return fail('❌ มีสินค้าใช้ประเภทนี้อยู่');
+
     const { error } = await supabase.from('product_categories').delete().eq('id', id);
     if (error) throw error;
+
     revalidatePath('/dashboard/settings');
-    return { success: true, message: 'ลบประเภทสินค้าสำเร็จ' };
+    return ok('ลบประเภทสินค้าสำเร็จ');
   } catch (err: any) {
-    return { success: false, message: err.message };
+    return fail(err.message);
   }
 }
+
+// --- Category Units Management ---
+
+export async function updateCategoryUnits(formData: FormData): Promise<ActionResponse> {
+  const rawData = extractFormFields(formData, ['id', 'units']);
+
+  const validation = validateFormData(UpdateCategoryUnitsSchema, rawData);
+  if (!validation.success) return validation.response;
+
+  const { id, units } = validation.data;
+  const supabase = await createClient();
+
+  try {
+    const { error } = await supabase
+      .from('product_categories')
+      .update({ units: JSON.parse(units) })
+      .eq('id', id);
+
+    if (error) throw error;
+    revalidatePath('/dashboard/settings');
+    return ok('อัปเดตหน่วยนับสำเร็จ');
+  } catch (err: any) {
+    return fail('Error: ' + err.message);
+  }
+}
+
+// Unified unit operations using shared helper
+export const addUnitToCategory = (categoryId: string, unit: string) =>
+  modifyCategoryUnits(categoryId, unit, 'add');
+
+export const removeUnitFromCategory = (categoryId: string, unit: string) =>
+  modifyCategoryUnits(categoryId, unit, 'remove');

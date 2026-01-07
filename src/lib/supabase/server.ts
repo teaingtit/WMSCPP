@@ -2,9 +2,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// ✅ FIX: ต้องเป็น async function เพราะ Next.js 15 cookies() เป็น async
+// Next.js 14: cookies() is synchronous
 export async function createClient() {
-  const cookieStore = await cookies(); // ✅ Await ตรงนี้
+  const cookieStore = cookies();
 
   return createServerClient(
     process.env['NEXT_PUBLIC_SUPABASE_URL']!,

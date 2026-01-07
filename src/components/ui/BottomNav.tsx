@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import React from 'react';
-import { Package, LayoutGrid } from 'lucide-react';
-import { MENU_ITEMS } from '@/lib/constants';
+import { Package, LayoutGrid, ClipboardCheck, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function BottomNav() {
@@ -12,51 +11,85 @@ export default function BottomNav() {
   const params = useParams();
   const warehouseId = params?.['warehouseId'] as string | undefined;
 
-  const items = [
-    MENU_ITEMS.find((m) => m.matchPath === '/dashboard'),
-    MENU_ITEMS.find((m) => m.matchPath === '/inventory') || {
-      title: 'Inventory',
-      href: `/dashboard/${warehouseId || ''}/inventory`,
-      icon: Package,
-      matchPath: '/inventory',
-    },
-    MENU_ITEMS.find((m) => m.matchPath === '/audit'),
-    MENU_ITEMS.find((m) => m.matchPath === '/settings'),
-  ].filter(Boolean) as typeof MENU_ITEMS;
+  // Only show BottomNav on dashboard routes
+  if (!pathname?.startsWith('/dashboard')) {
+    return null;
+  }
+
+  // Define items based on whether we have a warehouseId
+  const items = warehouseId
+    ? [
+        {
+          title: 'เลือกคลังสินค้า',
+          href: '/dashboard',
+          icon: LayoutGrid,
+        },
+        {
+          title: 'สต็อกสินค้า (Inventory)',
+          href: `/dashboard/${warehouseId}/inventory`,
+          icon: Package,
+        },
+        {
+          title: 'Stock Audit',
+          href: `/dashboard/${warehouseId}/audit`,
+          icon: ClipboardCheck,
+        },
+        {
+          title: 'ตั้งค่าระบบ',
+          href: '/dashboard/settings',
+          icon: Settings,
+        },
+      ]
+    : [
+        {
+          title: 'เลือกคลังสินค้า',
+          href: '/dashboard',
+          icon: LayoutGrid,
+        },
+        {
+          title: 'ตั้งค่าระบบ',
+          href: '/dashboard/settings',
+          icon: Settings,
+        },
+      ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 lg:hidden safe-area-bottom">
-      <div className="max-w-lg mx-auto px-2">
-        <div className="flex items-center justify-around h-16">
+    <nav className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 md:hidden safe-area-bottom">
+      <div className="max-w-lg mx-auto px-1">
+        <div className="flex items-center justify-around h-14">
           {items.map((item) => {
-            const realHref = item.href.replace('[warehouseId]', warehouseId || '');
-            const isActive = pathname?.startsWith(realHref);
-            const Icon = item.icon || LayoutGrid;
+            const isActive =
+              item.href === '/dashboard'
+                ? pathname === '/dashboard'
+                : pathname?.startsWith(item.href);
+            const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
-                href={realHref}
+                href={item.href}
                 className={cn(
-                  'relative flex flex-col items-center justify-center py-1.5 px-4 rounded-2xl transition-all duration-200',
+                  'relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-95',
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {/* Active indicator */}
-                {isActive && <div className="absolute -top-0.5 w-8 h-1 bg-primary rounded-full" />}
+                {isActive && (
+                  <div className="absolute -top-0.5 w-6 h-0.5 bg-primary rounded-full" />
+                )}
 
                 <div
                   className={cn(
-                    'p-1.5 rounded-xl transition-all duration-200',
+                    'p-1 rounded-lg transition-all duration-200',
                     isActive ? 'bg-primary/10' : '',
                   )}
                 >
-                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
                 </div>
                 <span
                   className={cn(
-                    'text-[10px] font-medium mt-0.5 transition-colors',
+                    'text-[9px] font-medium mt-0.5 transition-colors leading-tight',
                     isActive ? 'text-primary font-semibold' : '',
                   )}
                 >

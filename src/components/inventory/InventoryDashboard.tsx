@@ -1,17 +1,23 @@
 'use client';
 
-import React, { useState, useMemo, createContext, useContext, useCallback } from 'react';
+import React, { useState, useMemo, createContext, useContext, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Package } from 'lucide-react';
+import { Package, Shield } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
 import ExportButton from './ExportButton';
 import { StockWithDetails } from '@/types/inventory';
+import { EntityStatus } from '@/types/status';
 import { StockLotSection } from './dashboard/StockLotSection';
 import { BulkActionBar } from './dashboard/BulkActionBar';
 import { Category } from '@/components/inbound/DynamicInboundForm';
 import { CartDrawer } from './CartDrawer';
 import { BulkTransferModal } from './modals/BulkTransferModal';
 import { BulkOutboundModal } from './modals/BulkOutboundModal';
+import StockDetailModal from './StockDetailModal';
+import StatusAndNotesModal from './status/StatusAndNotesModal';
+import LotStatusModal from './LotStatusModal';
+import { getInventoryStatusData, getLotStatuses, LotStatus } from '@/actions/status-actions';
+import { useUser } from '@/components/providers/UserProvider';
 
 interface Warehouse {
   id: string;
@@ -234,13 +240,31 @@ export const InventorySelectionProvider = ({
 const InventoryDashboardContent = ({
   warehouseId,
   warehouses,
+  stocks,
 }: {
   warehouseId: string;
   warehouses: Warehouse[];
+  stocks: StockWithDetails[];
 }) => {
   const router = useRouter();
+  const user = useUser();
+  const isAdmin = user?.role === 'admin';
+
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<'INTERNAL' | 'CROSS' | 'OUTBOUND' | null>(null);
+
+  // Detail modal state for viewing/editing individual items
+  const [detailModalItem, setDetailModalItem] = useState<StockWithDetails | null>(null);
+
+  // Status management state
+  const [statusModalItem, setStatusModalItem] = useState<StockWithDetails | null>(null);
+  const [statusMap, setStatusMap] = useState<Map<string, EntityStatus>>(new Map());
+  const [noteCountMap, setNoteCountMap] = useState<Map<string, number>>(new Map());
+  const [_isLoadingStatus, setIsLoadingStatus] = useState(false);
+
+  // Lot status state
+  const [lotStatusMap, setLotStatusMap] = useState<Map<string, LotStatus>>(new Map());
+  const [lotStatusModalLot, setLotStatusModalLot] = useState<string | null>(null);
 
   const {
     hierarchy,
@@ -259,6 +283,68 @@ const InventoryDashboardContent = ({
     () => Object.keys(hierarchy).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
     [hierarchy],
   );
+
+  // Load status data for all stocks
+  useEffect(() => {
+    const loadStatusData = async () => {
+      const stockIds = stocks.map((s) => s.id);
+      if (stockIds.length === 0) return;
+
+      setIsLoadingStatus(true);
+      try {
+        const [{ statuses, noteCounts }, lotStatuses] = await Promise.all([
+          getInventoryStatusData(stockIds),
+          getLotStatuses(warehouseId),
+        ]);
+        setStatusMap(statuses);
+        setNoteCountMap(noteCounts);
+        setLotStatusMap(lotStatuses);
+      } catch (error) {
+        console.error('Error loading status data:', error);
+      } finally {
+        setIsLoadingStatus(false);
+      }
+    };
+
+    loadStatusData();
+  }, [stocks, warehouseId]);
+
+  // Reload status data after changes
+  const handleStatusChange = async () => {
+    const stockIds = stocks.map((s) => s.id);
+    if (stockIds.length === 0) return;
+
+    try {
+      const { statuses, noteCounts } = await getInventoryStatusData(stockIds);
+      setStatusMap(statuses);
+      setNoteCountMap(noteCounts);
+    } catch (error) {
+      console.error('Error reloading status data:', error);
+    }
+  };
+
+  // Reload lot status data after changes
+  const handleLotStatusChange = async () => {
+    try {
+      const lotStatuses = await getLotStatuses(warehouseId);
+      setLotStatusMap(lotStatuses);
+    } catch (error) {
+      console.error('Error reloading lot status data:', error);
+    }
+  };
+
+  const handleLotStatusClick = (lot: string) => {
+    setLotStatusModalLot(lot);
+  };
+
+  const handleStatusClick = (item: StockWithDetails) => {
+    setStatusModalItem(item);
+  };
+
+  // Handler for opening item detail modal
+  const handleCardClick = (item: StockWithDetails) => {
+    setDetailModalItem(item);
+  };
 
   const handleBulkAction = (action: 'internal' | 'cross' | 'outbound') => {
     if (selectedItems.length === 0) return;
@@ -288,6 +374,11 @@ const InventoryDashboardContent = ({
           </h1>
           <p className="text-slate-500 mt-1 text-sm">
             มุมมองแบบ <span className="font-bold text-indigo-600">Lot, Position & Level</span>
+            {statusMap.size > 0 && (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                <Shield size={12} /> {statusMap.size} items with status
+              </span>
+            )}
           </p>
         </div>
 
@@ -315,7 +406,14 @@ const InventoryDashboardContent = ({
             onTogglePos={togglePos}
             onToggleItem={toggleItem}
             onToggleMultiple={toggleMultiple}
+            onCardClick={handleCardClick}
             categoryFormSchemas={categoryFormSchemas}
+            statusMap={statusMap}
+            noteCountMap={noteCountMap}
+            onStatusClick={handleStatusClick}
+            lotStatus={lotStatusMap.get(lot) || null}
+            isAdmin={isAdmin}
+            onLotStatusClick={handleLotStatusClick}
           />
         ))}
       </div>
@@ -358,6 +456,35 @@ const InventoryDashboardContent = ({
           onSuccess={handleSuccess}
         />
       )}
+
+      {/* Status & Notes Modal */}
+      <StatusAndNotesModal
+        isOpen={!!statusModalItem}
+        onClose={() => setStatusModalItem(null)}
+        item={statusModalItem}
+        entityType="STOCK"
+        onStatusChange={handleStatusChange}
+      />
+
+      {/* Stock Detail Modal - for viewing/editing individual items */}
+      <StockDetailModal
+        isOpen={!!detailModalItem}
+        onClose={() => setDetailModalItem(null)}
+        item={detailModalItem}
+        warehouseId={warehouseId}
+      />
+
+      {/* Lot Status Modal - Admin only */}
+      {isAdmin && (
+        <LotStatusModal
+          isOpen={!!lotStatusModalLot}
+          onClose={() => setLotStatusModalLot(null)}
+          warehouseId={warehouseId}
+          lot={lotStatusModalLot || ''}
+          currentStatus={lotStatusModalLot ? lotStatusMap.get(lotStatusModalLot) || null : null}
+          onStatusChange={handleLotStatusChange}
+        />
+      )}
     </div>
   );
 };
@@ -370,7 +497,11 @@ export default function InventoryDashboard({
 }: InventoryDashboardProps) {
   return (
     <InventorySelectionProvider stocks={stocks} categories={categories}>
-      <InventoryDashboardContent warehouseId={warehouseId} warehouses={warehouses} />
+      <InventoryDashboardContent
+        warehouseId={warehouseId}
+        warehouses={warehouses}
+        stocks={stocks}
+      />
     </InventorySelectionProvider>
   );
 }

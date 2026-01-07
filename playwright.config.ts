@@ -5,11 +5,13 @@ export default defineConfig({
   timeout: 30 * 1000,
   use: {
     headless: true,
+    baseURL: 'http://localhost:3000',
   },
   webServer: {
     command: 'npm run dev',
-    port: 3000,
+    url: 'http://localhost:3000',
     reuseExistingServer: true,
+    timeout: 120 * 1000,
   },
   projects: [
     {

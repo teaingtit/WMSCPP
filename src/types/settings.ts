@@ -15,6 +15,7 @@ export interface Category {
   id: string;
   name: string;
   form_schema?: any; // JSON Schema
+  units?: string[]; // Unit of Measure options
 }
 
 export interface User {

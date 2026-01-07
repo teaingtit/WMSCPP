@@ -1,6 +1,38 @@
 // types/status.ts
 
 /**
+ * Status Type - Defines whether status applies to product or location (lot)
+ * - PRODUCT: Affects specific quantity of products, can be partially removed
+ * - LOCATION: Affects entire lot/location, all products in that location inherit this status
+ */
+export type StatusType = 'PRODUCT' | 'LOCATION';
+
+/**
+ * Status Type metadata for UI display
+ */
+export const STATUS_TYPE_OPTIONS: {
+  value: StatusType;
+  label: string;
+  description: string;
+  icon: string;
+}[] = [
+  {
+    value: 'PRODUCT',
+    label: 'Product Status',
+    description:
+      'Applies to a specific quantity of products. You can select how many units are affected and partially remove the status.',
+    icon: '📦',
+  },
+  {
+    value: 'LOCATION',
+    label: 'Location Status',
+    description:
+      'Applies to the entire lot/location. All products in this location will inherit this status.',
+    icon: '📍',
+  },
+];
+
+/**
  * Status Effect Types
  * Defines the behavior/restrictions when a status is applied
  */
@@ -95,6 +127,7 @@ export interface StatusDefinition {
   bg_color: string; // Background color for badges
   text_color: string; // Text color for badges
   effect: StatusEffect;
+  status_type: StatusType; // Whether this is a product or location status
   is_default: boolean; // If true, auto-applied to new items
   is_active: boolean;
   sort_order: number;
@@ -119,6 +152,7 @@ export interface EntityStatus {
   applied_at: string;
   applied_by: string;
   notes?: string;
+  affected_quantity?: number; // For PRODUCT status: how many units have this status
   // Relations
   status?: StatusDefinition;
   applied_by_user?: {
@@ -159,10 +193,12 @@ export interface StatusChangeLog {
   entity_type: StatusEntityType;
   entity_id: string;
   from_status_id?: string;
-  to_status_id: string;
+  to_status_id?: string; // Nullable when status is removed
   changed_at: string;
   changed_by: string;
   reason?: string;
+  affected_quantity?: number;
+  total_quantity?: number;
   // Relations
   from_status?: StatusDefinition;
   to_status?: StatusDefinition;
@@ -185,6 +221,7 @@ export interface StatusDefinitionInput {
   bg_color: string;
   text_color: string;
   effect: StatusEffect;
+  status_type: StatusType;
   is_default?: boolean;
   sort_order?: number;
 }

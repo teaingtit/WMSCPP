@@ -106,7 +106,7 @@ export default function TopNav() {
   };
 
   return (
-    <header className="glass-dark hidden lg:flex items-center justify-between px-6 py-3 sticky top-0 z-40">
+    <header className="glass-dark hidden md:flex items-center justify-between px-6 py-3 sticky top-0 z-40">
       {/* Left: Brand & Main Nav */}
       <div className="flex items-center gap-10">
         {/* Brand */}

@@ -14,6 +14,7 @@ import LocationSelector, { LocationData } from '@/components/shared/LocationSele
 import { StockWithDetails } from '@/types/inventory';
 import { submitBulkTransfer } from '@/actions/transfer-actions';
 import { notify } from '@/lib/ui-helpers';
+import { StockQuantityList, useBulkQuantities } from './StockQuantityList';
 
 interface Warehouse {
   id: string;
@@ -43,25 +44,10 @@ export const BulkTransferModal = ({
   const [targetWarehouseId, setTargetWarehouseId] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Initialize quantities with full amount
-  const [quantities, setQuantities] = useState<Record<string, number>>(() => {
-    const initial: Record<string, number> = {};
-    items.forEach((item) => {
-      initial[item.id] = item.quantity;
-    });
-    return initial;
-  });
+  const { quantities, handleQuantityChange, validateQuantities } = useBulkQuantities(items);
 
   // Determine effective warehouse for location selector
   const effectiveWhId = mode === 'INTERNAL' ? currentWarehouseId : targetWarehouseId;
-
-  const handleQtyChange = (id: string, val: string, max: number) => {
-    const num = Number(val);
-    if (num < 0) return;
-    // Allow going above max? No, should restrict.
-    setQuantities((prev) => ({ ...prev, [id]: num > max ? max : num }));
-  };
 
   const handleSubmit = async () => {
     if (!selectedLocation) {
@@ -72,13 +58,7 @@ export const BulkTransferModal = ({
       notify.error('กรุณาระบุคลังปลายทาง');
       return;
     }
-
-    // Validate quantities
-    const invalidItem = items.find((item) => {
-      const qty = quantities[item.id];
-      return !qty || qty <= 0;
-    });
-    if (invalidItem) {
+    if (!validateQuantities()) {
       notify.error('กรุณาระบุจำนวนที่ถูกต้อง (มากกว่า 0) ให้ครบทุกรายการ');
       return;
     }
@@ -88,7 +68,7 @@ export const BulkTransferModal = ({
       const payload = items.map((item) => ({
         mode,
         stockId: item.id,
-        transferQty: quantities[item.id], // Use edited quantity
+        transferQty: quantities[item.id],
         targetLocationId: selectedLocation.id,
         warehouseId: currentWarehouseId,
         sourceWarehouseId: currentWarehouseId,
@@ -102,7 +82,6 @@ export const BulkTransferModal = ({
         onSuccess();
         onClose();
       } else {
-        // Show first error or generic message
         const errorMsg =
           result.details?.errors && result.details.errors.length > 0
             ? result.details.errors[0]
@@ -170,60 +149,11 @@ export const BulkTransferModal = ({
             <h4 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
               <Package size={16} /> รายการสินค้า ({items.length})
             </h4>
-            <div className="space-y-3">
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-start gap-4 p-3 border border-slate-100 rounded-xl bg-white shadow-sm"
-                >
-                  <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center">
-                    {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.product?.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Package size={18} className="text-slate-300" />
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold text-slate-800 truncate">
-                      {item.product?.name || 'Unknown Product'}
-                    </div>
-                    <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
-                      <span className="font-mono">{item.product?.sku}</span>
-                      <span className="w-px h-3 bg-slate-300"></span>
-                      <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-medium">
-                        {item.location?.code}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-32">
-                    <label className="text-[10px] font-bold text-slate-400 block mb-1 text-right">
-                      ย้ายจำนวน / {item.quantity}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        aria-label={`Quantity for ${item.product?.name || item.id}`}
-                        placeholder="0"
-                        min={1}
-                        max={item.quantity}
-                        value={quantities[item.id] ?? item.quantity}
-                        onChange={(e) => handleQtyChange(item.id, e.target.value, item.quantity)}
-                        className="w-full text-right p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                      />
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium">
-                        {item.product?.uom}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <StockQuantityList
+              items={items}
+              quantities={quantities}
+              onQuantityChange={handleQuantityChange}
+            />
           </div>
         </div>
 
