@@ -1,5 +1,7 @@
 // types/inventory.ts
 
+import { EntityStatus, EntityNote } from './status';
+
 /**
  * Represents a product entity in the system.
  * Corresponds to the 'products' table in the database.
@@ -16,6 +18,10 @@ export interface Product {
   attributes?: Record<string, any>;
   /** The name of the category, typically populated from a join operation. */
   category?: string;
+  /** Status applied to this product */
+  current_status?: EntityStatus;
+  /** Notes attached to this product */
+  notes?: EntityNote[];
 }
 
 /**
@@ -31,6 +37,10 @@ export interface Location {
   cart: string | null; // Represents the cart or specific position within the location.
   level: string | null;
   is_active: boolean;
+  /** Status applied to this location */
+  current_status?: EntityStatus;
+  /** Notes attached to this location */
+  notes?: EntityNote[];
 }
 
 /**
@@ -51,6 +61,10 @@ export interface StockWithDetails {
   sku?: string;
   name?: string;
   image_url?: string;
+  /** Status applied to this stock item */
+  current_status?: EntityStatus;
+  /** Notes attached to this stock item */
+  notes?: EntityNote[];
 }
 
 export interface HistoryLogItem {

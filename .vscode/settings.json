@@ -1,3 +1,6 @@
 {
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "react-ts.rules.no-inline-styles": "off",
+  "css-in-js.noInlineStyles": false,
+  "biome.linter.rules.style.noInlineStyles": "off"
 }

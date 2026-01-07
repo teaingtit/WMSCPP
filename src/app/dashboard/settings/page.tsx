@@ -1,6 +1,7 @@
 import React from 'react';
 import { requireAdmin } from '@/lib/auth-service';
 import { getAllWarehousesForAdmin, getCategories, getProducts } from '@/actions/settings-actions';
+import { getAllStatusDefinitions } from '@/actions/status-actions';
 import { getUsers } from '@/actions/user-actions';
 import { Settings } from 'lucide-react';
 import { SettingsTabs } from '@/components/settings/SettingsTabs';
@@ -9,11 +10,12 @@ export default async function SettingsPage() {
   const user = await requireAdmin();
 
   // Fetch Data ทั้งหมดเตรียมไว้
-  const [warehouses, categories, users, products] = await Promise.all([
+  const [warehouses, categories, users, products, statuses] = await Promise.all([
     getAllWarehousesForAdmin(),
     getCategories(),
     getUsers(),
     getProducts(),
+    getAllStatusDefinitions(),
   ]);
 
   return (
@@ -40,6 +42,7 @@ export default async function SettingsPage() {
         warehouses={warehouses}
         categories={categories}
         products={products}
+        statuses={statuses}
       />
     </div>
   );
