@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { searchStockForOutbound, submitBulkOutbound } from '@/actions/outbound-actions';
 import {
@@ -21,8 +21,7 @@ import SuccessReceiptModal from '@/components/shared/SuccessReceiptModal';
 import useTransactionFlow from '@/hooks/useTransactionFlow';
 import { useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase-browser';
-import { BaseCartDrawer } from '@/components/shared/BaseCartDrawer';
-import { CartFloatingButton } from '@/components/shared/CartFloatingButton';
+// drawer/floating UI removed — queue is rendered inline now
 
 interface OutboundQueueItem {
   id: string; // unique ID
@@ -47,8 +46,10 @@ export default function OutboundPage() {
   const [pickQty, setPickQty] = useState('');
   const [note, setNote] = useState('');
 
+  // Track queued stock IDs for filtering search results
+  const queuedStockIds = useMemo(() => new Set(queue.map((item) => item.stock.id)), [queue]);
+
   const [submitting, setSubmitting] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const executor = async () => {
     const payload = queue.map((item) => ({
@@ -88,8 +89,8 @@ export default function OutboundPage() {
   const [debouncedSearch] = useDebounce(searchTerm, 500);
 
   useEffect(() => {
-    // Don't search if a stock is already selected or the search term is empty
-    if (!debouncedSearch || selectedStock) {
+    // Don't search if the search term is empty
+    if (!debouncedSearch) {
       setSearchResults([]);
       return;
     }
@@ -98,7 +99,9 @@ export default function OutboundPage() {
       setIsSearching(true);
       try {
         const results = await searchStockForOutbound(warehouseId, debouncedSearch);
-        setSearchResults(results);
+        // Filter out items already in queue
+        const filtered = results.filter((stock: any) => !queuedStockIds.has(stock.id));
+        setSearchResults(filtered);
       } catch (error) {
         console.error('Search failed:', error);
         setSearchResults([]);
@@ -108,7 +111,7 @@ export default function OutboundPage() {
     };
 
     performSearch();
-  }, [debouncedSearch, warehouseId, selectedStock]);
+  }, [debouncedSearch, warehouseId, queuedStockIds]);
 
   useEffect(() => {
     // If `ids` present in query (from Inventory bulk action), prefill queue
@@ -157,24 +160,19 @@ export default function OutboundPage() {
   // Handlers
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
-    if (selectedStock) {
-      setSelectedStock(null); // ถ้าพิมพ์ใหม่ ให้เคลียร์ค่าที่เลือกไว้
-    }
   };
 
   const handleSelect = (stock: any) => {
     setSelectedStock(stock);
-    setSearchResults([]);
-    setSearchTerm(stock.products.name); // เอาชื่อแปะเพื่อความสวยงาม
+    // Don't clear search results or search term - allow continuous adding
   };
 
-  // Suggestion 1: Centralize form reset logic
+  // Suggestion 1: Centralize form reset logic - keep search for continuous workflow
   const resetForm = useCallback(() => {
     setPickQty('');
     setNote('');
     setSelectedStock(null);
-    setSearchTerm('');
-    setSearchResults([]);
+    // Don't clear search term/results to allow adding more items from same search
   }, []);
 
   const handleAddToQueue = (e: React.FormEvent): void => {
@@ -221,7 +219,6 @@ export default function OutboundPage() {
       const res = await execute();
       if (res.success) {
         setQueue([]);
-        setIsCartOpen(false); // Close cart on success
       } else {
         notify.error(`มีบางรายการล้มเหลว: ${res.message}`);
       }
@@ -256,130 +253,131 @@ export default function OutboundPage() {
                 <Search className="text-rose-500" /> 1. ค้นหาและเลือกตำแหน่ง
               </h3>
 
-              {/* Search Box */}
-              {!selectedStock ? (
-                <div className="relative">
-                  <input
-                    className="w-full pl-12 pr-4 py-4 text-lg bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none transition-all"
-                    placeholder="พิมพ์ชื่อสินค้า หรือ SKU..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    autoFocus
+              {/* Search Box - Always visible */}
+              <div className="relative">
+                <input
+                  className="w-full pl-12 pr-4 py-4 text-lg bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 outline-none transition-all"
+                  placeholder="พิมพ์ชื่อสินค้า หรือ SKU..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  autoFocus
+                />
+                {isSearching ? (
+                  <Loader2
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-rose-500 animate-spin"
+                    size={24}
                   />
-                  {isSearching ? (
-                    <Loader2
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-rose-500 animate-spin"
-                      size={24}
-                    />
-                  ) : (
-                    <Search
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                      size={24}
-                    />
-                  )}
+                ) : (
+                  <Search
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={24}
+                  />
+                )}
+              </div>
 
-                  {/* Result List */}
-                  {searchResults.length > 0 && (
-                    <div className="mt-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        พบ {searchResults.length} ตำแหน่งจัดเก็บ
-                      </p>
-                      {searchResults.map((stock) => (
-                        <div
-                          key={stock.id}
-                          onClick={() => handleSelect(stock)}
-                          className="p-4 border border-slate-200 rounded-xl cursor-pointer hover:border-rose-400 hover:bg-rose-50 transition-all group relative overflow-hidden"
-                        >
-                          <div className="flex justify-between items-start relative z-10">
-                            <div>
-                              <div className="font-bold text-slate-800 group-hover:text-rose-700">
-                                {stock.products.name}
-                              </div>
-                              <div className="text-xs font-mono text-slate-400 mt-1">
-                                {stock.products.sku}
-                              </div>
-                              {/* Show Attributes if exists */}
-                              {stock.attributes && Object.keys(stock.attributes).length > 0 && (
-                                <div className="flex gap-1 mt-1 flex-wrap">
-                                  {Object.entries(stock.attributes).map(([k, v]: any) => (
-                                    <span
-                                      key={k}
-                                      className="text-[10px] bg-slate-100 px-1.5 rounded text-slate-500 border border-slate-200"
-                                    >
-                                      {k}:{v}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <div className="text-2xl font-black text-slate-800">
-                                {stock.quantity}
-                              </div>
-                              <div className="text-[10px] text-slate-500 uppercase">
-                                {stock.products.uom}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-3 inline-flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 group-hover:bg-white group-hover:text-rose-600">
-                            <MapPin size={14} /> {stock.locations.code}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {searchTerm && searchResults.length === 0 && !isSearching && (
-                    <div className="mt-8 text-center text-slate-400">
-                      ไม่พบสินค้าที่มีสต็อก (หรือสินค้าหมด)
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // Selected View
-                <div className="animate-in fade-in zoom-in-95">
-                  <div className="bg-rose-50 p-6 rounded-2xl border border-rose-100 relative">
+              {/* Selected Stock Preview - Show above results when selected */}
+              {selectedStock && (
+                <div className="mt-4 animate-in fade-in zoom-in-95">
+                  <div className="bg-rose-50 p-4 rounded-2xl border border-rose-200 relative">
                     <button
                       onClick={() => setSelectedStock(null)}
-                      className="absolute top-4 right-4 text-slate-400 hover:text-rose-600 text-sm font-bold underline"
+                      className="absolute top-3 right-3 text-slate-400 hover:text-rose-600 text-xs font-bold underline"
                     >
-                      เปลี่ยน
+                      ยกเลิก
                     </button>
-                    <div className="text-sm font-bold text-rose-600 mb-2 uppercase tracking-wide">
-                      กำลังทำรายการที่:
+                    <div className="text-[10px] font-bold text-rose-600 mb-1 uppercase tracking-wide">
+                      กำลังทำรายการ:
                     </div>
-                    <div className="text-2xl font-black text-slate-800 mb-1">
+                    <div className="text-lg font-black text-slate-800">
                       {selectedStock.products.name}
                     </div>
-                    {/* Show Attributes in Selected View */}
                     {selectedStock.attributes &&
                       Object.keys(selectedStock.attributes).length > 0 && (
-                        <div className="flex gap-2 mb-4 flex-wrap">
+                        <div className="flex gap-1 mt-2 flex-wrap">
                           {Object.entries(selectedStock.attributes).map(([k, v]: any) => (
                             <span
                               key={k}
-                              className="text-xs bg-white/50 px-2 py-1 rounded-md text-rose-700 border border-rose-100 font-medium"
+                              className="text-[10px] bg-white/50 px-1.5 py-0.5 rounded text-rose-700 border border-rose-100"
                             >
                               {k}: {v}
                             </span>
                           ))}
                         </div>
                       )}
-                    <div className="flex gap-4 mt-4">
-                      <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-rose-100">
-                        <div className="text-[10px] text-slate-400 uppercase">พิกัด</div>
-                        <div className="font-bold text-slate-700 flex items-center gap-1">
-                          <MapPin size={14} /> {selectedStock.locations.code}
-                        </div>
+                    <div className="flex gap-3 mt-3">
+                      <div className="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-rose-100 text-xs">
+                        <span className="text-slate-400">พิกัด:</span>{' '}
+                        <span className="font-bold text-slate-700">
+                          {selectedStock.locations.code}
+                        </span>
                       </div>
-                      <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-rose-100">
-                        <div className="text-[10px] text-slate-400 uppercase">คงเหลือ</div>
-                        <div className="font-bold text-slate-700">
+                      <div className="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-rose-100 text-xs">
+                        <span className="text-slate-400">คงเหลือ:</span>{' '}
+                        <span className="font-bold text-slate-700">
                           {selectedStock.quantity} {selectedStock.products.uom}
-                        </div>
+                        </span>
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Result List - Always visible when there are results */}
+              {searchResults.length > 0 && (
+                <div className="mt-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    พบ {searchResults.length} ตำแหน่งจัดเก็บ
+                  </p>
+                  {searchResults.map((stock) => (
+                    <div
+                      key={stock.id}
+                      onClick={() => handleSelect(stock)}
+                      className="p-4 border border-slate-200 rounded-xl cursor-pointer hover:border-rose-400 hover:bg-rose-50 transition-all group relative overflow-hidden"
+                    >
+                      <div className="flex justify-between items-start relative z-10">
+                        <div>
+                          <div className="font-bold text-slate-800 group-hover:text-rose-700">
+                            {stock.products.name}
+                          </div>
+                          <div className="text-xs font-mono text-slate-400 mt-1">
+                            {stock.products.sku}
+                          </div>
+                          {stock.attributes && Object.keys(stock.attributes).length > 0 && (
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              {Object.entries(stock.attributes).map(([k, v]: any) => (
+                                <span
+                                  key={k}
+                                  className="text-[10px] bg-slate-100 px-1.5 rounded text-slate-500 border border-slate-200"
+                                >
+                                  {k}:{v}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-black text-slate-800">{stock.quantity}</div>
+                          <div className="text-[10px] text-slate-500 uppercase">
+                            {stock.products.uom}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 inline-flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 group-hover:bg-white group-hover:text-rose-600">
+                        <MapPin size={14} /> {stock.locations.code}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchTerm && searchResults.length === 0 && !isSearching && (
+                <div className="mt-8 text-center text-slate-400">
+                  {queuedStockIds.size > 0 &&
+                  queue.some((q) =>
+                    q.stock.products.name.toLowerCase().includes(searchTerm.toLowerCase()),
+                  )
+                    ? 'รายการที่ตรงกันอยู่ในคิวแล้ว'
+                    : 'ไม่พบสินค้าที่มีสต็อก (หรือสินค้าหมด)'}
                 </div>
               )}
             </div>
@@ -452,69 +450,78 @@ export default function OutboundPage() {
         </div>
       </div>
 
-      {/* Cart Trigger */}
-      <CartFloatingButton
-        itemCount={queue.length}
-        onClick={() => setIsCartOpen(true)}
-        label="รายการเบิก"
-      />
+      {/* --- Inline Queue --- */}
+      <div className="mt-8 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <h4 className="font-bold text-slate-800 flex items-center gap-2">
+            <LogOut size={18} /> รายการรอเบิกจ่าย ({queue.length})
+          </h4>
+          <div className="text-sm text-slate-500">ตรวจสอบและแก้ไขรายการก่อนยืนยัน</div>
+        </div>
 
-      {/* Cart Drawer */}
-      <BaseCartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        title="รายการรอเบิกจ่าย"
-        icon={<LogOut size={20} />}
-        itemCount={queue.length}
-        onClearAll={() => setQueue([])}
-        footer={
-          <div className="space-y-3">
+        <div className="flex flex-col gap-3">
+          <div className="flex-1 overflow-y-auto p-2 space-y-3 bg-slate-50/30 min-h-[200px] max-h-[60vh] custom-scrollbar">
+            {queue.length === 0 ? (
+              <div className="text-sm text-slate-400 text-center py-6">ยังไม่มีรายการ</div>
+            ) : (
+              queue.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-rose-200 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-bold text-slate-700 truncate text-sm">
+                        {idx + 1}. {item.stock.products.name}
+                      </h4>
+                      <button
+                        onClick={() => removeFromQueue(item.id)}
+                        aria-label="ลบรายการ"
+                        className="text-slate-300 hover:text-rose-500 transition-colors p-1 -mr-1"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                    <div className="text-xs text-slate-500 font-mono mt-1">
+                      {item.stock.locations.code}
+                    </div>
+                    {item.note && (
+                      <div className="text-xs text-slate-400 mt-1 italic">Note: {item.note}</div>
+                    )}
+                    <div className="flex justify-end mt-2">
+                      <span className="text-rose-600 font-black text-lg">-{item.qty}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-4 space-y-3">
             <div className="flex justify-between items-center text-sm font-bold text-slate-600">
-              <span>Total Items:</span>
+              <span>จำนวนรายการ:</span>
               <span className="text-lg text-rose-600">{queue.length}</span>
             </div>
-            <button
-              onClick={handleConfirmAll}
-              disabled={queue.length === 0 || submitting}
-              className="w-full py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-rose-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale"
-            >
-              {submitting ? <Loader2 className="animate-spin" /> : <LogOut size={20} />}
-              ยืนยันเบิกทั้งหมด
-            </button>
-          </div>
-        }
-      >
-        {queue.map((item, idx) => (
-          <div
-            key={item.id}
-            className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-rose-200 transition-colors"
-          >
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold text-slate-700 truncate text-sm">
-                  {idx + 1}. {item.stock.products.name}
-                </h4>
-                <button
-                  onClick={() => removeFromQueue(item.id)}
-                  aria-label="ลบรายการ"
-                  className="text-slate-300 hover:text-rose-500 transition-colors p-1 -mr-1"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-              <div className="text-xs text-slate-500 font-mono mt-1">
-                {item.stock.locations.code}
-              </div>
-              {item.note && (
-                <div className="text-xs text-slate-400 mt-1 italic">Note: {item.note}</div>
-              )}
-              <div className="flex justify-end mt-2">
-                <span className="text-rose-600 font-black text-lg">-{item.qty}</span>
-              </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setQueue([])}
+                disabled={queue.length === 0}
+                className="flex-1 py-3 border border-slate-200 rounded-xl bg-white font-bold text-sm disabled:opacity-50"
+              >
+                ล้างทั้งหมด
+              </button>
+              <button
+                onClick={handleConfirmAll}
+                disabled={queue.length === 0 || submitting}
+                className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-rose-900/20 disabled:opacity-50 disabled:grayscale"
+              >
+                {submitting ? <Loader2 className="animate-spin" /> : <LogOut size={16} />}
+                ยืนยันเบิกทั้งหมด
+              </button>
             </div>
           </div>
-        ))}
-      </BaseCartDrawer>
+        </div>
+      </div>
 
       {/* Modals */}
       <TransactionConfirmModal

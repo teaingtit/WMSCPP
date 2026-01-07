@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { ArrowRightLeft, Building2 } from 'lucide-react';
 import { getWarehouses } from '@/actions/warehouse-actions';
@@ -22,6 +22,12 @@ export default function TransferPage() {
   const [importedCount, setImportedCount] = useState<number>(0);
   const [prefilledStocks, setPrefilledStocks] = useState<any[] | null>(null);
   const [queuedFromSource, setQueuedFromSource] = useState<any[]>([]);
+
+  // Track IDs of stocks already queued to filter from search results
+  const queuedStockIds = useMemo(
+    () => new Set(queuedFromSource.map((s) => s.id)),
+    [queuedFromSource],
+  );
 
   // Fetch Warehouses for Cross Tab
   useEffect(() => {
@@ -138,6 +144,7 @@ export default function TransferPage() {
           activeTab={activeTab}
           selectedStock={selectedStock}
           onSelect={setSelectedStock}
+          queuedStockIds={queuedStockIds}
           onAddToQueue={(stock) => {
             if (!stock) return;
             setQueuedFromSource((prev) => {

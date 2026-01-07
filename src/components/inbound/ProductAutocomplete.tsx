@@ -8,12 +8,14 @@ interface ProductAutocompleteProps {
   products: Product[];
   selectedProduct: Product | null;
   onSelect: (product: Product | null) => void;
+  queuedProductIds?: Set<string>; // IDs of products already in queue to filter out
 }
 
 export default function ProductAutocomplete({
   products,
   selectedProduct,
   onSelect,
+  queuedProductIds = new Set(),
 }: ProductAutocompleteProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -23,15 +25,18 @@ export default function ProductAutocomplete({
 
   // Suggestion 1: Memoize filtering logic for better performance.
   const filteredProducts = useMemo(() => {
-    if (!searchTerm || selectedProduct) return []; // Don't filter if a product is already selected
+    if (!searchTerm) return []; // Don't filter if search term is empty
     return products
       .filter(
         (p) =>
-          (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase())),
+          // Filter by search term
+          ((p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase()))) &&
+          // Filter out products already in queue (unless same one selected)
+          (!queuedProductIds.has(p.id) || selectedProduct?.id === p.id),
       )
       .slice(0, 10);
-  }, [products, searchTerm, selectedProduct]);
+  }, [products, searchTerm, queuedProductIds, selectedProduct]);
 
   // Reset highlight when search changes
   useEffect(() => {
@@ -62,7 +67,7 @@ export default function ProductAutocomplete({
   const handleSelect = useCallback(
     (product: Product) => {
       onSelect(product);
-      setSearchTerm(product.name); // Set input value to the selected product's name
+      // Don't clear search term - allow continuous selection flow
       setShowDropdown(false);
     },
     [onSelect],
@@ -71,56 +76,18 @@ export default function ProductAutocomplete({
   // Suggestion 3: Create a dedicated handler for clearing the selection.
   const handleClearSelection = useCallback(() => {
     onSelect(null);
-    setSearchTerm('');
-    // Use a short timeout to ensure the component re-renders to the search state
-    // before we try to focus the input that just appeared.
+    // Don't clear search term - keep the search active
     setTimeout(() => inputRef.current?.focus(), 100);
   }, [onSelect]);
 
-  // กรณีเลือกสินค้าแล้ว (Selected State) - ปรับให้สวยงามขึ้น
-  if (selectedProduct) {
-    return (
-      <div className="bg-gradient-to-br from-indigo-50 to-white p-5 rounded-2xl border border-indigo-100 flex justify-between items-center shadow-sm animate-in zoom-in-95 duration-200">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-inner">
-            <Package size={24} />
-          </div>
-          <div>
-            <div className="text-xs font-bold text-indigo-500 uppercase tracking-wide mb-0.5">
-              Selected Product
-            </div>
-            <div className="font-bold text-slate-800 text-lg leading-tight">
-              {selectedProduct.name}
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
-                {selectedProduct.sku}
-              </span>
-              <span className="text-xs text-slate-400 border-l border-slate-300 pl-2">
-                {selectedProduct.uom || 'Unit'}
-              </span>
-            </div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={handleClearSelection}
-          className="p-3 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl text-slate-400 hover:text-rose-500 transition-all shadow-sm group"
-          aria-label="Remove product"
-        >
-          <X size={20} className="group-hover:rotate-90 transition-transform" />
-        </button>
-      </div>
-    );
-  }
-
-  // กรณีค้นหา (Search State)
+  // Redesigned layout: Always show search input, show selected product above results
   return (
     <div className="relative group">
       <label htmlFor="product-search" className="block text-sm font-bold text-slate-700 mb-2">
         1. ค้นหา หรือ สแกนสินค้า <span className="text-rose-500">*</span>
       </label>
 
+      {/* Search Input - Always visible */}
       <div className="relative transition-all duration-200 transform focus-within:scale-[1.01]">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
           <Search size={22} />
@@ -135,7 +102,6 @@ export default function ProductAutocomplete({
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setShowDropdown(true);
-            if (selectedProduct) onSelect(null); // Clear selection if user starts typing again
           }}
           onFocus={() => setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
@@ -147,15 +113,48 @@ export default function ProductAutocomplete({
         </div>
       </div>
 
-      {/* Dropdown Results */}
-      {showDropdown && searchTerm && !selectedProduct && (
+      {/* Selected Product Preview - Show above results when selected */}
+      {selectedProduct && (
+        <div className="mt-3 bg-gradient-to-br from-indigo-50 to-white p-4 rounded-2xl border border-indigo-100 flex justify-between items-center shadow-sm animate-in zoom-in-95 duration-200">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-inner">
+              <Package size={20} />
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">
+                กำลังเพิ่ม:
+              </div>
+              <div className="font-bold text-slate-800 text-base leading-tight">
+                {selectedProduct.name}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10px] font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
+                  {selectedProduct.sku}
+                </span>
+                <span className="text-[10px] text-slate-400">{selectedProduct.uom || 'Unit'}</span>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleClearSelection}
+            className="p-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl text-slate-400 hover:text-rose-500 transition-all shadow-sm group"
+            aria-label="Remove product"
+          >
+            <X size={16} className="group-hover:rotate-90 transition-transform" />
+          </button>
+        </div>
+      )}
+
+      {/* Dropdown Results - Show when searching */}
+      {showDropdown && searchTerm && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-[350px] overflow-y-auto animate-in fade-in slide-in-from-top-2"
+          className="mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-[280px] overflow-y-auto animate-in fade-in slide-in-from-top-2"
         >
           {filteredProducts.length > 0 ? (
             <div>
-              <div className="px-4 py-2 bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50 flex justify-between">
+              <div className="px-4 py-2 bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50 flex justify-between sticky top-0 backdrop-blur-sm">
                 <span>Found {filteredProducts.length} items</span>
                 <span className="hidden sm:inline">Use ↑↓ to navigate, Enter to select</span>
               </div>
@@ -166,12 +165,8 @@ export default function ProductAutocomplete({
                     key={p.id}
                     onMouseDown={() => handleSelect(p)}
                     className={`p-4 cursor-pointer border-b border-slate-50 last:border-none transition-all flex justify-between items-center group
-                                        ${
-                                          isHighlighted
-                                            ? 'bg-indigo-50 border-indigo-100 pl-6'
-                                            : 'hover:bg-slate-50'
-                                        }
-                                    `}
+                      ${isHighlighted ? 'bg-indigo-50 border-indigo-100 pl-6' : 'hover:bg-slate-50'}
+                    `}
                   >
                     <div>
                       <div
@@ -201,12 +196,15 @@ export default function ProductAutocomplete({
               })}
             </div>
           ) : (
-            <div className="p-8 text-center flex flex-col items-center gap-3">
-              <div className="p-3 bg-slate-50 rounded-full text-slate-300">
-                <ScanBarcode size={32} />
+            <div className="p-6 text-center flex flex-col items-center gap-2">
+              <div className="p-2 bg-slate-50 rounded-full text-slate-300">
+                <ScanBarcode size={24} />
               </div>
-              <div className="text-slate-500 font-medium">ไม่พบสินค้า &quot;{searchTerm}&quot;</div>
-              <p className="text-xs text-slate-400">ตรวจสอบ SKU หรือชื่อสินค้าอีกครั้ง</p>
+              <div className="text-slate-500 font-medium text-sm">
+                {queuedProductIds.size > 0
+                  ? 'รายการที่ตรงกันอยู่ในคิวแล้ว'
+                  : `ไม่พบสินค้า "${searchTerm}"`}
+              </div>
             </div>
           )}
         </div>

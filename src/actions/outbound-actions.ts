@@ -43,11 +43,19 @@ const submitOutboundHandler = async (formData: OutboundFormData, { user, supabas
   // ✅ 1. ดึงข้อมูลสินค้าก่อนตัดสต็อก (เพื่อเอาไว้แสดงผล)
   const { data: stockInfo } = await supabase
     .from('stocks')
-    .select(`id, products!inner(name, sku, uom), locations!inner(code)`)
+    .select(`id, quantity, products!inner(name, sku, uom), locations!inner(code)`)
     .eq('id', stockId)
     .single();
 
   if (!stockInfo) throw new Error('ไม่พบข้อมูลสต็อก');
+
+  // ✅ Validate: Check quantity before sending to RPC
+  if (deductQty > stockInfo.quantity) {
+    return {
+      success: false,
+      message: `จำนวนที่ต้องการ (${deductQty}) มากกว่าสินค้าคงเหลือ (${stockInfo.quantity})`,
+    };
+  }
 
   // 2. เรียก RPC ตัดของ
   const { data: result, error } = await supabase.rpc('deduct_stock', {

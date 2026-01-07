@@ -46,47 +46,32 @@ const CreateCategorySchema = z.object({
 
 export async function getAllWarehousesForAdmin() {
   const supabase = await createClient();
-  try {
-    // ✅ FIX: ดึงเฉพาะคลังที่เปิดใช้งาน
-    const { data } = await supabase
-      .from('warehouses')
-      .select('*')
-      .eq('is_active', true)
-      .order('is_active', { ascending: false })
-      .order('created_at', { ascending: true });
-    return data || [];
-  } catch (error) {
-    return [];
-  }
+  const { data } = await supabase
+    .from('warehouses')
+    .select('*')
+    .eq('is_active', true)
+    .order('is_active', { ascending: false })
+    .order('created_at', { ascending: true });
+  return data || [];
 }
 
 export async function getCategories() {
   const supabase = await createClient();
-  try {
-    // หมวดหมู่มักไม่ต้อง Soft Delete ซับซ้อน แต่ถ้าต้องการก็เพิ่ม .eq('is_active', true) ได้
-    const { data } = await supabase
-      .from('product_categories')
-      .select('*')
-      .order('id', { ascending: true });
-    return data || [];
-  } catch (error) {
-    return [];
-  }
+  const { data } = await supabase
+    .from('product_categories')
+    .select('*')
+    .order('id', { ascending: true });
+  return data || [];
 }
 
 export async function getProducts() {
   const supabase = await createClient();
-  try {
-    // ✅ FIX: ดึงเฉพาะสินค้าที่ยังไม่ถูกลบ
-    const { data } = await supabase
-      .from('products')
-      .select('*, category:product_categories(name)')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-    return data || [];
-  } catch (error) {
-    return [];
-  }
+  const { data } = await supabase
+    .from('products')
+    .select('*, category:product_categories(name)')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+  return data || [];
 }
 
 // --- 2. Mutations ---

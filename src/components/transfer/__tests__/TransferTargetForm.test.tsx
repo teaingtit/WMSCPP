@@ -139,9 +139,9 @@ describe('TransferTargetForm queue behavior', () => {
       </GlobalLoadingProvider>,
     );
 
-    // Open drawer first
-    const cartBtn = screen.getByText(/รายการย้าย/i);
-    fireEvent.click(cartBtn);
+    // Open drawer first - No longer needed as list is inline
+    // const cartBtn = screen.getByText(/รายการย้าย/i);
+    // fireEvent.click(cartBtn);
 
     // Run first preview (will fail)
     const previewBtn = await screen.findByText(/ตรวจสอบ \(Preview\)/i);

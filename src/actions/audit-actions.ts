@@ -214,6 +214,27 @@ export async function updateAuditItemCount(itemId: string, qty: number) {
   } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Unauthenticated' };
 
+  // ✅ Validate: Count cannot be negative
+  if (qty < 0) {
+    return { success: false, message: 'จำนวนที่นับต้องไม่ติดลบ' };
+  }
+
+  // ✅ Validate: Check if audit item exists and session is still OPEN
+  const { data: auditItem } = await supabase
+    .from('audit_items')
+    .select('id, session_id, audit_sessions!inner(status)')
+    .eq('id', itemId)
+    .single();
+
+  if (!auditItem) {
+    return { success: false, message: 'ไม่พบรายการตรวจนับนี้' };
+  }
+
+  const sessionStatus = (auditItem.audit_sessions as any)?.status;
+  if (sessionStatus !== 'OPEN') {
+    return { success: false, message: 'ไม่สามารถแก้ไขได้ รอบการนับนี้ปิดแล้ว' };
+  }
+
   try {
     const { error } = await supabase
       .from('audit_items')

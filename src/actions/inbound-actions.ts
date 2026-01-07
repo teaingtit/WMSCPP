@@ -22,49 +22,31 @@ export type InboundFormData = z.infer<typeof InboundSchema>;
 
 export async function getProductCategories() {
   const supabase = await createClient();
-  try {
-    const { data } = await supabase
-      .from('product_categories')
-      .select('*')
-      .order('id', { ascending: true });
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching product categories:', error);
-    return [];
-  }
+  const { data } = await supabase
+    .from('product_categories')
+    .select('*')
+    .order('id', { ascending: true });
+  return data || [];
 }
 
 export async function getCategoryDetail(categoryId: string) {
   const supabase = await createClient();
-  try {
-    const { data } = await supabase
-      .from('product_categories')
-      .select('*')
-      .eq('id', categoryId)
-      .single();
-    return data;
-  } catch (error) {
-    console.error(`Error fetching category detail for ID ${categoryId}:`, error);
-    return null;
-  }
+  const { data } = await supabase
+    .from('product_categories')
+    .select('*')
+    .eq('id', categoryId)
+    .single();
+  return data;
 }
 
-export async function getInboundOptions(warehouseId: string, categoryId: string) {
+export async function getInboundOptions(_warehouseId: string, categoryId: string) {
   const supabase = await createClient();
-  try {
-    const { data: products } = await supabase
-      .from('products')
-      .select('*')
-      .eq('category_id', categoryId)
-      .order('name');
-    return { products: products || [] };
-  } catch (error) {
-    console.error(
-      `Error fetching inbound options for warehouse ${warehouseId}, category ${categoryId}:`,
-      error,
-    );
-    return { products: [] };
-  }
+  const { data: products } = await supabase
+    .from('products')
+    .select('*')
+    .eq('category_id', categoryId)
+    .order('name');
+  return { products: products || [] };
 }
 
 // --- Location Selectors ---
@@ -133,6 +115,37 @@ const submitInboundHandler = async (rawData: unknown, { user, supabase }: any) =
   const whId = await getWarehouseId(supabase, warehouseId);
   if (!whId) throw new Error('Warehouse Not Found');
 
+  // ✅ Validate: Check if location exists and belongs to this warehouse
+  const { data: locValidation } = await supabase
+    .from('locations')
+    .select('id, warehouse_id, is_active')
+    .eq('id', locationId)
+    .single();
+
+  if (!locValidation) {
+    return { success: false, message: 'ไม่พบพิกัดที่เลือก กรุณาเลือกพิกัดใหม่' };
+  }
+  if (locValidation.warehouse_id !== whId) {
+    return { success: false, message: 'พิกัดนี้ไม่อยู่ในคลังสินค้าที่เลือก' };
+  }
+  if (!locValidation.is_active) {
+    return { success: false, message: 'พิกัดนี้ถูกปิดใช้งานแล้ว กรุณาเลือกพิกัดอื่น' };
+  }
+
+  // ✅ Validate: Check if product exists and is active
+  const { data: prodValidation } = await supabase
+    .from('products')
+    .select('id, is_active')
+    .eq('id', productId)
+    .single();
+
+  if (!prodValidation) {
+    return { success: false, message: 'ไม่พบสินค้าที่เลือก กรุณาเลือกสินค้าใหม่' };
+  }
+  if (!prodValidation.is_active) {
+    return { success: false, message: 'สินค้านี้ถูกปิดใช้งานแล้ว กรุณาเลือกสินค้าอื่น' };
+  }
+
   const { data: rpcResult, error: rpcError } = await supabase.rpc('process_inbound_transaction', {
     p_warehouse_id: whId,
     p_location_id: locationId,
@@ -146,13 +159,10 @@ const submitInboundHandler = async (rawData: unknown, { user, supabase }: any) =
   if (rpcError) throw new Error(rpcError.message);
   if (rpcResult && !rpcResult.success) throw new Error(rpcResult.message);
 
-  const [productRes, locationRes] = await Promise.all([
+  const [{ data: product }, { data: location }] = await Promise.all([
     supabase.from('products').select('name, uom, sku').eq('id', productId).single(),
     supabase.from('locations').select('code').eq('id', locationId).single(),
   ]);
-
-  const product = productRes.data;
-  const location = locationRes.data;
 
   revalidatePath(`/dashboard/${warehouseId}/inventory`);
   revalidatePath(`/dashboard/${warehouseId}/history`);

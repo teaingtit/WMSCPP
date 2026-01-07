@@ -72,6 +72,9 @@ export default function DynamicInboundForm({
     [category.form_schema],
   );
 
+  // Track queued product IDs for filtering from search results
+  const queuedProductIds = useMemo(() => new Set(queue.map((item) => item.product.id)), [queue]);
+
   // Reset lot attributes when the selected product is cleared
   useEffect(() => {
     if (!selectedProduct) {
@@ -201,6 +204,7 @@ export default function DynamicInboundForm({
               products={products}
               selectedProduct={selectedProduct}
               onSelect={setSelectedProduct}
+              queuedProductIds={queuedProductIds}
             />
             {/* Dynamic Attributes */}
             {lotSchema.length > 0 && selectedProduct && (

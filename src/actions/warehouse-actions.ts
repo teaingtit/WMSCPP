@@ -10,23 +10,12 @@ export interface Warehouse {
   is_active: boolean;
 }
 
-export async function getWarehouses() {
+export async function getWarehouses(): Promise<Warehouse[]> {
   const supabase = await createClient();
-  try {
-    const { data, error } = await supabase
-      .from('warehouses')
-      .select('*')
-      .eq('is_active', true)
-      .order('code', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching warehouses:', error);
-      return [];
-    }
-
-    return data as Warehouse[];
-  } catch (error) {
-    console.error('Server Action Error:', error);
-    return [];
-  }
+  const { data } = await supabase
+    .from('warehouses')
+    .select('*')
+    .eq('is_active', true)
+    .order('code', { ascending: true });
+  return (data as Warehouse[]) || [];
 }

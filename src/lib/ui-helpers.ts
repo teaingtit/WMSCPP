@@ -1,37 +1,21 @@
 import { toast } from 'sonner';
 
-export function wrapFormAction<T = any>(fn: (formData: FormData) => Promise<T>) {
-  return (_prev: any, formData: FormData) => fn(formData);
-}
+export const wrapFormAction =
+  <T = any>(fn: (formData: FormData) => Promise<T>) =>
+  (_prev: any, formData: FormData) =>
+    fn(formData);
 
 export const notify = {
   ok(res: any, opts?: { id?: string | number; successMsg?: string; errorMsg?: string }) {
-    if (res?.success) {
-      if (opts?.id !== undefined)
-        toast.success(res.message || opts?.successMsg || 'Success', { id: opts.id });
-      else toast.success(res.message || opts?.successMsg || 'Success');
-    } else {
-      if (opts?.id !== undefined)
-        toast.error(res?.message || opts?.errorMsg || 'Failed', { id: opts.id });
-      else toast.error(res?.message || opts?.errorMsg || 'Failed');
-    }
+    const toastOpts = opts?.id !== undefined ? { id: opts.id } : undefined;
+    res?.success
+      ? toast.success(res.message || opts?.successMsg || 'Success', toastOpts)
+      : toast.error(res?.message || opts?.errorMsg || 'Failed', toastOpts);
   },
-  success(msg: string, opts?: { id?: string | number }) {
-    if (opts?.id !== undefined) toast.success(msg, { id: opts.id });
-    else toast.success(msg);
-  },
-  error(msg?: string, opts?: { id?: string | number }) {
-    if (opts?.id !== undefined) toast.error(msg || 'Error', { id: opts.id });
-    else toast.error(msg || 'Error');
-  },
+  success: (msg: string, opts?: { id?: string | number }) =>
+    toast.success(msg, opts?.id !== undefined ? { id: opts.id } : undefined),
+  error: (msg?: string, opts?: { id?: string | number }) =>
+    toast.error(msg || 'Error', opts?.id !== undefined ? { id: opts.id } : undefined),
 };
 
-export function confirmAction(message: string) {
-  return confirm(message);
-}
-
-export default {
-  wrapFormAction,
-  notify,
-  confirmAction,
-};
+export const confirmAction = (message: string) => confirm(message);

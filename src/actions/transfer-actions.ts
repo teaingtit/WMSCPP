@@ -7,19 +7,20 @@ import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { withAuth } from '@/lib/action-utils';
 
 // Helper: สร้างรหัส Lxx-Pxx-Zxx (ใช้เป็น Fallback เท่านั้น)
-function generate3DCode(lot: string, pos: string, level: string) {
-  const l = `L${lot.toString().padStart(2, '0')}`;
-  const p = `P${pos.toString().padStart(2, '0')}`;
-  const z = `Z${level.toString().padStart(2, '0')}`;
-  return { code: `${l}-${p}-${z}`, lot: l, cart: p, level: Number(level) };
-}
+const pad2 = (n: string | number) => String(n).padStart(2, '0');
+const generate3DCode = (lot: string, pos: string, level: string) => ({
+  code: `L${pad2(lot)}-P${pad2(pos)}-Z${pad2(level)}`,
+  lot: `L${pad2(lot)}`,
+  cart: `P${pad2(pos)}`,
+  level: Number(level),
+});
 
 export async function getStockById(stockId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from('stocks')
     .select(
-      `id, quantity, attributes, products!inner(sku, name, uom), locations!inner(code, warehouse_id)`,
+      'id, quantity, attributes, products!inner(sku, name, uom), locations!inner(code, warehouse_id)',
     )
     .eq('id', stockId)
     .single();
@@ -102,6 +103,14 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
 
   if (!sourceStock) throw new Error('ไม่พบสต็อกต้นทาง');
 
+  // ✅ Validate: Prevent transfer to same location
+  if (sourceStock.location_id === targetLocId) {
+    return {
+      success: false,
+      message: 'ไม่สามารถย้ายไปยังตำแหน่งเดิมได้ กรุณาเลือกตำแหน่งปลายทางอื่น',
+    };
+  }
+
   // RPC Transfer
   const { data: result, error: rpcError } = await supabase.rpc('transfer_stock', {
     p_source_stock_id: stockId,
@@ -159,14 +168,27 @@ const submitCrossTransferHandler = async (formData: any, { user, supabase }: any
   const qty = Number(transferQty);
   if (isNaN(qty) || qty <= 0) return { success: false, message: 'จำนวนไม่ถูกต้อง' };
 
+  // ✅ Validate: Cannot transfer to same warehouse for cross-transfer
+  if (sourceWarehouseId === targetWarehouseId) {
+    return {
+      success: false,
+      message: 'การย้ายข้ามคลังต้องเลือกคลังปลายทางที่แตกต่างจากคลังต้นทาง',
+    };
+  }
+
   const sourceWhId = await getWarehouseId(supabase, sourceWarehouseId);
   const { data: targetWh } = await supabaseAdmin
     .from('warehouses')
-    .select('id, code, name')
+    .select('id, code, name, is_active')
     .eq('id', targetWarehouseId)
     .single();
 
   if (!sourceWhId || !targetWh) throw new Error('Warehouse Info Missing');
+
+  // ✅ Validate: Target warehouse must be active
+  if (!targetWh.is_active) {
+    return { success: false, message: 'คลังปลายทางถูกปิดใช้งานแล้ว กรุณาเลือกคลังอื่น' };
+  }
 
   let targetCode = '';
   if (targetLocationId) {
@@ -184,11 +206,19 @@ const submitCrossTransferHandler = async (formData: any, { user, supabase }: any
   // Get Source Info
   const { data: sourceStock } = await supabase
     .from('stocks')
-    .select('product_id, location_id, products!inner(name, uom), locations!inner(code)')
+    .select('product_id, location_id, quantity, products!inner(name, uom), locations!inner(code)')
     .eq('id', stockId)
     .single();
 
   if (!sourceStock) throw new Error('Stock Source Not Found');
+
+  // ✅ Validate: Check quantity before transfer
+  if (qty > (sourceStock as any).quantity) {
+    return {
+      success: false,
+      message: `จำนวนที่ต้องการ (${qty}) มากกว่าสินค้าคงเหลือ (${(sourceStock as any).quantity})`,
+    };
+  }
 
   // RPC Cross Transfer
   const { data: result, error: rpcError } = await supabaseAdmin.rpc('transfer_cross_stock', {
@@ -308,6 +338,18 @@ export async function preflightBulkTransfer(items: any[]) {
         targetLoc = loc || null;
         if (!loc) {
           results.push({ ok: false, reason: 'Target location not found', stockId });
+          continue;
+        }
+
+        // ✅ Validate: Prevent transfer to same location
+        const sourceLocationId = (stock.locations as any)?.id;
+        if (targetLoc && sourceLocationId === targetLoc.id) {
+          results.push({
+            ok: false,
+            reason: 'Cannot transfer to same location',
+            stockId,
+            available: stock.quantity,
+          });
           continue;
         }
       }
