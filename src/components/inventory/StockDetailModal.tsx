@@ -18,7 +18,7 @@ import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus, EntityNote } from '@/types/status';
 import { getEntityStatus, getEntityNotes } from '@/actions/status-actions';
 import StatusAndNotesModal from './status/StatusAndNotesModal';
-import { isRestricted, hasWarning, calculateQuantityBreakdown, getStatusGradient } from './utils';
+import { isRestricted, calculateQuantityBreakdown, getStatusGradient } from './utils';
 
 interface StockDetailModalProps {
   isOpen: boolean;
@@ -64,7 +64,6 @@ export default function StockDetailModal({
   if (!isOpen || !item) return null;
 
   const restricted = isRestricted(status);
-  const warning = hasWarning(status);
   const pinnedNotes = notes.filter((n) => n.is_pinned);
   const {
     total: totalQuantity,

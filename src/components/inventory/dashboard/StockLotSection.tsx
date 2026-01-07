@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, AlertTriangle, MapPin, Shield, Settings2 } from 'lucide-react';
+import { ChevronDown, AlertTriangle, MapPin, Settings2 } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
-import { EntityStatus, StatusDefinition, createStatusStyle } from '@/types/status';
+import { EntityStatus, createStatusStyle } from '@/types/status';
 import { StockPositionGroup } from './StockPositionGroup';
 import { InventoryCheckbox } from './InventoryCheckbox';
 import { useInventorySelection } from '@/components/inventory/InventoryDashboard';

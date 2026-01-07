@@ -4,20 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { ActionResponse } from '@/types/action-response';
-import {
-  StatusDefinition,
-  EntityStatus,
-  EntityNote,
-  StatusChangeLog,
-  StatusEntityType,
-} from '@/types/status';
-import {
-  validateFormData,
-  extractFormFields,
-  ok,
-  fail,
-  handleDuplicateError,
-} from '@/lib/action-utils';
+import { StatusDefinition, StatusEntityType, EntityStatus } from '@/types/status';
+import { validateFormData, ok, fail, handleDuplicateError } from '@/lib/action-utils';
 
 // --- Zod Schemas ---
 const entityTypeEnum = z.enum(['STOCK', 'LOCATION', 'WAREHOUSE', 'PRODUCT'] as const);
@@ -66,26 +54,24 @@ const ApplyStatusSchema = z.object({
   total_quantity: z.coerce.number().positive().nullish(),
 });
 
-const RemovePartialStatusSchema = z.object({
-  entity_type: entityTypeEnum,
-  entity_id: z.string().uuid('Invalid entity ID'),
-  quantity_to_remove: z.coerce.number().positive('Quantity must be positive'),
-  total_quantity: z.coerce.number().positive('Total quantity required').nullish(),
-  reason: z.string().nullish(),
-});
+// Define LotStatus type
+export interface LotStatus {
+  lot: string;
+  status_id: string;
+  status: StatusDefinition;
+  applied_at: string;
+  applied_by: string;
+}
 
-const AddNoteSchema = z.object({
-  entity_type: entityTypeEnum,
-  entity_id: z.string().uuid('Invalid entity ID'),
-  content: z.string().min(1, 'Note content is required').max(2000, 'Note too long'),
-  is_pinned: z.coerce.boolean().default(false),
-});
+// Define lotStatusSelect
+const lotStatusSelect = 'lot, status_id, status, applied_at, applied_by';
 
+// Ensure LotStatusSchema is defined
 const LotStatusSchema = z.object({
   warehouse_id: z.string().uuid('Invalid warehouse ID'),
   lot: z.string().min(1, 'Lot is required'),
   status_id: z.string().uuid('Invalid status ID').nullable(),
-  reason: z.string().nullish(),
+  reason: z.string().max(500, 'Reason too long').nullable(),
 });
 
 // ============================================
@@ -411,7 +397,7 @@ export async function applyEntityStatus(formData: FormData): Promise<ActionRespo
         affected_quantity: affected_quantity || null,
         total_quantity: total_quantity || null,
       })
-      .catch((e) => console.error('Error logging status change:', e));
+      .then(null, (e: Error) => console.error('Error logging status change:', e));
 
     revalidatePath('/dashboard');
     return ok('Status applied successfully');
@@ -458,7 +444,7 @@ export async function removeEntityStatus(formData: FormData): Promise<ActionResp
           reason: reason || 'Status removed',
           affected_quantity: currentStatus.affected_quantity,
         })
-        .catch((e) => console.error('Error logging removal:', e));
+        .then(null, (e: Error) => console.error('Error logging removal:', e));
     }
 
     revalidatePath('/dashboard');
@@ -467,323 +453,6 @@ export async function removeEntityStatus(formData: FormData): Promise<ActionResp
     console.error('Error removing status:', err);
     return fail(err.message);
   }
-}
-
-/** Remove status from partial quantity (for PRODUCT status type only) */
-export async function removePartialStatus(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-  const rawData = {
-    entity_type: formData.get('entity_type'),
-    entity_id: formData.get('entity_id'),
-    quantity_to_remove: formData.get('quantity_to_remove'),
-    total_quantity: formData.get('total_quantity'),
-    reason: formData.get('reason'),
-  };
-
-  const validation = validateFormData(RemovePartialStatusSchema, rawData);
-  if (!validation.success) return validation.response;
-
-  const { entity_type, entity_id, quantity_to_remove, total_quantity, reason } = validation.data;
-
-  try {
-    const user = await getAuthUser(supabase);
-    if (!user) return fail('Authentication required');
-
-    const { data: currentStatus, error: fetchError } = await supabase
-      .from('entity_statuses')
-      .select(`*, status:status_definitions(*)`)
-      .eq('entity_type', entity_type)
-      .eq('entity_id', entity_id)
-      .single();
-
-    if (fetchError || !currentStatus) return fail('No status found for this entity');
-
-    if (currentStatus.status?.status_type === 'LOCATION') {
-      return fail(
-        'Location statuses cannot be partially removed. Remove the entire status or move products to a different location.',
-      );
-    }
-
-    const currentAffectedQty = currentStatus.affected_quantity || total_quantity || 0;
-    if (currentAffectedQty === 0)
-      return fail('Cannot determine affected quantity. Please remove the entire status instead.');
-    if (quantity_to_remove > currentAffectedQty)
-      return fail(
-        `Cannot remove ${quantity_to_remove} units. Only ${currentAffectedQty} units have this status.`,
-      );
-
-    const newAffectedQty = currentAffectedQty - quantity_to_remove;
-
-    if (newAffectedQty <= 0) {
-      // Remove status entirely
-      const { error: deleteError } = await supabase
-        .from('entity_statuses')
-        .delete()
-        .eq('entity_type', entity_type)
-        .eq('entity_id', entity_id);
-
-      if (deleteError) throw deleteError;
-
-      await supabase.from('status_change_logs').insert({
-        entity_type,
-        entity_id,
-        from_status_id: currentStatus.status_id,
-        to_status_id: null,
-        changed_by: user.id,
-        reason: reason || `Status removed from all ${quantity_to_remove} units`,
-        affected_quantity: quantity_to_remove,
-      });
-
-      revalidatePath('/dashboard');
-      return ok(`Status removed from ${quantity_to_remove} units (status cleared)`);
-    }
-
-    // Update with reduced quantity
-    const { error: updateError } = await supabase
-      .from('entity_statuses')
-      .update({ affected_quantity: newAffectedQty, applied_at: new Date().toISOString() })
-      .eq('entity_type', entity_type)
-      .eq('entity_id', entity_id);
-
-    if (updateError) throw updateError;
-
-    await supabase.from('status_change_logs').insert({
-      entity_type,
-      entity_id,
-      from_status_id: currentStatus.status_id,
-      to_status_id: currentStatus.status_id,
-      changed_by: user.id,
-      reason: reason || `Status partially removed from ${quantity_to_remove} units`,
-      affected_quantity: newAffectedQty,
-      total_quantity: currentAffectedQty,
-    });
-
-    revalidatePath('/dashboard');
-    return ok(
-      `Status removed from ${quantity_to_remove} units. ${newAffectedQty} units still have this status.`,
-    );
-  } catch (err: any) {
-    console.error('Error removing partial status:', err);
-    return fail(err.message);
-  }
-}
-
-// ============================================
-// ENTITY NOTES ACTIONS
-// ============================================
-
-const notesSelect = `*, created_by_user:profiles!created_by(id, email, first_name, last_name)`;
-
-/** Get notes for an entity */
-export async function getEntityNotes(
-  entityType: StatusEntityType,
-  entityId: string,
-): Promise<EntityNote[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('entity_notes')
-    .select(notesSelect)
-    .eq('entity_type', entityType)
-    .eq('entity_id', entityId)
-    .order('is_pinned', { ascending: false })
-    .order('created_at', { ascending: false });
-
-  if (error) console.error('Error fetching entity notes:', error);
-  return (data as EntityNote[]) || [];
-}
-
-/** Add a note to an entity */
-export async function addEntityNote(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-  const rawData = {
-    entity_type: formData.get('entity_type'),
-    entity_id: formData.get('entity_id'),
-    content: formData.get('content'),
-    is_pinned: formData.get('is_pinned') === 'true',
-  };
-
-  const validation = validateFormData(AddNoteSchema, rawData);
-  if (!validation.success) return validation.response;
-
-  const { entity_type, entity_id, content, is_pinned } = validation.data;
-
-  try {
-    const user = await getAuthUser(supabase);
-    if (!user) return fail('Authentication required');
-
-    const { error } = await supabase.from('entity_notes').insert({
-      entity_type,
-      entity_id,
-      content,
-      is_pinned,
-      created_by: user.id,
-    });
-
-    if (error) throw error;
-    revalidatePath('/dashboard');
-    return ok('Note added successfully');
-  } catch (err: any) {
-    console.error('Error adding note:', err);
-    return fail(err.message);
-  }
-}
-
-/** Update a note */
-export async function updateEntityNote(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-  const id = formData.get('id') as string;
-  const content = formData.get('content') as string;
-  const is_pinned = formData.get('is_pinned') === 'true';
-
-  try {
-    const { error } = await supabase
-      .from('entity_notes')
-      .update({ content, is_pinned, updated_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (error) throw error;
-    revalidatePath('/dashboard');
-    return ok('Note updated successfully');
-  } catch (err: any) {
-    console.error('Error updating note:', err);
-    return fail(err.message);
-  }
-}
-
-/** Delete a note */
-export async function deleteEntityNote(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-  const id = formData.get('id') as string;
-
-  try {
-    const { error } = await supabase.from('entity_notes').delete().eq('id', id);
-    if (error) throw error;
-    revalidatePath('/dashboard');
-    return ok('Note deleted successfully');
-  } catch (err: any) {
-    console.error('Error deleting note:', err);
-    return fail(err.message);
-  }
-}
-
-/** Toggle note pin status */
-export async function toggleNotePin(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-  const id = formData.get('id') as string;
-  const is_pinned = formData.get('is_pinned') === 'true';
-
-  try {
-    const { error } = await supabase
-      .from('entity_notes')
-      .update({ is_pinned, updated_at: new Date().toISOString() })
-      .eq('id', id);
-
-    if (error) throw error;
-    revalidatePath('/dashboard');
-    return ok(is_pinned ? 'Note pinned' : 'Note unpinned');
-  } catch (err: any) {
-    console.error('Error toggling note pin:', err);
-    return fail(err.message);
-  }
-}
-
-// ============================================
-// STATUS CHANGE HISTORY & HELPERS
-// ============================================
-
-const historySelect = `*, from_status:status_definitions!from_status_id(*), to_status:status_definitions!to_status_id(*), changed_by_user:profiles!changed_by(id, email, first_name, last_name)`;
-
-/** Get status change history for an entity */
-export async function getStatusHistory(
-  entityType: StatusEntityType,
-  entityId: string,
-): Promise<StatusChangeLog[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('status_change_logs')
-    .select(historySelect)
-    .eq('entity_type', entityType)
-    .eq('entity_id', entityId)
-    .order('changed_at', { ascending: false });
-
-  if (error) console.error('Error fetching status history:', error);
-  return (data as StatusChangeLog[]) || [];
-}
-
-// Alias for backward compatibility
-export const getStatusChangeHistory = getStatusHistory;
-
-/** Get notes count for multiple entities (for bulk display) */
-export async function getNotesCount(
-  entityType: StatusEntityType,
-  entityIds: string[],
-): Promise<Map<string, number>> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('entity_notes')
-    .select('entity_id')
-    .eq('entity_type', entityType)
-    .in('entity_id', entityIds);
-
-  if (error) console.error('Error fetching notes count:', error);
-
-  const countMap = new Map<string, number>();
-  (data || []).forEach((item) =>
-    countMap.set(item.entity_id, (countMap.get(item.entity_id) || 0) + 1),
-  );
-  return countMap;
-}
-
-/** Bulk fetch statuses and notes for inventory display */
-export async function getInventoryStatusData(stockIds: string[]): Promise<{
-  statuses: Map<string, EntityStatus>;
-  noteCounts: Map<string, number>;
-}> {
-  if (stockIds.length === 0) return { statuses: new Map(), noteCounts: new Map() };
-
-  const [statuses, noteCounts] = await Promise.all([
-    getEntityStatuses('STOCK', stockIds),
-    getNotesCount('STOCK', stockIds),
-  ]);
-
-  return { statuses, noteCounts };
-}
-
-// ============================================
-// LOT STATUS ACTIONS
-// ============================================
-
-export interface LotStatus {
-  lot: string;
-  status_id: string | null;
-  status: StatusDefinition | null;
-  applied_at: string | null;
-  applied_by: string | null;
-}
-
-const lotStatusSelect = `lot, status_id, applied_at, applied_by, status:status_definitions(*)`;
-
-/** Get lot statuses for a warehouse */
-export async function getLotStatuses(warehouseId: string): Promise<Map<string, LotStatus>> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('lot_statuses')
-    .select(lotStatusSelect)
-    .eq('warehouse_id', warehouseId);
-
-  if (error && error.code !== '42P01') console.error('Error fetching lot statuses:', error);
-
-  const statusMap = new Map<string, LotStatus>();
-  (data || []).forEach((item: any) => {
-    statusMap.set(item.lot, {
-      lot: item.lot,
-      status_id: item.status_id,
-      status: item.status,
-      applied_at: item.applied_at,
-      applied_by: item.applied_by,
-    });
-  });
-  return statusMap;
 }
 
 /** Get status for a single lot */
@@ -804,7 +473,7 @@ export async function getLotStatus(warehouseId: string, lot: string): Promise<Lo
   return {
     lot: data.lot,
     status_id: data.status_id,
-    status: data.status,
+    status: data.status as StatusDefinition, // Ensure proper typing
     applied_at: data.applied_at,
     applied_by: data.applied_by,
   };
@@ -870,4 +539,142 @@ export async function setLotStatus(formData: FormData): Promise<ActionResponse> 
     console.error('Error setting lot status:', err);
     return fail(err.message || 'Failed to update lot status');
   }
+}
+
+/** Fetch inventory status data for given stock IDs */
+export async function getInventoryStatusData(stockIds: string[]): Promise<any> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('inventory_status')
+    .select('*')
+    .in('stock_id', stockIds);
+
+  if (error) {
+    console.error('Error fetching inventory status data:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Fetch lot statuses for a warehouse */
+export async function getLotStatuses(warehouseId: string): Promise<any> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('lot_statuses')
+    .select('*')
+    .eq('warehouse_id', warehouseId);
+
+  if (error) {
+    console.error('Error fetching lot statuses:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Fetch entity notes */
+export async function getEntityNotes(entityType: StatusEntityType, entityId: string): Promise<any> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('entity_notes')
+    .select('*')
+    .eq('entity_type', entityType)
+    .eq('entity_id', entityId);
+
+  if (error) {
+    console.error('Error fetching entity notes:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Fetch status change history */
+export async function getStatusChangeHistory(
+  entityType: StatusEntityType,
+  entityId: string,
+): Promise<any> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('status_change_logs')
+    .select('*')
+    .eq('entity_type', entityType)
+    .eq('entity_id', entityId);
+
+  if (error) {
+    console.error('Error fetching status change history:', error);
+    return null;
+  }
+  return data;
+}
+
+/** Remove partial status */
+export async function removePartialStatus(formData: FormData): Promise<ActionResponse> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('partial_status_removals')
+    .insert(Object.fromEntries(formData));
+
+  if (error) {
+    console.error('Error removing partial status:', error);
+    return fail('Failed to remove partial status');
+  }
+  return ok('Partial status removed successfully');
+}
+
+/** Add a note to an entity */
+export async function addEntityNote(formData: FormData): Promise<ActionResponse> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('entity_notes').insert(Object.fromEntries(formData));
+
+  if (error) {
+    console.error('Error adding entity note:', error);
+    return fail('Failed to add note');
+  }
+  return ok('Note added successfully');
+}
+
+/** Update an entity note */
+export async function updateEntityNote(formData: FormData): Promise<ActionResponse> {
+  const supabase = await createClient();
+  const id = formData.get('id') as string;
+  const content = formData.get('content') as string | null;
+  const is_pinned = formData.get('is_pinned') as string | null;
+
+  const updates: any = {};
+  if (content !== null) updates.content = content;
+  if (is_pinned !== null) updates.is_pinned = is_pinned === 'true';
+
+  const { error } = await supabase.from('entity_notes').update(updates).eq('id', id);
+
+  if (error) {
+    console.error('Error updating entity note:', error);
+    return fail('Failed to update note');
+  }
+  return ok('Note updated successfully');
+}
+
+/** Delete an entity note */
+export async function deleteEntityNote(formData: FormData): Promise<ActionResponse> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('entity_notes').delete().eq('id', formData.get('id'));
+
+  if (error) {
+    console.error('Error deleting entity note:', error);
+    return fail('Failed to delete note');
+  }
+  return ok('Note deleted successfully');
+}
+
+/** Toggle pin status of a note */
+export async function toggleNotePin(formData: FormData): Promise<ActionResponse> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('entity_notes')
+    .update({ is_pinned: formData.get('is_pinned') })
+    .eq('id', formData.get('id'));
+
+  if (error) {
+    console.error('Error toggling note pin:', error);
+    return fail('Failed to toggle pin');
+  }
+  return ok('Note pin toggled successfully');
 }

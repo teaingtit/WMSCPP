@@ -50,7 +50,7 @@ export default async function InventoryPage({
     .from('stocks')
     .select(
       `
-      id, quantity, updated_at,
+      id, quantity, updated_at, attributes,
       products!inner(*),
       locations!inner(*)
     `,
@@ -96,23 +96,49 @@ export default async function InventoryPage({
     );
   }
 
+  // Build Attribute Label Map
+  const attributeLabelMap: Record<string, string> = {};
+  if (categories) {
+    categories.forEach((cat: any) => {
+      if (Array.isArray(cat.form_schema)) {
+        cat.form_schema.forEach((field: any) => {
+          if (field.key && field.label) {
+            attributeLabelMap[field.key] = field.label;
+          }
+        });
+      }
+    });
+  }
+
   // The `StockWithDetails` type expects `id` as a string, but Supabase returns it as a number.
   // We also need to handle the Supabase client's incorrect type inference for nested relations (`!inner`).
   // This transformation ensures the data shape matches the component's props.
-  const formattedStocks: StockWithDetails[] = (stocks || []).map((stock: any) => ({
-    ...stock,
-    id: String(stock.id),
-    // Fix: Map plural (DB) to singular (UI Component Expectation)
-    product: stock.products,
-    location: stock.locations,
-    // Map nested data to top-level properties for UI compatibility
-    lot: stock.locations?.lot,
-    cart: stock.locations?.cart,
-    level: stock.locations?.level,
-    sku: stock.products?.sku,
-    name: stock.products?.name,
-    image_url: stock.products?.image_url,
-  }));
+  const formattedStocks: StockWithDetails[] = (stocks || []).map((stock: any) => {
+    // Resolve Attributes
+    const resolvedAttributes: Record<string, any> = {};
+    if (stock.attributes) {
+      Object.entries(stock.attributes).forEach(([key, value]) => {
+        const label = attributeLabelMap[key] || key;
+        resolvedAttributes[label] = value;
+      });
+    }
+
+    return {
+      ...stock,
+      id: String(stock.id),
+      // Fix: Map plural (DB) to singular (UI Component Expectation)
+      product: stock.products,
+      location: stock.locations,
+      // Map nested data to top-level properties for UI compatibility
+      lot: stock.locations?.lot,
+      cart: stock.locations?.cart,
+      level: stock.locations?.level,
+      sku: stock.products?.sku,
+      name: stock.products?.name,
+      image_url: stock.products?.image_url,
+      attributes: resolvedAttributes, // Pass resolved attributes
+    };
+  });
 
   return (
     <div className="min-h-screen bg-slate-50/30 pb-32 p-3 md:p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">

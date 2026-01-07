@@ -3,6 +3,7 @@
 import React from 'react';
 import { MapPin, Calendar, Hash, Layers, Package, CheckCircle, Shield, Box } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
+import { formatAttributeKey, formatAttributeValue } from '@/lib/utils';
 
 interface InventoryCardProps {
   item: StockWithDetails;
@@ -13,6 +14,8 @@ export default function InventoryCard({ item }: InventoryCardProps) {
   const totalQuantity = item.quantity;
   const normalQuantity = totalQuantity;
   const affectedQuantity = 0;
+
+  const hasAttributes = item.attributes && Object.keys(item.attributes).length > 0;
 
   return (
     <div className="group bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 relative overflow-hidden flex flex-col h-full cursor-pointer touch-manipulation select-none">
@@ -66,9 +69,31 @@ export default function InventoryCard({ item }: InventoryCardProps) {
         <h3 className="font-bold text-slate-800 text-base leading-snug mb-1 group-hover:text-indigo-600 transition-colors line-clamp-2 text-center">
           {item.product?.name || 'Unknown Product'}
         </h3>
-        <div className="flex items-center justify-center gap-1 text-xs text-slate-400 font-mono">
+        <div className="flex items-center justify-center gap-1 text-xs text-slate-400 font-mono mb-2">
           <Hash size={12} /> {item.product?.sku || '-'}
         </div>
+
+        {/* Attributes */}
+        {hasAttributes && (
+          <div className="flex flex-wrap gap-1 justify-center mt-2">
+            {Object.entries(item.attributes || {})
+              .slice(0, 3)
+              .map(([key, value]) => (
+                <span
+                  key={key}
+                  className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200"
+                >
+                  {formatAttributeKey(key)}:{' '}
+                  <span className="font-semibold text-slate-700">
+                    {formatAttributeValue(value)}
+                  </span>
+                </span>
+              ))}
+            {Object.keys(item.attributes || {}).length > 3 && (
+              <span className="text-[9px] text-slate-400 px-1 py-0.5">...</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Quantity Breakdown Section */}
