@@ -1,13 +1,40 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
-  ({ className, type, ...props }, ref) => {
+export interface InputProps extends React.ComponentProps<'input'> {
+  error?: boolean;
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, error, ...props }, ref) => {
     return (
       <input
         type={type}
         className={cn(
-          'flex h-11 w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+          // Base styles - Touch-optimized
+          'flex h-12 w-full rounded-xl border bg-background px-4 py-3',
+          'text-sm text-foreground placeholder:text-muted-foreground',
+          'transition-all duration-200',
+
+          // Focus states
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary',
+
+          // File input
+          'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
+
+          // Disabled state
+          'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/50',
+
+          // Default border
+          !error && 'border-input',
+
+          // Error state
+          error &&
+            'border-destructive focus-visible:ring-destructive/20 focus-visible:border-destructive',
+
+          // Shadow for depth
+          'shadow-sm hover:shadow-md focus:shadow-md',
+
           className,
         )}
         ref={ref}
@@ -18,4 +45,21 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
 );
 Input.displayName = 'Input';
 
-export { Input };
+// New: Search Input variant with icon support
+const SearchInput = React.forwardRef<HTMLInputElement, InputProps & { icon?: React.ReactNode }>(
+  ({ className, icon, ...props }, ref) => {
+    return (
+      <div className="relative">
+        {icon && (
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            {icon}
+          </div>
+        )}
+        <Input ref={ref} className={cn(icon && 'pl-11', className)} {...props} />
+      </div>
+    );
+  },
+);
+SearchInput.displayName = 'SearchInput';
+
+export { Input, SearchInput };

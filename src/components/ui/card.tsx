@@ -7,7 +7,8 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        'rounded-2xl border bg-card text-card-foreground shadow-sm', // More rounded corners
+        'rounded-2xl border border-border/50 bg-card text-card-foreground',
+        'shadow-sm hover:shadow-md transition-shadow duration-200',
         className,
       )}
       {...props}
@@ -18,7 +19,7 @@ Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-5 sm:p-6', className)} {...props} />
   ),
 );
 CardHeader.displayName = 'CardHeader';
@@ -27,7 +28,7 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn('font-bold leading-none tracking-tight text-lg', className)} // Bolder title
+      className={cn('font-bold leading-tight tracking-tight text-lg sm:text-xl', className)}
       {...props}
     />
   ),
@@ -38,22 +39,45 @@ const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <p ref={ref} className={cn('text-sm text-muted-foreground mt-2', className)} {...props} />
+  <p ref={ref} className={cn('text-sm text-muted-foreground mt-1.5', className)} {...props} />
 ));
 CardDescription.displayName = 'CardDescription';
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+    <div ref={ref} className={cn('p-5 sm:p-6 pt-0', className)} {...props} />
   ),
 );
 CardContent.displayName = 'CardContent';
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
+    <div
+      ref={ref}
+      className={cn('flex items-center p-5 sm:p-6 pt-0 gap-3', className)}
+      {...props}
+    />
   ),
 );
 CardFooter.displayName = 'CardFooter';
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+// New: Interactive Card variant for clickable cards
+const CardInteractive = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { href?: string }
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      'rounded-2xl border border-border/50 bg-card text-card-foreground cursor-pointer',
+      'shadow-sm transition-all duration-300',
+      'hover:shadow-lg hover:-translate-y-1 hover:border-primary/20',
+      'active:scale-[0.98]',
+      className,
+    )}
+    {...props}
+  />
+));
+CardInteractive.displayName = 'CardInteractive';
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardInteractive };

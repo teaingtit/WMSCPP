@@ -25,24 +25,43 @@ export default function BottomNav() {
   ].filter(Boolean) as typeof MENU_ITEMS;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border lg:hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+    <nav className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 lg:hidden safe-area-bottom">
+      <div className="max-w-lg mx-auto px-2">
+        <div className="flex items-center justify-around h-16">
           {items.map((item) => {
             const realHref = item.href.replace('[warehouseId]', warehouseId || '');
             const isActive = pathname?.startsWith(realHref);
             const Icon = item.icon || LayoutGrid;
+
             return (
               <Link
                 key={item.href}
                 href={realHref}
                 className={cn(
-                  'flex-1 flex flex-col items-center justify-center py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                  isActive ? 'text-primary' : 'text-muted-foreground',
+                  'relative flex flex-col items-center justify-center py-1.5 px-4 rounded-2xl transition-all duration-200',
+                  'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-95',
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                <Icon size={18} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
-                <span className="mt-0.5">{item.title}</span>
+                {/* Active indicator */}
+                {isActive && <div className="absolute -top-0.5 w-8 h-1 bg-primary rounded-full" />}
+
+                <div
+                  className={cn(
+                    'p-1.5 rounded-xl transition-all duration-200',
+                    isActive ? 'bg-primary/10' : '',
+                  )}
+                >
+                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                </div>
+                <span
+                  className={cn(
+                    'text-[10px] font-medium mt-0.5 transition-colors',
+                    isActive ? 'text-primary font-semibold' : '',
+                  )}
+                >
+                  {item.title}
+                </span>
               </Link>
             );
           })}

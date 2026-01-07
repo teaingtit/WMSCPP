@@ -12,14 +12,14 @@ import {
   Settings,
   ClipboardList,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants';
 import { logout } from '@/actions/auth-actions';
 import { useUser } from '@/components/providers/UserProvider';
 import { cn } from '@/lib/utils';
-// Note: DropdownMenu not used here; custom NavDropdown used instead
 
-// Simple Dropdown Component
+// Modern Dropdown Component with glass morphism
 function NavDropdown({
   title,
   icon: Icon,
@@ -27,7 +27,7 @@ function NavDropdown({
   isActive,
 }: {
   title: string;
-  icon: any;
+  icon: React.ElementType;
   children: React.ReactNode;
   isActive?: boolean;
 }) {
@@ -49,20 +49,23 @@ function NavDropdown({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+          'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
           isActive || isOpen
-            ? 'bg-white/10 text-white'
+            ? 'bg-white/10 text-white shadow-sm'
             : 'text-slate-400 hover:bg-white/5 hover:text-white',
         )}
       >
         <Icon size={18} />
         <span>{title}</span>
-        <ChevronDown size={14} className={cn('transition-transform', isOpen && 'rotate-180')} />
+        <ChevronDown
+          size={14}
+          className={cn('transition-transform duration-200', isOpen && 'rotate-180')}
+        />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-56 bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/10 p-1.5 z-50 animate-in fade-in zoom-in-95 duration-200">
-          {children}
+        <div className="absolute top-full left-0 mt-2 w-64 glass-dark rounded-2xl shadow-2xl p-2 z-50 animate-scale-in">
+          <div className="space-y-1">{children}</div>
         </div>
       )}
     </div>
@@ -90,9 +93,9 @@ export default function TopNav() {
         href={realHref}
         onClick={onClick ?? (() => {})}
         className={cn(
-          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+          'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
           isActive
-            ? 'bg-primary/20 text-primary-foreground'
+            ? 'bg-primary/20 text-white'
             : 'text-slate-400 hover:bg-white/5 hover:text-white',
         )}
       >
@@ -103,30 +106,35 @@ export default function TopNav() {
   };
 
   return (
-    <header className="bg-slate-900/60 backdrop-blur-xl border-b border-white/10 hidden lg:flex items-center justify-between px-4 sm:px-6 py-3 sticky top-0 z-40 shadow-sm">
+    <header className="glass-dark hidden lg:flex items-center justify-between px-6 py-3 sticky top-0 z-40">
       {/* Left: Brand & Main Nav */}
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-10">
         {/* Brand */}
-        <Link href="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="bg-primary p-1.5 rounded-lg shadow-sm shadow-primary/20 group-hover:scale-110 transition-transform">
-            <Package size={20} className="text-primary-foreground" />
+        <Link href="/dashboard" className="flex items-center gap-3 group">
+          <div className="relative">
+            <div className="bg-gradient-to-br from-primary to-blue-600 p-2.5 rounded-xl shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-all duration-300 group-hover:scale-105">
+              <Package size={22} className="text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full border-2 border-slate-900 animate-pulse" />
           </div>
           <div>
-            <h1 className="font-bold text-white text-lg tracking-tight leading-none">
+            <h1 className="font-bold text-white text-lg tracking-tight leading-none flex items-center gap-2">
               {APP_CONFIG.name}
+              <Sparkles size={14} className="text-primary" />
             </h1>
+            <span className="text-[10px] text-slate-500 font-medium">v{APP_CONFIG.version}</span>
           </div>
         </Link>
 
         {/* Navigation */}
         <nav className="flex items-center gap-1">
-          {/* General */}
+          {/* Dashboard */}
           <Link
             href="/dashboard"
             className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
               pathname === '/dashboard'
-                ? 'bg-white/10 text-white'
+                ? 'bg-white/10 text-white shadow-sm'
                 : 'text-slate-400 hover:bg-white/5 hover:text-white',
             )}
           >
@@ -150,7 +158,7 @@ export default function TopNav() {
                     href: `/dashboard/${warehouseId}/inventory`,
                     icon: Package,
                     matchPath: '/inventory',
-                  } as any),
+                  } as (typeof MENU_ITEMS)[0]),
               )}
               {MENU_ITEMS.filter((m) => ['/audit', '/history'].includes(m.matchPath)).map((m) =>
                 renderLink(m),
@@ -158,14 +166,14 @@ export default function TopNav() {
             </NavDropdown>
           )}
 
-          {/* System */}
+          {/* System Settings */}
           {isAdmin && (
             <Link
               href="/dashboard/settings"
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 pathname.includes('/settings')
-                  ? 'bg-white/10 text-white'
+                  ? 'bg-white/10 text-white shadow-sm'
                   : 'text-slate-400 hover:bg-white/5 hover:text-white',
               )}
             >
@@ -180,18 +188,26 @@ export default function TopNav() {
       <div className="flex items-center gap-4">
         {user && (
           <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-            <div className="text-right hidden lg:block">
-              <div className="text-sm font-bold text-slate-200">{user.email.split('@')[0]}</div>
-              <div className="text-[10px] text-slate-400 font-mono uppercase">{user.role}</div>
+            <div className="text-right hidden xl:block">
+              <div className="text-sm font-semibold text-white">{user.email.split('@')[0]}</div>
+              <div
+                className={cn(
+                  'text-[10px] font-bold uppercase tracking-wide',
+                  isAdmin ? 'text-primary' : 'text-emerald-400',
+                )}
+              >
+                {user.role}
+              </div>
             </div>
             <div
-              className={`w-9 h-9 rounded-full flex items-center justify-center border-2 shadow-sm ${
+              className={cn(
+                'w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105',
                 isAdmin
-                  ? 'border-primary/20 bg-primary/10 text-primary'
-                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              }`}
+                  ? 'bg-gradient-to-br from-primary to-blue-600 text-white'
+                  : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white',
+              )}
             >
-              {isAdmin ? <Shield size={16} /> : <UserCircle size={18} />}
+              {isAdmin ? <Shield size={18} /> : <UserCircle size={20} />}
             </div>
           </div>
         )}
@@ -199,7 +215,7 @@ export default function TopNav() {
         <form action={logout}>
           <button
             type="submit"
-            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+            className="p-2.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all duration-200 active:scale-95"
             title="Sign Out"
           >
             <LogOut size={20} />

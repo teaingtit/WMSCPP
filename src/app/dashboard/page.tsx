@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { getDashboardWarehouses } from '@/actions/dashboard-actions';
-import { Building2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Building2, ArrowRight, ShieldCheck, Sparkles, Boxes } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth-service';
 
 export default async function DashboardPage() {
@@ -10,74 +10,114 @@ export default async function DashboardPage() {
   const warehouses = await getDashboardWarehouses();
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-3xl p-6 md:p-10 text-white shadow-xl shadow-blue-900/20 relative overflow-hidden animate-fade-in border border-blue-500/30">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 pb-24 lg:pb-8">
+      {/* Welcome Banner - Modern Glass Design */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-blue-600 to-indigo-700 p-6 sm:p-8 lg:p-10 text-white animate-fade-in">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl" />
+        <div className="absolute top-1/2 right-1/4 w-32 h-32 bg-indigo-400/10 rounded-full blur-xl" />
+
+        {/* Content */}
         <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-bold mb-2 tracking-tight">
-            ยินดีต้อนรับกลับ, {user?.email}
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-5 h-5 text-blue-200" />
+            <span className="text-sm font-medium text-blue-100/80">
+              {user?.role === 'admin' ? 'Administrator Access' : 'Staff Access'}
+            </span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 tracking-tight">
+            ยินดีต้อนรับกลับ 👋
           </h1>
-          <p className="text-blue-100 opacity-90 font-medium text-sm md:text-base">
+
+          <p className="text-blue-100/90 text-sm sm:text-base max-w-lg leading-relaxed">
             {user?.role === 'admin'
-              ? 'Administrator Mode: ควบคุมดูแลระบบทั้งหมด'
-              : 'Staff Mode: จัดการคลังสินค้าที่คุณได้รับมอบหมาย'}
+              ? 'คุณสามารถควบคุมและจัดการระบบคลังสินค้าทั้งหมดได้จากที่นี่'
+              : 'เลือกคลังสินค้าที่คุณได้รับมอบหมายเพื่อเริ่มต้นการทำงาน'}
           </p>
+
+          {/* User Badge */}
+          <div className="mt-6 inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-2.5 border border-white/20">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+              <ShieldCheck size={16} />
+            </div>
+            <div>
+              <div className="text-xs text-blue-100/70">Signed in as</div>
+              <div className="text-sm font-semibold truncate max-w-[200px]">{user?.email}</div>
+            </div>
+          </div>
         </div>
-        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-blue-400 opacity-20 rounded-full blur-2xl"></div>
       </div>
 
+      {/* Section Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg md:text-xl font-bold text-slate-950 flex items-center gap-2">
-          <Building2 className="text-blue-400" />
-          คลังสินค้าของคุณ ({warehouses.length})
-        </h2>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-white">คลังสินค้าของคุณ</h2>
+            <p className="text-sm text-slate-400">{warehouses.length} warehouses available</p>
+          </div>
+        </div>
       </div>
 
-      {/* Warehouse Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Warehouse Grid - Responsive & Touch-Friendly */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 stagger-children">
         {warehouses.map((wh, index) => (
           <Link
             key={wh.id}
             href={`/dashboard/${wh.code}`}
-            className="group bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-sm hover:shadow-xl hover:shadow-blue-900/20 hover:border-blue-500 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden block animate-fade-in"
-            style={{ animationDelay: `${index * 100}ms` }}
+            className="group relative bg-gradient-to-b from-slate-800 to-slate-800/80 rounded-2xl p-5 sm:p-6 border border-slate-700/50 shadow-lg hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 block overflow-hidden"
+            style={{ animationDelay: `${index * 80}ms` }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+            {/* Hover Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="p-3 bg-slate-700 text-blue-400 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors shadow-sm border border-slate-600 group-hover:border-blue-500">
-                <Building2 size={24} />
+            {/* Header */}
+            <div className="flex justify-between items-start mb-5 relative z-10">
+              <div className="p-3 bg-slate-700/50 text-primary rounded-xl group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-lg group-hover:shadow-primary/25">
+                <Building2 size={22} />
               </div>
               {wh.is_active && (
-                <span className="flex items-center gap-1 text-[10px] font-bold bg-emerald-900/30 text-emerald-400 px-2 py-1 rounded-full border border-emerald-800 shadow-sm">
-                  <ShieldCheck size={12} /> Online
+                <span className="flex items-center gap-1.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                  Online
                 </span>
               )}
             </div>
 
-            <h3 className="text-lg font-bold text-slate-100 mb-1 group-hover:text-blue-400 transition-colors relative z-10">
+            {/* Content */}
+            <h3 className="text-lg font-bold text-white mb-1.5 group-hover:text-primary transition-colors relative z-10">
               {wh.name}
             </h3>
-            <p className="text-sm text-slate-400 font-mono mb-6 bg-slate-900 inline-block px-2 py-0.5 rounded border border-slate-700 relative z-10">
-              {wh.code}
-            </p>
+            <div className="flex items-center gap-2 mb-5 relative z-10">
+              <span className="text-xs text-slate-400 font-mono bg-slate-900/50 px-2.5 py-1 rounded-lg border border-slate-700/50">
+                {wh.code}
+              </span>
+            </div>
 
-            <div className="flex items-center text-sm font-bold text-blue-400 gap-2 group-hover:translate-x-1 transition-transform relative z-10">
-              เข้าสู่ระบบจัดการ <ArrowRight size={16} />
+            {/* Action */}
+            <div className="flex items-center text-sm font-semibold text-primary gap-2 group-hover:gap-3 transition-all relative z-10">
+              <span>เข้าสู่ระบบจัดการ</span>
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </div>
           </Link>
         ))}
 
+        {/* Empty State */}
         {warehouses.length === 0 && (
-          <div className="col-span-full py-16 text-center bg-slate-800 rounded-2xl border border-dashed border-slate-700">
-            <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 border border-slate-600">
-              <ShieldCheck size={32} />
+          <div className="col-span-full">
+            <div className="flex flex-col items-center justify-center py-16 px-6 bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-700 text-center">
+              <div className="w-20 h-20 bg-slate-700/50 rounded-2xl flex items-center justify-center mb-5 text-slate-400">
+                <Boxes size={36} />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">ไม่มีคลังสินค้า</h3>
+              <p className="text-slate-400 text-sm max-w-sm">
+                คุณยังไม่มีสิทธิ์เข้าถึงคลังสินค้าใดๆ กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์การเข้าถึง
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-slate-200">ไม่มีคลังสินค้าที่ได้รับมอบหมาย</h3>
-            <p className="text-slate-400 text-sm mt-1">
-              คุณยังไม่มีสิทธิ์เข้าถึงคลังสินค้าใดๆ โปรดติดต่อ Admin เพื่อขอสิทธิ์
-            </p>
           </div>
         )}
       </div>

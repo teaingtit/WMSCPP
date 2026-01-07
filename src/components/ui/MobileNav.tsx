@@ -3,7 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { Menu, X, Package, LogOut, ChevronRight, UserCircle, Warehouse } from 'lucide-react';
+import {
+  Menu,
+  X,
+  Package,
+  LogOut,
+  ChevronRight,
+  UserCircle,
+  Warehouse,
+  Sparkles,
+} from 'lucide-react';
 import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants';
 import { logout } from '@/actions/auth-actions';
 import { useUser } from '@/components/providers/UserProvider';
@@ -31,79 +40,96 @@ export default function MobileNav() {
 
   return (
     <div className="lg:hidden sticky top-0 z-50">
-      {/* Navbar */}
-      <div className="bg-slate-900/80 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2.5">
-          <div className="bg-primary p-1.5 rounded-lg shadow-sm shadow-primary/20">
-            <Package size={20} className="text-primary-foreground" />
+      {/* Navbar - Glass morphism style */}
+      <div className="glass-dark px-4 py-3.5 flex items-center justify-between safe-area-top">
+        <Link href="/dashboard" className="flex items-center gap-3 group">
+          <div className="relative">
+            <div className="bg-gradient-to-br from-primary to-blue-600 p-2 rounded-xl shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-shadow">
+              <Package size={20} className="text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-success rounded-full border-2 border-slate-900" />
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">{APP_CONFIG.name}</span>
-        </div>
+          <div>
+            <span className="font-bold text-white text-lg tracking-tight">{APP_CONFIG.name}</span>
+            <span className="text-[10px] text-slate-400 block -mt-0.5">v{APP_CONFIG.version}</span>
+          </div>
+        </Link>
+
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 -mr-2 text-slate-400 hover:bg-white/10 rounded-full transition-colors active:bg-white/20"
+          className="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
           aria-label="Open menu"
         >
-          <Menu size={26} />
+          <Menu size={24} />
         </button>
       </div>
 
-      {/* Overlay */}
+      {/* Overlay with blur */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 animate-fade-in"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Drawer */}
+      {/* Drawer - Modern sliding panel */}
       <div
         className={cn(
-          'fixed inset-y-0 right-0 w-[85%] max-w-[320px] bg-slate-900 border-l border-white/10 z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-out transform',
+          'fixed inset-y-0 right-0 w-[85%] max-w-[340px] bg-slate-900 border-l border-white/10 z-50 shadow-2xl flex flex-col transition-transform duration-300 ease-out transform',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10 bg-slate-900">
-          <h2 className="font-bold text-white text-lg">Menu</h2>
+        <div className="flex items-center justify-between p-5 border-b border-white/10 bg-gradient-to-r from-slate-900 to-slate-800">
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} className="text-primary" />
+            <h2 className="font-bold text-white text-lg">Menu</h2>
+          </div>
           <button
             onClick={() => setIsOpen(false)}
             aria-label="Close menu"
-            className="p-2 -mr-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition-all"
+            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
           >
-            <X size={24} />
+            <X size={22} />
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
-          {/* User Profile */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-5 custom-scrollbar">
+          {/* User Profile Card */}
           {user && (
-            <div className="bg-white/5 rounded-2xl p-4 border border-white/10 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
+            <div className="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-4 border border-white/10 shadow-lg">
+              <div className="flex items-center gap-3.5 mb-4">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center border-2 shadow-sm ${
+                  className={cn(
+                    'w-12 h-12 rounded-xl flex items-center justify-center shadow-lg',
                     isAdmin
-                      ? 'border-primary/20 bg-primary/10 text-primary'
-                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-                  }`}
+                      ? 'bg-gradient-to-br from-primary to-blue-600 text-white'
+                      : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white',
+                  )}
                 >
-                  <UserCircle size={28} />
+                  <UserCircle size={26} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-slate-200 truncate text-sm">{user.email}</div>
-                  <div className="text-xs text-slate-400 font-mono uppercase bg-white/10 inline-block px-1.5 py-0.5 rounded border border-white/5 mt-1">
+                  <div className="font-semibold text-white truncate">{user.email}</div>
+                  <div
+                    className={cn(
+                      'text-xs font-bold uppercase tracking-wide mt-0.5',
+                      isAdmin ? 'text-primary' : 'text-emerald-400',
+                    )}
+                  >
                     {user.role}
                   </div>
                 </div>
               </div>
+
               {!isAdmin && (
-                <div className="flex items-center gap-2 text-xs text-slate-400 bg-white/5 p-2 rounded-xl border border-white/5">
-                  <Warehouse size={14} className="text-slate-500" />
+                <div className="flex items-center gap-2.5 text-sm text-slate-400 bg-white/5 p-3 rounded-xl border border-white/5">
+                  <Warehouse size={16} className="text-slate-500 flex-shrink-0" />
                   <span>
                     Access:{' '}
-                    <span className="font-bold text-slate-300">
+                    <span className="font-bold text-white">
                       {user.allowed_warehouses?.length || 0}
                     </span>{' '}
                     Warehouses
@@ -114,9 +140,9 @@ export default function MobileNav() {
           )}
 
           {/* Navigation Links */}
-          <nav className="space-y-1">
-            <div className="px-2 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-              Applications
+          <nav className="space-y-1.5">
+            <div className="px-3 text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+              Navigation
             </div>
             {MENU_ITEMS.filter((m) => !m.hidden).map((item) => {
               // Security & Logic Filters
@@ -134,19 +160,19 @@ export default function MobileNav() {
                   className={cn(
                     'flex items-center justify-between p-3.5 rounded-xl text-sm font-medium transition-all duration-200 group active:scale-[0.98]',
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                      : 'text-slate-400 hover:bg-white/5 hover:text-white active:bg-white/10',
+                      ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/25'
+                      : 'text-slate-300 hover:bg-white/5 hover:text-white',
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <item.icon
-                      size={20}
-                      className={
-                        isActive
-                          ? 'text-primary-foreground/90'
-                          : 'text-slate-500 group-hover:text-primary'
-                      }
-                    />
+                    <div
+                      className={cn(
+                        'w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
+                        isActive ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10',
+                      )}
+                    >
+                      <item.icon size={18} />
+                    </div>
                     <span>{item.title}</span>
                   </div>
                   {!isActive && (
@@ -162,11 +188,11 @@ export default function MobileNav() {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 bg-slate-900">
+        <div className="p-4 border-t border-white/10 bg-slate-900/80 backdrop-blur-sm">
           <form action={logout}>
             <button
               type="submit"
-              className="flex items-center justify-center gap-2 w-full p-3.5 text-rose-400 bg-white/5 border border-white/10 hover:bg-rose-500/10 hover:border-rose-500/30 rounded-xl font-bold transition-all shadow-sm active:scale-[0.98]"
+              className="flex items-center justify-center gap-2.5 w-full p-3.5 text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/30 rounded-xl font-semibold transition-all shadow-sm active:scale-[0.98]"
             >
               <LogOut size={18} />
               <span>Sign Out</span>
