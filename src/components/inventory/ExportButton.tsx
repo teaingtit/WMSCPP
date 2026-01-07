@@ -5,6 +5,7 @@ import { exportInventoryToExcel } from '@/actions/export-actions';
 import { Button } from '@/components/ui/button';
 import { Loader2, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 
 export default function ExportButton({ warehouseId }: { warehouseId: string }) {
@@ -37,13 +38,13 @@ export default function ExportButton({ warehouseId }: { warehouseId: string }) {
         link.click();
         document.body.removeChild(link);
 
-        toast.success('ดาวน์โหลดสำเร็จ', { id: toastId });
+        notify.success('ดาวน์โหลดสำเร็จ', { id: String(toastId) });
       } else {
-        toast.error(result.error || 'Export ล้มเหลว', { id: toastId });
+        notify.error(result.error || 'Export ล้มเหลว', { id: String(toastId) });
       }
     } catch (error) {
       console.error(error);
-      toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ', { id: toastId });
+      notify.error('เกิดข้อผิดพลาดในการเชื่อมต่อ', { id: String(toastId) });
     } finally {
       setIsLoading(false);
     }

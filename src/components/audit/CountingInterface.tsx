@@ -6,7 +6,7 @@ import { AuditItem } from '@/types/inventory';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { updateAuditItemCount } from '@/actions/audit-actions';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import { Loader2, Check, Pencil, MapPin, Search, Box, BarChart3 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
@@ -52,7 +52,7 @@ function AuditItemCard({
 
     const qty = parseInt(inputValue, 10);
     if (isNaN(qty) || qty < 0) {
-      toast.error('กรุณาระบุจำนวนที่ถูกต้อง');
+      notify.error('กรุณาระบุจำนวนที่ถูกต้อง');
       return;
     }
 
@@ -60,16 +60,16 @@ function AuditItemCard({
     try {
       const res = await updateAuditItemCount(item.id, qty);
       if (res.success) {
-        toast.success('บันทึกเรียบร้อย');
+        notify.success('บันทึกเรียบร้อย');
         setSavedQty(qty);
         setIsEditing(false);
         onUpdate(item.id, qty); // อัปเดต Progress Bar ทันที (Optimistic Update)
         router.refresh(); // อัปเดตข้อมูลทั้งหน้าเพื่อให้ Variance Report เห็นข้อมูลล่าสุดทันที
       } else {
-        toast.error(`บันทึกไม่สำเร็จ: ${res.message}`);
+        notify.error(`บันทึกไม่สำเร็จ: ${res.message}`);
       }
     } catch (error) {
-      toast.error('เกิดข้อผิดพลาด');
+      notify.error('เกิดข้อผิดพลาด');
     } finally {
       setIsSaving(false);
     }

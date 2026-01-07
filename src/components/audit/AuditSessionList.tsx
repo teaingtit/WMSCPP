@@ -25,10 +25,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 import { AuditSession } from '@/types/inventory';
 import { useUser } from '@/components/providers/UserProvider';
-import SuccessReceiptModal, { SuccessData } from '@/components/shared/SuccessReceiptModal';
+import SuccessReceiptModal from '@/components/shared/SuccessReceiptModal';
+import useSuccessReceipt from '@/hooks/useSuccessReceipt';
 
 interface AuditSessionListProps {
   warehouseId: string;
@@ -68,9 +69,8 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
   const [editName, setEditName] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Success Modal State
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successData, setSuccessData] = useState<SuccessData | null>(null);
+  // Success modal handled via shared hook
+  const { successInfo, setSuccessInfo, handleSuccessModalClose } = useSuccessReceipt();
 
   const handleCreate = async () => {
     if (!newSessionName) return;
@@ -89,31 +89,34 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
       const res = await createAuditSession(formData);
 
       if (res.success) {
-        setSuccessData({
-          title: 'เปิดรอบการนับสำเร็จ',
-          details: [
-            { label: 'ชื่อรอบการนับ', value: newSessionName },
-            {
-              label: 'ประเภท',
-              value: selectedIds.size > 0 ? 'Partial Audit (เลือกรายการ)' : 'Full Audit (ทั้งคลัง)',
-            },
-            {
-              label: 'จำนวนรายการ',
-              value:
-                selectedIds.size > 0 ? `${selectedIds.size} รายการ` : 'สินค้าทั้งหมดที่มีในระบบ',
-            },
-          ],
+        setSuccessInfo({
+          data: {
+            title: 'เปิดรอบการนับสำเร็จ',
+            details: [
+              { label: 'ชื่อรอบการนับ', value: newSessionName },
+              {
+                label: 'ประเภท',
+                value:
+                  selectedIds.size > 0 ? 'Partial Audit (เลือกรายการ)' : 'Full Audit (ทั้งคลัง)',
+              },
+              {
+                label: 'จำนวนรายการ',
+                value:
+                  selectedIds.size > 0 ? `${selectedIds.size} รายการ` : 'สินค้าทั้งหมดที่มีในระบบ',
+              },
+            ],
+          },
+          redirect: false,
         });
-        setShowSuccessModal(true);
 
         setIsDialogOpen(false);
         setNewSessionName('');
         router.refresh(); // Refresh เพื่อแสดงรายการใหม่
       } else {
-        toast.error(res.message);
+        notify.error(res.message);
       }
     } catch (error) {
-      toast.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+      notify.error('เกิดข้อผิดพลาดในการเชื่อมต่อ');
     } finally {
       setIsCreating(false);
     }
@@ -134,7 +137,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
         }));
         setInventoryItems(mappedItems);
       } catch (error) {
-        toast.error('ไม่สามารถโหลดข้อมูลสินค้าได้');
+        notify.error('ไม่สามารถโหลดข้อมูลสินค้าได้');
       } finally {
         setIsLoadingItems(false);
       }
@@ -180,14 +183,14 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
       const res = await updateAuditSession(editingSession.id, warehouseId, { name: editName });
 
       if (res.success) {
-        toast.success('แก้ไขข้อมูลสำเร็จ');
+        notify.success('แก้ไขข้อมูลสำเร็จ');
         setEditingSession(null);
         router.refresh();
       } else {
-        toast.error(res.message);
+        notify.error(res.message);
       }
     } catch (error) {
-      toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+      notify.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
     } finally {
       setIsUpdating(false);
     }
@@ -442,9 +445,9 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
 
       {/* Success Modal */}
       <SuccessReceiptModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        data={successData}
+        isOpen={!!successInfo}
+        onClose={handleSuccessModalClose}
+        data={successInfo?.data ?? null}
       />
     </div>
   );

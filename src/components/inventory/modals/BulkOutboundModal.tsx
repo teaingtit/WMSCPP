@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Truck, Loader2, Package } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { submitBulkOutbound } from '@/actions/outbound-actions';
-import { toast } from 'sonner';
+import { notify } from '@/lib/ui-helpers';
 
 interface BulkOutboundModalProps {
   isOpen: boolean;
@@ -54,7 +54,7 @@ export const BulkOutboundModal = ({
       return !qty || qty <= 0;
     });
     if (invalidItem) {
-      toast.error('กรุณาระบุจำนวนที่ถูกต้อง (มากกว่า 0) ให้ครบทุกรายการ');
+      notify.error('กรุณาระบุจำนวนที่ถูกต้อง (มากกว่า 0) ให้ครบทุกรายการ');
       return;
     }
 
@@ -70,7 +70,7 @@ export const BulkOutboundModal = ({
       const result = await submitBulkOutbound(payload);
 
       if (result.success) {
-        toast.success(result.message);
+        notify.ok(result);
         onSuccess();
         onClose();
       } else {
@@ -79,10 +79,10 @@ export const BulkOutboundModal = ({
           result.details?.errors && result.details.errors.length > 0
             ? result.details.errors[0]
             : 'เกิดข้อผิดพลาดในการทำรายการ';
-        toast.error(errorMsg);
+        notify.error(errorMsg);
       }
     } catch (error: any) {
-      toast.error(error.message || 'เกิดข้อผิดพลาดในการทำรายการ');
+      notify.error(error.message || 'เกิดข้อผิดพลาดในการทำรายการ');
     } finally {
       setIsSubmitting(false);
     }
@@ -156,6 +156,8 @@ export const BulkOutboundModal = ({
                     <div className="relative">
                       <input
                         type="number"
+                        aria-label={`Quantity for ${item.product?.name || item.id}`}
+                        placeholder="0"
                         min={1}
                         max={item.quantity}
                         value={quantities[item.id] ?? item.quantity}
