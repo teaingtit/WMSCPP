@@ -542,33 +542,75 @@ export async function setLotStatus(formData: FormData): Promise<ActionResponse> 
 }
 
 /** Fetch inventory status data for given stock IDs */
-export async function getInventoryStatusData(stockIds: string[]): Promise<any> {
+export async function getInventoryStatusData(stockIds: string[]): Promise<{
+  statuses: Map<string, EntityStatus>;
+  noteCounts: Map<string, number>;
+}> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('inventory_status')
-    .select('*')
-    .in('stock_id', stockIds);
 
-  if (error) {
-    console.error('Error fetching inventory status data:', error);
-    return null;
+  // Fetch entity statuses
+  const { data: statusData, error: statusError } = await supabase
+    .from('entity_statuses')
+    .select('*, status:status_definitions(*)')
+    .eq('entity_type', 'STOCK')
+    .in('entity_id', stockIds);
+
+  if (statusError) {
+    console.error('Error fetching inventory status data:', statusError);
+    return { statuses: new Map(), noteCounts: new Map() };
   }
-  return data;
+
+  // Fetch note counts
+  const { data: noteData, error: noteError } = await supabase
+    .from('entity_notes')
+    .select('entity_id')
+    .eq('entity_type', 'STOCK')
+    .in('entity_id', stockIds);
+
+  if (noteError) {
+    console.error('Error fetching note counts:', noteError);
+  }
+
+  // Build statuses Map
+  const statuses = new Map<string, EntityStatus>();
+  if (statusData) {
+    for (const item of statusData) {
+      statuses.set(item.entity_id, item as EntityStatus);
+    }
+  }
+
+  // Build note counts Map
+  const noteCounts = new Map<string, number>();
+  if (noteData) {
+    for (const note of noteData) {
+      const current = noteCounts.get(note.entity_id) || 0;
+      noteCounts.set(note.entity_id, current + 1);
+    }
+  }
+
+  return { statuses, noteCounts };
 }
 
 /** Fetch lot statuses for a warehouse */
-export async function getLotStatuses(warehouseId: string): Promise<any> {
+export async function getLotStatuses(warehouseId: string): Promise<Map<string, LotStatus>> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('lot_statuses')
-    .select('*')
+    .select('*, status:status_definitions(*)')
     .eq('warehouse_id', warehouseId);
 
   if (error) {
     console.error('Error fetching lot statuses:', error);
-    return null;
+    return new Map();
   }
-  return data;
+
+  const lotStatusMap = new Map<string, LotStatus>();
+  if (data) {
+    for (const item of data) {
+      lotStatusMap.set(item.lot, item as LotStatus);
+    }
+  }
+  return lotStatusMap;
 }
 
 /** Fetch entity notes */

@@ -140,7 +140,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
               New Status
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Tag size={20} className="text-amber-600" />
@@ -183,7 +183,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingStatus} onOpenChange={(open) => !open && setEditingStatus(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit2 size={20} className="text-amber-600" />

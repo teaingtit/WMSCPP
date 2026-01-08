@@ -374,7 +374,7 @@ const InventoryDashboardContent = ({
           </h1>
           <p className="text-slate-500 mt-1 text-sm">
             มุมมองแบบ <span className="font-bold text-indigo-600">Lot, Position & Level</span>
-            {statusMap.size > 0 && (
+            {statusMap?.size > 0 && (
               <span className="ml-2 inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                 <Shield size={12} /> {statusMap.size} items with status
               </span>
