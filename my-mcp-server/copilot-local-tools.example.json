@@ -1,0 +1,26 @@
+{
+  "version": "1.388.0",
+  "tools": [
+    {
+      "id": "postgres-mcp",
+      "name": "Postgres MCP",
+      "description": "Model Context Protocol (MCP) server exposing Postgres resources/tools over stdio",
+      "exec": {
+        "command": "npm",
+        "args": ["run", "start"],
+        "cwd": ".",
+        "env": {
+          "NODE_ENV": "development",
+          "DOTENV_CONFIG_PATH": ".env"
+        }
+      },
+      "protocol": "mcp",
+      "communication": "stdio",
+      "mcpOptions": {
+        "stdin": true,
+        "stdout": true
+      }
+    }
+  ],
+  "notes": "Template adapted for Copilot v1.388.0 local-tool schema. Adjust `exec` paths and env as needed for your setup."
+}

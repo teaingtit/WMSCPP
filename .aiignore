@@ -1,0 +1,16 @@
+# แก้ไขเพื่อให้เข้าถึง MCP dist ได้
+/dist/
+.next/
+node_modules/
+
+# เพิ่มความปลอดภัย
+.env
+.env.*
+*.pem
+
+# ส่วนอื่นๆ คงเดิม
+coverage/
+.husky/
+playwright-report/
+test-results/
+*.log

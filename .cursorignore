@@ -1,0 +1,44 @@
+# -----------------------------
+# 1. System & Dependencies (Noise Reduction)
+# -----------------------------
+node_modules/
+.git/
+.vscode/
+.idea/
+
+# -----------------------------
+# 2. Next.js Build Artifacts (Prevent Confusion)
+# -----------------------------
+.next/
+/dist/
+out/
+build/
+.cache/
+
+# -----------------------------
+# 3. Security & Secrets (Critical)
+# -----------------------------
+.env
+.env.local
+.env.*
+*.pem
+*.key
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# -----------------------------
+# 4. Large Data & Assets (Save Context Window)
+# -----------------------------
+coverage/
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# -----------------------------
+# 5. Testing Artifacts
+# -----------------------------
+playwright-report/
+test-results/
