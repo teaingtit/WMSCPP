@@ -1,6 +1,52 @@
+// Set up environment variables BEFORE any imports
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+
+// Mock transfer actions BEFORE importing component (they import Supabase)
+import { vi } from 'vitest';
+
+vi.mock('@/actions/transfer-actions', () => ({
+  preflightBulkTransfer: vi.fn(async () => ({ results: [], summary: { total: 0, ok: 0 } })),
+  submitBulkTransfer: vi.fn(async () => ({ success: true, details: { success: 0 }, message: '' })),
+}));
+
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: vi.fn(() => ({
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    })),
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+    },
+  })),
+}));
+
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn(() => ({
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    })),
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+    },
+  })),
+}));
+
+// Mock GlobalLoadingProvider hook
+vi.mock('@/components/providers/GlobalLoadingProvider', () => ({
+  useGlobalLoading: () => ({
+    setIsLoading: vi.fn(),
+  }),
+}));
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import TransferTargetForm from '../src/components/transfer/TransferTargetForm';
 
 // Mock next/navigation useRouter
@@ -61,9 +107,12 @@ describe('TransferTargetForm queue behavior', () => {
       />,
     );
 
-    const btn = screen.getByText('จ่ายออก');
+    // Wait for the component to render and find the button
+    const btn = await screen.findByText(/จ่ายออก/i);
     fireEvent.click(btn);
-    expect(pushMock).toHaveBeenCalledWith('/dashboard/WID/outbound?ids=s1');
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith('/dashboard/WID/outbound?ids=s1');
+    });
   });
 
   it('incomingStocks calls onConsumeIncoming and populates queue', async () => {

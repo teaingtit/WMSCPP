@@ -26,19 +26,16 @@ const CreateStatusSchema = z.object({
   color: z.string().regex(hexColorRegex, 'Invalid hex color'),
   bg_color: z.string().regex(hexColorRegex, 'Invalid hex color'),
   text_color: z.string().regex(hexColorRegex, 'Invalid hex color'),
-  effect: z.enum([
-    'TRANSACTIONS_ALLOWED',
-    'TRANSACTIONS_PROHIBITED',
-    'CLOSED',
-    'INBOUND_ONLY',
-    'OUTBOUND_ONLY',
-    'AUDIT_ONLY',
-    'CUSTOM',
-  ] as const),
+  effect: z
+    .string()
+    .min(1, 'Effect is required')
+    .max(100, 'Effect name too long')
+    .transform((val) => val.trim().toUpperCase().replace(/\s+/g, '_')),
   status_type: z.enum(['PRODUCT', 'LOCATION'] as const).default('PRODUCT'),
   is_default: z.coerce.boolean().default(false),
   sort_order: z.coerce.number().min(0).default(0),
 });
+
 
 const UpdateStatusSchema = CreateStatusSchema.partial().extend({
   id: z.string().uuid('Invalid status ID'),
@@ -148,18 +145,17 @@ export async function getLocationStatusDefinitions(): Promise<StatusDefinition[]
 export async function createStatusDefinition(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const rawData = {
-    name: formData.get('name'),
-    code: formData.get('code'),
+    name: formData.get('name') || '',
+    code: formData.get('code') || '',
     description: formData.get('description'),
-    color: formData.get('color'),
-    bg_color: formData.get('bg_color'),
-    text_color: formData.get('text_color'),
-    effect: formData.get('effect'),
+    color: formData.get('color') || '',
+    bg_color: formData.get('bg_color') || '',
+    text_color: formData.get('text_color') || '',
+    effect: formData.get('effect') || '',
     status_type: formData.get('status_type') || 'PRODUCT',
     is_default: formData.get('is_default') === 'true',
     sort_order: formData.get('sort_order'),
   };
-
   const validation = validateFormData(CreateStatusSchema, rawData);
   if (!validation.success) return validation.response;
 
@@ -218,13 +214,13 @@ export async function updateStatusDefinition(formData: FormData): Promise<Action
   const supabase = await createClient();
   const rawData = {
     id: formData.get('id'),
-    name: formData.get('name'),
-    code: formData.get('code'),
+    name: formData.get('name') || '',
+    code: formData.get('code') || '',
     description: formData.get('description'),
-    color: formData.get('color'),
-    bg_color: formData.get('bg_color'),
-    text_color: formData.get('text_color'),
-    effect: formData.get('effect'),
+    color: formData.get('color') || '',
+    bg_color: formData.get('bg_color') || '',
+    text_color: formData.get('text_color') || '',
+    effect: formData.get('effect') || '',
     status_type: formData.get('status_type') || 'PRODUCT',
     is_default: formData.get('is_default') === 'true',
     sort_order: formData.get('sort_order'),

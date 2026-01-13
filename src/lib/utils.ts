@@ -36,8 +36,9 @@ export function formatAttributeKey(key: string): string {
     customer: 'Customer',
   };
 
-  if (map[key.toLowerCase()]) {
-    return map[key.toLowerCase()];
+  const mapped = map[key.toLowerCase()];
+  if (mapped) {
+    return mapped;
   }
 
   // Fallback: snake_case to Title Case

@@ -12,7 +12,6 @@ import {
   STATUS_EFFECT_OPTIONS,
   STATUS_COLOR_PALETTE,
   STATUS_TYPE_OPTIONS,
-  StatusEffect,
   StatusType,
   getEffectBadgeClasses,
 } from '@/types/status';
@@ -24,21 +23,25 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SubmitButton } from '@/components/SubmitButton';
+import { EffectSelector } from './EffectSelector';
 import {
   Plus,
   Trash2,
   Edit2,
   Palette,
   Tag,
-  Shield,
   Star,
   GripVertical,
   Check,
   X,
+  Package,
+  MapPin,
+  Info,
 } from 'lucide-react';
+import styles from './StatusManager.module.css';
 
 interface StatusManagerProps {
   statuses: StatusDefinition[];
@@ -59,8 +62,9 @@ export function StatusManager({ statuses }: StatusManagerProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingStatus, setEditingStatus] = useState<StatusDefinition | null>(null);
   const [selectedColor, setSelectedColor] = useState<ColorOption>(STATUS_COLOR_PALETTE[0]);
-  const [selectedEffect, setSelectedEffect] = useState<StatusEffect>('TRANSACTIONS_ALLOWED');
+  const [selectedEffect, setSelectedEffect] = useState<string>('TRANSACTIONS_ALLOWED');
   const [selectedStatusType, setSelectedStatusType] = useState<StatusType>('PRODUCT');
+  const [activeTab, setActiveTab] = useState<StatusType>('PRODUCT');
 
   const [createState, createAction] = useFormState(createStatusWrapper, {
     success: false,
@@ -107,7 +111,8 @@ export function StatusManager({ statuses }: StatusManagerProps) {
   const resetForm = () => {
     setSelectedColor(STATUS_COLOR_PALETTE[0]);
     setSelectedEffect('TRANSACTIONS_ALLOWED');
-    setSelectedStatusType('PRODUCT');
+    // Don't reset status type here, keep it aligned with the active tab or user choice
+    setSelectedStatusType(activeTab);
   };
 
   const handleEditClick = (status: StatusDefinition) => {
@@ -118,68 +123,131 @@ export function StatusManager({ statuses }: StatusManagerProps) {
       bg: status.bg_color,
       text: status.text_color,
     };
-    setSelectedColor(color as any);
+    setSelectedColor(color as ColorOption);
     setSelectedEffect(status.effect);
     setSelectedStatusType(status.status_type || 'PRODUCT');
   };
 
+  const handleCreateClick = () => {
+    resetForm();
+    setSelectedStatusType(activeTab);
+    setIsCreateOpen(true);
+  };
+
+  const productStatuses = statuses.filter((s) => s.status_type === 'PRODUCT');
+  const locationStatuses = statuses.filter((s) => s.status_type === 'LOCATION');
+
   return (
     <div className="space-y-6">
-      {/* Header with Create Button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-800">Status Definitions</h3>
-          <p className="text-sm text-slate-500">
-            Define status types with colors and transaction effects
+          <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Tag className="text-indigo-600" />
+            Status Design System
+          </h3>
+          <p className="text-slate-500 text-sm mt-1">
+            Manage status definitions for Items and Lots (Locations)
           </p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 bg-amber-600 hover:bg-amber-700">
-              <Plus size={16} />
-              New Status
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Tag size={20} className="text-amber-600" />
-                Create New Status
-              </DialogTitle>
-            </DialogHeader>
-            <StatusForm
-              action={createAction}
-              selectedColor={selectedColor}
-              setSelectedColor={setSelectedColor}
-              selectedEffect={selectedEffect}
-              setSelectedEffect={setSelectedEffect}
-              selectedStatusType={selectedStatusType}
-              setSelectedStatusType={setSelectedStatusType}
-              isSubmitting={false}
-            />
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleCreateClick} className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-sm">
+          <Plus size={18} />
+          Create New Status
+        </Button>
       </div>
 
-      {/* Status List */}
-      <div className="grid gap-3">
-        {statuses.length === 0 ? (
-          <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-            <Tag size={48} className="mx-auto text-slate-300 mb-4" />
-            <p className="text-slate-500 font-medium">No statuses defined yet</p>
-            <p className="text-sm text-slate-400">Create your first status to get started</p>
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Tag size={20} className="text-indigo-600" />
+              Create New Status
+            </DialogTitle>
+          </DialogHeader>
+          <StatusForm
+            action={createAction}
+            selectedColor={selectedColor}
+            setSelectedColor={setSelectedColor}
+            selectedEffect={selectedEffect}
+            setSelectedEffect={setSelectedEffect}
+            selectedStatusType={selectedStatusType}
+            setSelectedStatusType={setSelectedStatusType}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Tabs
+        defaultValue="PRODUCT"
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as StatusType)}
+        className="space-y-6"
+      >
+        <div className="border-b border-slate-200">
+          <TabsList className="bg-transparent p-0 h-auto gap-6">
+            <TabsTrigger
+              value="PRODUCT"
+              className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 hover:text-slate-700 transition-colors gap-2"
+            >
+              <Package size={18} />
+              Item Statuses
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
+                {productStatuses.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="LOCATION"
+              className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-cyan-600 data-[state=active]:text-cyan-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 hover:text-slate-700 transition-colors gap-2"
+            >
+              <MapPin size={18} />
+              Lot Statuses
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
+                {locationStatuses.length}
+              </span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="PRODUCT" className="space-y-4 focus-visible:outline-none">
+          <div className="bg-indigo-50/50 border border-indigo-100 rounded-lg p-4 flex items-start gap-3 text-sm text-indigo-900">
+            <Info className="shrink-0 text-indigo-500 mt-0.5" size={18} />
+            <div>
+              <p className="font-semibold mb-1">About Item Statuses</p>
+              <p className="opacity-90 leading-relaxed">
+                Item statuses (Product Statuses) are applied to specific quantities of stock.
+                They can be used to mark items as Damaged, Reserved, QC Pending, etc.
+                Applying an item status affects only the selected units, not the entire location.
+              </p>
+            </div>
           </div>
-        ) : (
-          statuses.map((status) => (
-            <StatusCard
-              key={status.id}
-              status={status}
-              onEdit={() => handleEditClick(status)}
-              deleteAction={deleteAction}
-            />
-          ))
-        )}
-      </div>
+          <StatusList
+            statuses={productStatuses}
+            onEdit={handleEditClick}
+            deleteAction={deleteAction}
+            emptyMessage="No item statuses defined."
+            emptyIcon={<Package size={48} className="text-slate-300" />}
+          />
+        </TabsContent>
+
+        <TabsContent value="LOCATION" className="space-y-4 focus-visible:outline-none">
+          <div className="bg-cyan-50/50 border border-cyan-100 rounded-lg p-4 flex items-start gap-3 text-sm text-cyan-900">
+            <Info className="shrink-0 text-cyan-500 mt-0.5" size={18} />
+            <div>
+              <p className="font-semibold mb-1">About Lot Statuses</p>
+              <p className="opacity-90 leading-relaxed">
+                Lot statuses (Location Statuses) are applied to an entire Lot or Zone.
+                When a Lot has a status (e.g., "Quarantine"), it overrides the status of all items within it.
+                Useful for blocking entire shipments or zones.
+              </p>
+            </div>
+          </div>
+          <StatusList
+            statuses={locationStatuses}
+            onEdit={handleEditClick}
+            deleteAction={deleteAction}
+            emptyMessage="No lot statuses defined."
+            emptyIcon={<MapPin size={48} className="text-slate-300" />}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingStatus} onOpenChange={(open) => !open && setEditingStatus(null)}>
@@ -200,11 +268,47 @@ export function StatusManager({ statuses }: StatusManagerProps) {
               setSelectedEffect={setSelectedEffect}
               selectedStatusType={selectedStatusType}
               setSelectedStatusType={setSelectedStatusType}
-              isSubmitting={false}
             />
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function StatusList({
+  statuses,
+  onEdit,
+  deleteAction,
+  emptyMessage,
+  emptyIcon,
+}: {
+  statuses: StatusDefinition[];
+  onEdit: (s: StatusDefinition) => void;
+  deleteAction: (formData: FormData) => void;
+  emptyMessage: string;
+  emptyIcon: React.ReactNode;
+}) {
+  if (statuses.length === 0) {
+    return (
+      <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+        <div className="mx-auto mb-4 flex justify-center">{emptyIcon}</div>
+        <p className="text-slate-500 font-medium">{emptyMessage}</p>
+        <p className="text-sm text-slate-400">Create a new status to get started</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-3">
+      {statuses.map((status) => (
+        <StatusCard
+          key={status.id}
+          status={status}
+          onEdit={() => onEdit(status)}
+          deleteAction={deleteAction}
+        />
+      ))}
     </div>
   );
 }
@@ -224,16 +328,19 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
 
   return (
     <div
-      className="group bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-all border-l-4"
-      style={{ borderLeftColor: status.color }}
+      className={`group bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-all border-l-4 ${styles['statusCardBorder']}`}
+      style={{ '--status-color': status.color } as React.CSSProperties}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <GripVertical size={16} className="text-slate-300 cursor-grab" />
             <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm"
-              style={{ backgroundColor: status.bg_color, color: status.text_color }}
+              className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm ${styles['statusAvatar']}`}
+              style={{
+                '--status-bg-color': status.bg_color,
+                '--status-text-color': status.text_color,
+              } as React.CSSProperties}
             >
               {status.name.substring(0, 2).toUpperCase()}
             </div>
@@ -254,11 +361,10 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
                 {status.code}
               </span>
               <span
-                className={`text-xs px-2 py-0.5 rounded border ${
-                  status.status_type === 'LOCATION'
-                    ? 'bg-cyan-100 text-cyan-800 border-cyan-200'
-                    : 'bg-violet-100 text-violet-800 border-violet-200'
-                }`}
+                className={`text-xs px-2 py-0.5 rounded border ${status.status_type === 'LOCATION'
+                  ? 'bg-cyan-100 text-cyan-800 border-cyan-200'
+                  : 'bg-violet-100 text-violet-800 border-violet-200'
+                  }`}
               >
                 {statusTypeOption?.icon} {statusTypeOption?.label || 'Product'}
               </span>
@@ -267,7 +373,7 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
                   status.effect,
                 )}`}
               >
-                {effectOption?.icon} {effectOption?.label}
+                {effectOption?.icon || '⚙️'} {effectOption?.label || status.effect}
               </span>
             </div>
             {status.description && (
@@ -324,11 +430,10 @@ interface StatusFormProps {
   initialData?: StatusDefinition;
   selectedColor: ColorOption;
   setSelectedColor: (color: ColorOption) => void;
-  selectedEffect: StatusEffect;
-  setSelectedEffect: (effect: StatusEffect) => void;
+  selectedEffect: string;
+  setSelectedEffect: (effect: string) => void;
   selectedStatusType: StatusType;
   setSelectedStatusType: (type: StatusType) => void;
-  isSubmitting: boolean;
 }
 
 function StatusForm({
@@ -345,7 +450,6 @@ function StatusForm({
   const [code, setCode] = useState(initialData?.code || '');
   const [description, setDescription] = useState(initialData?.description || '');
   const [isDefault, setIsDefault] = useState(initialData?.is_default || false);
-  const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 0);
   const [autoCode, setAutoCode] = useState(!initialData);
 
   // Auto-generate code from name
@@ -364,7 +468,6 @@ function StatusForm({
       <input type="hidden" name="effect" value={selectedEffect} />
       <input type="hidden" name="status_type" value={selectedStatusType} />
       <input type="hidden" name="is_default" value={isDefault.toString()} />
-      <input type="hidden" name="sort_order" value={sortOrder.toString()} />
 
       {/* Status Type Selection */}
       <div>
@@ -378,11 +481,10 @@ function StatusForm({
               key={option.value}
               type="button"
               onClick={() => setSelectedStatusType(option.value)}
-              className={`text-left p-3 rounded-lg border-2 transition-all ${
-                selectedStatusType === option.value
-                  ? 'border-amber-500 bg-amber-50'
-                  : 'border-slate-200 hover:border-slate-300 bg-white'
-              }`}
+              className={`text-left p-3 rounded-lg border-2 transition-all ${selectedStatusType === option.value
+                ? 'border-amber-500 bg-amber-50'
+                : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">{option.icon}</span>
@@ -429,7 +531,7 @@ function StatusForm({
             placeholder="ON_HOLD"
             required
             className="font-mono"
-            disabled={autoCode && !initialData}
+            readOnly={autoCode && !initialData}
           />
         </div>
       </div>
@@ -457,12 +559,11 @@ function StatusForm({
               key={color.value}
               type="button"
               onClick={() => setSelectedColor(color)}
-              className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                selectedColor.value === color.value
-                  ? 'border-slate-800 ring-2 ring-slate-300 scale-110'
-                  : 'border-transparent hover:scale-105'
-              }`}
-              style={{ backgroundColor: color.value }}
+              className={`w-8 h-8 rounded-lg border-2 transition-all ${styles['colorButton']} ${selectedColor.value === color.value
+                ? 'border-slate-800 ring-2 ring-slate-300 scale-110'
+                : 'border-transparent hover:scale-105'
+                }`}
+              style={{ '--color-value': color.value } as React.CSSProperties}
               title={color.name}
             />
           ))}
@@ -470,66 +571,38 @@ function StatusForm({
         <div className="mt-2 flex items-center gap-2">
           <span className="text-sm text-slate-500">Preview:</span>
           <span
-            className="px-3 py-1 rounded-full text-sm font-medium"
+            className={`px-3 py-1 rounded-full text-sm font-medium ${styles['statusPreview']}`}
             style={{
-              backgroundColor: selectedColor.bg,
-              color: selectedColor.text,
-            }}
+              '--preview-bg-color': selectedColor.bg,
+              '--preview-text-color': selectedColor.text,
+            } as React.CSSProperties}
           >
             {name || 'Status Name'}
           </span>
         </div>
       </div>
 
-      {/* Effect Selection */}
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-          <Shield size={14} />
-          Transaction Effect
-        </label>
-        <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2">
-          {STATUS_EFFECT_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setSelectedEffect(option.value)}
-              className={`text-left p-3 rounded-lg border-2 transition-all ${
-                selectedEffect === option.value
-                  ? 'border-amber-500 bg-amber-50'
-                  : 'border-slate-200 hover:border-slate-300 bg-white'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{option.icon}</span>
-                <span className="font-medium text-slate-800">{option.label}</span>
-              </div>
-              <p className="text-xs text-slate-500 mt-1 ml-7">{option.description}</p>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Effect Selection - Using new EffectSelector */}
+      <EffectSelector value={selectedEffect} onChange={setSelectedEffect} />
 
       {/* Options Row */}
-      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={isDefault}
-            onChange={(e) => setIsDefault(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
-          />
-          <span className="text-sm text-slate-700">Set as default status for new items</span>
-        </label>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-slate-500">Order:</label>
-          <Input
-            type="number"
-            value={sortOrder}
-            onChange={(e) => setSortOrder(Number(e.target.value))}
-            className="w-16 h-8 text-center"
-            min={0}
-          />
+      <div className="pt-4 border-t border-slate-100">
+        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
+          <label className="flex items-center gap-2 cursor-pointer select-none w-full">
+            <input
+              type="checkbox"
+              checked={isDefault}
+              onChange={(e) => setIsDefault(e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+            />
+            <div>
+              <span className="text-sm font-medium text-slate-800 block">Default Status</span>
+              <span className="text-xs text-slate-500 block">Apply to new items automatically</span>
+            </div>
+          </label>
         </div>
+        {/* Hidden sort_order field to satisfy backend requirement */}
+        <input type="hidden" name="sort_order" value="0" />
       </div>
 
       {/* Submit */}

@@ -6,7 +6,6 @@ import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus, createStatusStyle } from '@/types/status';
 import { StockPositionGroup } from './StockPositionGroup';
 import { InventoryCheckbox } from './InventoryCheckbox';
-import { useInventorySelection } from '@/components/inventory/InventoryDashboard';
 import { LotStatus } from '@/actions/status-actions';
 import { isRestricted } from '../utils';
 
@@ -19,7 +18,6 @@ interface StockLotSectionProps {
   onToggleItem: (id: string) => void;
   onToggleMultiple: (ids: string[]) => void;
   onCardClick?: ((item: StockWithDetails) => void) | undefined;
-  categoryFormSchemas: Record<string, any[]>;
   statusMap?: Map<string, EntityStatus> | undefined;
   noteCountMap?: Map<string, number> | undefined;
   onStatusClick?: ((item: StockWithDetails) => void) | undefined;
@@ -45,7 +43,6 @@ export const StockLotSection = ({
   onLotStatusClick,
 }: StockLotSectionProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { categoryFormSchemas } = useInventorySelection();
 
   const posKeys = useMemo(
     () => Object.keys(positions).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
@@ -151,7 +148,6 @@ export const StockLotSection = ({
               onToggleItem={onToggleItem}
               onToggleMultiple={onToggleMultiple}
               onCardClick={onCardClick}
-              categoryFormSchemas={categoryFormSchemas}
               statusMap={statusMap}
               noteCountMap={noteCountMap}
               onStatusClick={onStatusClick}

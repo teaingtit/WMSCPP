@@ -9,10 +9,8 @@ import {
   RefreshCw,
   GitCommit,
   Settings,
-  AlertCircle,
   FileText,
   User,
-  Search,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -24,7 +22,7 @@ interface TerminalLogViewProps {
 
 export default function TerminalLogView({ logs }: TerminalLogViewProps) {
   const params = useParams();
-  const warehouseId = params.warehouseId as string;
+  const warehouseId = params['warehouseId'] as string;
 
   if (logs.length === 0) {
     return (
@@ -70,7 +68,7 @@ export default function TerminalLogView({ logs }: TerminalLogViewProps) {
               {log.category === 'TRANSACTION' ? (
                 <TransactionLine entry={log as TransactionEntry} warehouseId={warehouseId} />
               ) : (
-                <SystemLine entry={log as SystemLogEntry} warehouseId={warehouseId} />
+                <SystemLine entry={log as SystemLogEntry} />
               )}
             </div>
 
@@ -159,13 +157,9 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
   );
 }
 
-function SystemLine({ entry, warehouseId }: { entry: SystemLogEntry; warehouseId: string }) {
+function SystemLine({ entry }: { entry: SystemLogEntry }) {
   // If entity type is location, link to settings
-  let entityLink = '#';
-  if (entry.entityType === 'location' || entry.entityType === 'stocks') {
-    // stocks map to inventory usually but here we track location status
-    entityLink = `/dashboard/${warehouseId}/settings?tab=warehouse`; // Fallback to settings
-  }
+
 
   return (
     <div className="flex flex-col gap-1">

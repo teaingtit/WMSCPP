@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useDebounce } from 'use-debounce';
-import { Search, Filter, Calendar, X } from 'lucide-react';
+import { Search, Calendar, X } from 'lucide-react';
 
-export default function HistoryFilterBar({ warehouseId }: { warehouseId: string }) {
+export default function HistoryFilterBar() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -49,13 +49,7 @@ export default function HistoryFilterBar({ warehouseId }: { warehouseId: string 
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [query, type, mode, startDate, endDate, pathname, router, searchParams]);
 
-  const clearFilters = () => {
-    setText('');
-    setType('ALL');
-    setStartDate('');
-    setEndDate('');
-    setShowDateFilter(false);
-  };
+
 
   return (
     <div className="flex flex-col gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
@@ -102,11 +96,10 @@ export default function HistoryFilterBar({ warehouseId }: { warehouseId: string 
 
           <button
             onClick={() => setShowDateFilter(!showDateFilter)}
-            className={`px-3 py-2 rounded-lg border text-sm flex items-center gap-2 transition-colors ${
-              showDateFilter || startDate
+            className={`px-3 py-2 rounded-lg border text-sm flex items-center gap-2 transition-colors ${showDateFilter || startDate
                 ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
+              }`}
           >
             <Calendar size={16} />
             <span className="hidden sm:inline">Date</span>
@@ -117,21 +110,19 @@ export default function HistoryFilterBar({ warehouseId }: { warehouseId: string 
         <div className="flex items-center bg-slate-100 p-1 rounded-lg self-start md:self-auto">
           <button
             onClick={() => setMode('simple')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-              mode === 'simple'
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'simple'
                 ? 'bg-white text-indigo-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Simple
           </button>
           <button
             onClick={() => setMode('detailed')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
-              mode === 'detailed'
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'detailed'
                 ? 'bg-white text-indigo-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
-            }`}
+              }`}
           >
             Detailed / Terminal
           </button>

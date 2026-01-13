@@ -11,7 +11,8 @@ import {
   Settings,
   MapPin,
 } from 'lucide-react';
-import { StatusDefinition, StatusEffect, createStatusStyle } from '@/types/status';
+import { StatusDefinition, StatusEffect, createStatusStyle, PREDEFINED_EFFECTS } from '@/types/status';
+import styles from './StatusBadge.module.css';
 
 interface StatusBadgeProps {
   status: StatusDefinition;
@@ -22,14 +23,19 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-const effectIcons: Record<StatusEffect, React.ReactNode> = {
-  TRANSACTIONS_ALLOWED: <Package size={12} />,
-  TRANSACTIONS_PROHIBITED: <AlertTriangle size={12} />,
-  CLOSED: <Lock size={12} />,
-  INBOUND_ONLY: <ArrowDownToLine size={12} />,
-  OUTBOUND_ONLY: <ArrowUpFromLine size={12} />,
-  AUDIT_ONLY: <ClipboardList size={12} />,
-  CUSTOM: <Settings size={12} />,
+// Helper function to get effect icon with fallback for custom effects
+const getEffectIcon = (effect: StatusEffect, iconSize: number = 12): React.ReactNode => {
+  const effectIconMap: Record<string, React.ReactNode> = {
+    [PREDEFINED_EFFECTS.TRANSACTIONS_ALLOWED]: <Package size={iconSize} />,
+    [PREDEFINED_EFFECTS.TRANSACTIONS_PROHIBITED]: <AlertTriangle size={iconSize} />,
+    [PREDEFINED_EFFECTS.CLOSED]: <Lock size={iconSize} />,
+    [PREDEFINED_EFFECTS.INBOUND_ONLY]: <ArrowDownToLine size={iconSize} />,
+    [PREDEFINED_EFFECTS.OUTBOUND_ONLY]: <ArrowUpFromLine size={iconSize} />,
+    [PREDEFINED_EFFECTS.AUDIT_ONLY]: <ClipboardList size={iconSize} />,
+    [PREDEFINED_EFFECTS.CUSTOM]: <Settings size={iconSize} />,
+  };
+  // Return mapped icon or fallback Settings icon for custom effects
+  return effectIconMap[effect] || <Settings size={iconSize} />;
 };
 
 const sizeClasses = {
@@ -37,6 +43,7 @@ const sizeClasses = {
   md: 'text-xs px-2 py-1 gap-1.5',
   lg: 'text-sm px-3 py-1.5 gap-2',
 };
+
 
 export const StatusBadge = ({
   status,
@@ -51,13 +58,13 @@ export const StatusBadge = ({
 
   return (
     <span
-      className={`inline-flex items-center font-bold rounded-md border ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center font-bold rounded-md border ${sizeClasses[size]} ${styles['statusBadge']} ${className}`}
       style={{
         ...style,
-        borderColor: status.color + '40', // Add transparency to border
-      }}
+        '--status-border-color': status.color + '40',
+      } as React.CSSProperties}
     >
-      {showIcon && effectIcons[status.effect]}
+      {showIcon && getEffectIcon(status.effect)}
       <span className="truncate">{status.name}</span>
       {showType &&
         (isLocationStatus ? (
@@ -88,14 +95,14 @@ export const StatusDot = ({
 
   return (
     <span
-      className={`relative inline-block rounded-full ${dotSize} ${className}`}
-      style={{ backgroundColor: status.color }}
+      className={`relative inline-block rounded-full ${dotSize} ${styles['statusDot']} ${className}`}
+      style={{ '--status-color': status.color } as React.CSSProperties}
       title={`${status.name}: ${status.description || status.effect}`}
     >
       {pulse && (
         <span
-          className="absolute inset-0 rounded-full animate-ping opacity-75"
-          style={{ backgroundColor: status.color }}
+          className={`absolute inset-0 rounded-full animate-ping opacity-75 ${styles['statusDotPulse']}`}
+          style={{ '--status-color': status.color } as React.CSSProperties}
         />
       )}
     </span>
@@ -130,22 +137,20 @@ export const StatusIndicator = ({
         e.stopPropagation();
         onClick?.();
       }}
-      className={`flex items-center gap-1.5 ${
-        onClick ? 'cursor-pointer hover:opacity-80 active:scale-95 transition-all' : ''
-      } ${className}`}
+      className={`flex items-center gap-1.5 ${onClick ? 'cursor-pointer hover:opacity-80 active:scale-95 transition-all' : ''
+        } ${className}`}
     >
       {status && (
         <span
-          className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-            isRestricted ? 'animate-pulse' : ''
-          }`}
+          className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${styles['statusIndicatorBadge']} ${isRestricted ? 'animate-pulse' : ''
+            }`}
           style={{
-            backgroundColor: status.bg_color,
-            color: status.text_color,
-            borderColor: status.color + '40',
-          }}
+            '--status-bg-color': status.bg_color,
+            '--status-text-color': status.text_color,
+            '--status-border-color': status.color + '40',
+          } as React.CSSProperties}
         >
-          {effectIcons[status.effect]}
+          {getEffectIcon(status.effect)}
           <span className="max-w-[60px] truncate">{status.name}</span>
           {isLocationStatus && <MapPin size={10} className="opacity-70" />}
         </span>
@@ -175,7 +180,8 @@ export const StatusWarningBanner = ({
 
   if (!isRestricted) return null;
 
-  const messages: Record<StatusEffect, string> = {
+  // Get message for effect - use predefined message or fall back to status description for custom effects
+  const messages: Record<string, string> = {
     TRANSACTIONS_PROHIBITED: `This ${entityType} is marked as "${status.name}" - all transactions are prohibited`,
     CLOSED: `This ${entityType} is closed - no operations allowed`,
     TRANSACTIONS_ALLOWED: '',
@@ -187,18 +193,18 @@ export const StatusWarningBanner = ({
 
   return (
     <div
-      className={`flex items-center gap-2 p-3 rounded-lg border ${className}`}
+      className={`flex items-center gap-2 p-3 rounded-lg border ${styles['statusWarningBanner']} ${className}`}
       style={{
-        backgroundColor: status.bg_color,
-        borderColor: status.color,
-      }}
+        '--status-bg-color': status.bg_color,
+        '--status-color': status.color,
+      } as React.CSSProperties}
     >
-      <AlertTriangle size={18} style={{ color: status.color }} className="shrink-0" />
+      <AlertTriangle size={18} className={`shrink-0 ${styles['statusWarningIcon']}`} style={{ '--status-color': status.color } as React.CSSProperties} />
       <div>
-        <div className="font-bold text-sm" style={{ color: status.text_color }}>
+        <div className={`font-bold text-sm ${styles['statusWarningTitle']}`} style={{ '--status-text-color': status.text_color } as React.CSSProperties}>
           {status.name}
         </div>
-        <div className="text-xs opacity-80" style={{ color: status.text_color }}>
+        <div className={`text-xs opacity-80 ${styles['statusWarningMessage']}`} style={{ '--status-text-color': status.text_color } as React.CSSProperties}>
           {messages[status.effect] || status.description}
         </div>
       </div>

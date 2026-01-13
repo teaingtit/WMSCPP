@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Package, Shield } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
 import ExportButton from './ExportButton';
+import { QuickActions } from './QuickActions';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';
 import { StockLotSection } from './dashboard/StockLotSection';
@@ -274,7 +275,6 @@ const InventoryDashboardContent = ({
     togglePos,
     toggleItem,
     toggleMultiple,
-    categoryFormSchemas,
     clearSelection,
     removeById,
   } = useInventorySelection();
@@ -363,6 +363,9 @@ const InventoryDashboardContent = ({
 
   return (
     <div className="space-y-6">
+      {/* Quick Actions */}
+      <QuickActions warehouseId={warehouseId} />
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
         <div>
@@ -407,7 +410,6 @@ const InventoryDashboardContent = ({
             onToggleItem={toggleItem}
             onToggleMultiple={toggleMultiple}
             onCardClick={handleCardClick}
-            categoryFormSchemas={categoryFormSchemas}
             statusMap={statusMap}
             noteCountMap={noteCountMap}
             onStatusClick={handleStatusClick}

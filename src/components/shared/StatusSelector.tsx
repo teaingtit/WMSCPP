@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { useFormState } from 'react-dom';
 import { applyEntityStatus, removeEntityStatus } from '@/actions/status-actions';
 import {
@@ -9,6 +10,8 @@ import {
   StatusEntityType,
   getEffectBadgeClasses,
   STATUS_EFFECT_OPTIONS,
+  getStatusBadgeClasses,
+  getStatusTypeIcon,
 } from '@/types/status';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 import { Button } from '@/components/ui/button';
@@ -58,15 +61,21 @@ export function StatusBadge({
 
   const effectOption = STATUS_EFFECT_OPTIONS.find((e) => e.value === status.effect);
 
+  // Get visual style based on status type
+  const shapeClasses = getStatusBadgeClasses(status.status_type);
+  const typeIcon = getStatusTypeIcon(status.status_type);
+
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-medium border-2 ${shapeClasses} ${sizeClasses[size]} ${className}`}
       style={{
         backgroundColor: status.bg_color,
         color: status.text_color,
+        borderColor: status.color + '40', // 40 = 25% opacity
       }}
     >
-      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: status.color }} />
+      <span className="text-xs opacity-80">{typeIcon}</span>
+      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
       {status.name}
       {showEffect && effectOption && <span className="opacity-70">{effectOption.icon}</span>}
     </span>
@@ -140,7 +149,23 @@ export function StatusSelector({
     setShowReasonInput(true);
   };
 
-  const activeStatuses = statuses.filter((s) => s.is_active);
+  // Filter statuses based on entity type and status_type
+  const activeStatuses = statuses.filter((s) => {
+    if (!s.is_active) return false;
+
+    // Filter by status_type to match entity_type
+    // STOCK and PRODUCT entities should only see PRODUCT statuses
+    if (entityType === 'STOCK' || entityType === 'PRODUCT') {
+      return s.status_type === 'PRODUCT';
+    }
+    // LOCATION entities should only see LOCATION statuses
+    if (entityType === 'LOCATION') {
+      return s.status_type === 'LOCATION';
+    }
+
+    // Fallback: show all active statuses
+    return true;
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -286,11 +311,10 @@ export function StatusSelector({
                       type="button"
                       onClick={() => handleSelectStatus(status)}
                       disabled={isCurrentStatus}
-                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
-                        isCurrentStatus
-                          ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
-                          : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50'
-                      }`}
+                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${isCurrentStatus
+                        ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
+                        : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50'
+                        }`}
                       style={
                         isCurrentStatus
                           ? {}
@@ -308,7 +332,7 @@ export function StatusSelector({
                         </div>
                         <span
                           className={`text-xs px-2 py-0.5 rounded ${getEffectBadgeClasses(
-                            status.effect,
+                            status.effect
                           )}`}
                         >
                           {effectOption?.icon} {effectOption?.label}

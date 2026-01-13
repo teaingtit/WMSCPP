@@ -16,7 +16,6 @@ interface StockPositionGroupProps {
   onToggleItem: (id: string) => void;
   onToggleMultiple: (ids: string[]) => void;
   onCardClick?: ((item: StockWithDetails) => void) | undefined;
-  categoryFormSchemas: Record<string, any[]>;
   statusMap?: Map<string, EntityStatus> | undefined;
   noteCountMap?: Map<string, number> | undefined;
   onStatusClick?: ((item: StockWithDetails) => void) | undefined;
@@ -73,7 +72,6 @@ export const StockPositionGroup = ({
   onToggleItem,
   onToggleMultiple,
   onCardClick,
-  categoryFormSchemas,
   statusMap,
   noteCountMap,
   onStatusClick,
@@ -173,7 +171,6 @@ export const StockPositionGroup = ({
                       isSelected={selectedIds.has(item.id)}
                       onToggle={onToggleItem}
                       onCardClick={onCardClick}
-                      categoryFormSchemas={categoryFormSchemas}
                       status={statusMap?.get(item.id)}
                       noteCount={noteCountMap?.get(item.id) || 0}
                       onStatusClick={onStatusClick}

@@ -1,4 +1,5 @@
 // types/status.ts
+import type React from 'react';
 
 /**
  * Status Type - Defines whether status applies to product or location (lot)
@@ -16,44 +17,61 @@ export const STATUS_TYPE_OPTIONS: {
   description: string;
   icon: string;
 }[] = [
-  {
-    value: 'PRODUCT',
-    label: 'Product Status',
-    description:
-      'Applies to a specific quantity of products. You can select how many units are affected and partially remove the status.',
-    icon: '📦',
-  },
-  {
-    value: 'LOCATION',
-    label: 'Location Status',
-    description:
-      'Applies to the entire lot/location. All products in this location will inherit this status.',
-    icon: '📍',
-  },
-];
+    {
+      value: 'PRODUCT',
+      label: 'Product Status',
+      description:
+        'Applies to a specific quantity of products. You can select how many units are affected and partially remove the status.',
+      icon: '📦',
+    },
+    {
+      value: 'LOCATION',
+      label: 'Location Status',
+      description:
+        'Applies to the entire lot/location. All products in this location will inherit this status.',
+      icon: '📍',
+    },
+  ];
 
 /**
  * Status Effect Types
  * Defines the behavior/restrictions when a status is applied
+ * Now supports custom effect names - any string value is valid
  */
-export type StatusEffect =
-  | 'TRANSACTIONS_ALLOWED' // Normal operation - all transactions permitted
-  | 'TRANSACTIONS_PROHIBITED' // No inbound/outbound allowed
-  | 'CLOSED' // Fully closed - no operations
-  | 'INBOUND_ONLY' // Only inbound transactions allowed
-  | 'OUTBOUND_ONLY' // Only outbound transactions allowed
-  | 'AUDIT_ONLY' // Only audit operations allowed
-  | 'CUSTOM'; // Custom effect defined by user
+export type StatusEffect = string;
+
+/**
+ * Predefined Status Effect Constants
+ * Use these for standard effects, or create your own custom effect names
+ */
+export const PREDEFINED_EFFECTS = {
+  TRANSACTIONS_ALLOWED: 'TRANSACTIONS_ALLOWED',
+  TRANSACTIONS_PROHIBITED: 'TRANSACTIONS_PROHIBITED',
+  CLOSED: 'CLOSED',
+  INBOUND_ONLY: 'INBOUND_ONLY',
+  OUTBOUND_ONLY: 'OUTBOUND_ONLY',
+  AUDIT_ONLY: 'AUDIT_ONLY',
+  CUSTOM: 'CUSTOM',
+} as const;
+
+/**
+ * Check if an effect is a predefined effect
+ */
+export function isPredefinedEffect(effect: string): effect is keyof typeof PREDEFINED_EFFECTS {
+  return effect in PREDEFINED_EFFECTS;
+}
 
 /**
  * Status Effect metadata for UI display
  */
-export const STATUS_EFFECT_OPTIONS: {
-  value: StatusEffect;
+export interface StatusEffectOption {
+  value: string;
   label: string;
   description: string;
   icon: string;
-}[] = [
+}
+
+export const STATUS_EFFECT_OPTIONS: StatusEffectOption[] = [
   {
     value: 'TRANSACTIONS_ALLOWED',
     label: 'Transactions Allowed',
@@ -254,22 +272,24 @@ export function canPerformTransaction(
   transactionType: 'INBOUND' | 'OUTBOUND' | 'TRANSFER' | 'AUDIT',
 ): boolean {
   switch (effect) {
-    case 'TRANSACTIONS_ALLOWED':
+    case PREDEFINED_EFFECTS.TRANSACTIONS_ALLOWED:
       return true;
-    case 'TRANSACTIONS_PROHIBITED':
+    case PREDEFINED_EFFECTS.TRANSACTIONS_PROHIBITED:
       return false;
-    case 'CLOSED':
+    case PREDEFINED_EFFECTS.CLOSED:
       return false;
-    case 'INBOUND_ONLY':
+    case PREDEFINED_EFFECTS.INBOUND_ONLY:
       return transactionType === 'INBOUND';
-    case 'OUTBOUND_ONLY':
+    case PREDEFINED_EFFECTS.OUTBOUND_ONLY:
       return transactionType === 'OUTBOUND';
-    case 'AUDIT_ONLY':
+    case PREDEFINED_EFFECTS.AUDIT_ONLY:
       return transactionType === 'AUDIT';
-    case 'CUSTOM':
-      return true; // Custom effects need to be handled separately
+    case PREDEFINED_EFFECTS.CUSTOM:
+      return true; // Custom effects allow all transactions by default
     default:
-      return false;
+      // For user-defined custom effects, allow all transactions by default
+      // Business logic can be added to restrict specific effects
+      return true;
   }
 }
 
@@ -278,22 +298,23 @@ export function canPerformTransaction(
  */
 export function getEffectBadgeClasses(effect: StatusEffect): string {
   switch (effect) {
-    case 'TRANSACTIONS_ALLOWED':
+    case PREDEFINED_EFFECTS.TRANSACTIONS_ALLOWED:
       return 'bg-green-100 text-green-800 border-green-200';
-    case 'TRANSACTIONS_PROHIBITED':
+    case PREDEFINED_EFFECTS.TRANSACTIONS_PROHIBITED:
       return 'bg-red-100 text-red-800 border-red-200';
-    case 'CLOSED':
-      return 'bg-slate-100 text-slate-800 border-slate-200';
-    case 'INBOUND_ONLY':
+    case PREDEFINED_EFFECTS.CLOSED:
+      return 'bg-slate-100 text-slate-600'; // Default - neutral
+    case PREDEFINED_EFFECTS.INBOUND_ONLY:
       return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'OUTBOUND_ONLY':
+    case PREDEFINED_EFFECTS.OUTBOUND_ONLY:
       return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'AUDIT_ONLY':
+    case PREDEFINED_EFFECTS.AUDIT_ONLY:
       return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'CUSTOM':
+    case PREDEFINED_EFFECTS.CUSTOM:
       return 'bg-indigo-100 text-indigo-800 border-indigo-200';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      // Custom effects get a neutral indigo style
+      return 'bg-indigo-100 text-indigo-800 border-indigo-200';
   }
 }
 
@@ -318,4 +339,49 @@ export function createColorStyle(color: string): React.CSSProperties {
   return {
     backgroundColor: color,
   };
+}
+
+/**
+ * Get badge shape/border classes based on status type
+ * Product statuses use pill shape with solid borders
+ * Location statuses use rectangular shape with dashed borders
+ */
+export function getStatusBadgeClasses(statusType: StatusType): string {
+  return statusType === 'LOCATION'
+    ? 'rounded-lg border-dashed' // Location: rectangular, dashed border
+    : 'rounded-full border-solid'; // Product: pill shape, solid border
+}
+
+/**
+ * Get status type icon/emoji
+ */
+export function getStatusTypeIcon(statusType: StatusType): string {
+  return statusType === 'LOCATION' ? '📍' : '📦';
+}
+
+/**
+ * Get recommended color palette for status type
+ * Product statuses use warmer tones (orange, red, green)
+ * Location statuses use cooler tones (blue, purple, gray)
+ */
+export function getStatusColorPalette(statusType: StatusType) {
+  if (statusType === 'LOCATION') {
+    // Cool tones - Location statuses
+    return [
+      { name: 'Blue', value: '#3b82f6', bg: '#dbeafe', text: '#1e40af' },
+      { name: 'Indigo', value: '#6366f1', bg: '#e0e7ff', text: '#3730a3' },
+      { name: 'Purple', value: '#a855f7', bg: '#f3e8ff', text: '#6b21a8' },
+      { name: 'Cyan', value: '#06b6d4', bg: '#cffafe', text: '#155e75' },
+      { name: 'Slate', value: '#64748b', bg: '#f1f5f9', text: '#334155' },
+    ];
+  } else {
+    // Warm tones - Product statuses
+    return [
+      { name: 'Green', value: '#22c55e', bg: '#dcfce7', text: '#166534' },
+      { name: 'Orange', value: '#f97316', bg: '#ffedd5', text: '#9a3412' },
+      { name: 'Red', value: '#ef4444', bg: '#fee2e2', text: '#991b1b' },
+      { name: 'Yellow', value: '#eab308', bg: '#fef9c3', text: '#854d0e' },
+      { name: 'Pink', value: '#ec4899', bg: '#fce7f3', text: '#9d174d' },
+    ];
+  }
 }

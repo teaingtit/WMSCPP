@@ -1,7 +1,7 @@
 import React from 'react';
 import { getHistory } from '@/actions/history-actions';
-import { HistoryMode, HistoryEntry, HistoryFilter, TransactionEntry } from '@/types/history';
-import { History, ArrowRight, ArrowLeft, RefreshCw, User, GitCommit, FileText } from 'lucide-react';
+import { HistoryMode, HistoryFilter, TransactionEntry } from '@/types/history';
+import { History, ArrowRight, ArrowLeft, RefreshCw, User, GitCommit } from 'lucide-react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import HistoryFilterBar from '@/components/history/HistoryFilterBar';
@@ -26,12 +26,11 @@ export default async function HistoryPage({
 }) {
   const mode = (searchParams.mode === 'detailed' ? 'detailed' : 'simple') as HistoryMode;
 
-  const filter: HistoryFilter = {
-    search: searchParams.search,
-    type: searchParams.type,
-    startDate: searchParams.startDate,
-    endDate: searchParams.endDate,
-  };
+  const filter: HistoryFilter = {};
+  if (searchParams.search) filter.search = searchParams.search;
+  if (searchParams.type) filter.type = searchParams.type;
+  if (searchParams.startDate) filter.startDate = searchParams.startDate;
+  if (searchParams.endDate) filter.endDate = searchParams.endDate;
 
   // Fetch data
   const logs = await getHistory(params['warehouseId'], 100, mode, filter);
@@ -58,7 +57,7 @@ export default async function HistoryPage({
       </div>
 
       {/* Filter Bar */}
-      <HistoryFilterBar warehouseId={params['warehouseId']} />
+      <HistoryFilterBar />
 
       {/* Content */}
       {mode === 'detailed' ? (
@@ -106,15 +105,14 @@ export default async function HistoryPage({
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                                tx.type === 'INBOUND'
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                  : tx.type === 'OUTBOUND'
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${tx.type === 'INBOUND'
+                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                : tx.type === 'OUTBOUND'
                                   ? 'bg-rose-50 text-rose-600 border-rose-100'
                                   : tx.type === 'TRANSFER' || tx.type === 'TRANSFER_OUT'
-                                  ? 'bg-orange-50 text-orange-600 border-orange-100'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200'
-                              }`}
+                                    ? 'bg-orange-50 text-orange-600 border-orange-100'
+                                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}
                             >
                               {tx.type === 'INBOUND' && <ArrowRight size={10} />}
                               {tx.type === 'OUTBOUND' && <ArrowLeft size={10} />}

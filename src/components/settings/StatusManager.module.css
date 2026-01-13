@@ -1,0 +1,19 @@
+/* StatusManager Component Styles */
+
+.statusCardBorder {
+    border-left-color: var(--status-color);
+}
+
+.statusAvatar {
+    background-color: var(--status-bg-color);
+    color: var(--status-text-color);
+}
+
+.colorButton {
+    background-color: var(--color-value);
+}
+
+.statusPreview {
+    background-color: var(--preview-bg-color);
+    color: var(--preview-text-color);
+}
