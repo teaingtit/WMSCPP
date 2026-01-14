@@ -8,8 +8,9 @@ import ExportButton from './ExportButton';
 import { QuickActions } from './QuickActions';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';
-import { StockLotSection } from './dashboard/StockLotSection';
+import { StockLotSectionV2 } from './dashboard/StockLotSectionV2';
 import { BulkActionBar } from './dashboard/BulkActionBar';
+import AnimatedList from '@/components/ui/AnimatedList';
 import { Category } from '@/components/inbound/DynamicInboundForm';
 import { CartDrawer } from './CartDrawer';
 import { BulkTransferModal } from './modals/BulkTransferModal';
@@ -393,31 +394,35 @@ const InventoryDashboardContent = ({
         </div>
       </div>
 
-      {/* Main Content: Loop Render Lots */}
-      <div className="space-y-4">
+      {/* Main Content: Loop Render Lots - Mobile-First with Animations */}
+      <div>
         {lotKeys.length === 0 && (
           <div className="text-center py-12 text-slate-400">ไม่พบรายการสินค้า</div>
         )}
 
-        {lotKeys.map((lot) => (
-          <StockLotSection
-            key={lot}
-            lot={lot}
-            positions={hierarchy[lot] || {}}
-            selectedIds={selectedIds}
-            onToggleLot={toggleLot}
-            onTogglePos={togglePos}
-            onToggleItem={toggleItem}
-            onToggleMultiple={toggleMultiple}
-            onCardClick={handleCardClick}
-            statusMap={statusMap}
-            noteCountMap={noteCountMap}
-            onStatusClick={handleStatusClick}
-            lotStatus={lotStatusMap.get(lot) || null}
-            isAdmin={isAdmin}
-            onLotStatusClick={handleLotStatusClick}
-          />
-        ))}
+        {lotKeys.length > 0 && (
+          <AnimatedList staggerDelay={50}>
+            {lotKeys.map((lot) => (
+              <StockLotSectionV2
+                key={lot}
+                lot={lot}
+                positions={hierarchy[lot] || {}}
+                selectedIds={selectedIds}
+                onToggleLot={toggleLot}
+                onTogglePos={togglePos}
+                onToggleItem={toggleItem}
+                onToggleMultiple={toggleMultiple}
+                onCardClick={handleCardClick}
+                statusMap={statusMap}
+                noteCountMap={noteCountMap}
+                onStatusClick={handleStatusClick}
+                lotStatus={lotStatusMap.get(lot) || null}
+                isAdmin={isAdmin}
+                onLotStatusClick={handleLotStatusClick}
+              />
+            ))}
+          </AnimatedList>
+        )}
       </div>
 
       {/* ✅ Cart Drawer Component */}

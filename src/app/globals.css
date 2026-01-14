@@ -197,11 +197,13 @@
 html {
   font-size: 15px;
 }
+
 @media (min-width: 640px) {
   html {
     font-size: 15.5px;
   }
 }
+
 @media (min-width: 768px) {
   html {
     font-size: 16px;
@@ -472,6 +474,7 @@ html {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -483,6 +486,7 @@ html {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -494,6 +498,7 @@ html {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -504,6 +509,7 @@ html {
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
@@ -531,20 +537,135 @@ html {
 .stagger-children > *:nth-child(1) {
   animation-delay: 0ms;
 }
+
 .stagger-children > *:nth-child(2) {
   animation-delay: 50ms;
 }
+
 .stagger-children > *:nth-child(3) {
   animation-delay: 100ms;
 }
+
 .stagger-children > *:nth-child(4) {
   animation-delay: 150ms;
 }
+
 .stagger-children > *:nth-child(5) {
   animation-delay: 200ms;
 }
+
 .stagger-children > *:nth-child(6) {
   animation-delay: 250ms;
+}
+
+/* === Mobile-First Additions === */
+
+/* Touch Target Utilities */
+.touch-44 {
+  @apply min-w-[44px] min-h-[44px];
+}
+
+.touch-48 {
+  @apply min-w-[48px] min-h-[48px];
+}
+
+.touch-56 {
+  @apply min-w-[56px] min-h-[56px];
+}
+
+/* Safe Area Padding */
+.safe-area-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* Additional Animations */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes pulse-once {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+.animate-pulse-once {
+  animation: pulse-once 0.5s ease-in-out;
+}
+
+/* Smooth Scrolling */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Flash Effects for Haptic Feedback */
+@keyframes flash-success {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: rgba(34, 197, 94, 0.2);
+  }
+}
+
+@keyframes flash-error {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+
+  50% {
+    background-color: rgba(239, 68, 68, 0.2);
+  }
+}
+
+.flash-success {
+  animation: flash-success 0.6s ease-out;
+}
+
+.flash-error {
+  animation: flash-error 0.6s ease-out;
+}
+
+/* Reduced Motion Support (Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Print Styles */

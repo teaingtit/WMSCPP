@@ -177,15 +177,10 @@ export const StatusIndicator = ({
 // Warning banner for restricted items
 interface StatusWarningBannerProps {
   status: StatusDefinition;
-  entityType: 'stock' | 'location' | 'product';
   className?: string;
 }
 
-export const StatusWarningBanner = ({
-  status,
-  entityType,
-  className = '',
-}: StatusWarningBannerProps) => {
+export const StatusWarningBanner = ({ status, className = '' }: StatusWarningBannerProps) => {
   const isRestricted = ['TRANSACTIONS_PROHIBITED', 'CLOSED'].includes(status.effect);
 
   if (!isRestricted) return null;

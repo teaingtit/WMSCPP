@@ -220,7 +220,7 @@ export default function StatusAndNotesModal({
           </div>
           {currentStatus?.status && (
             <div className="mt-4">
-              <StatusWarningBanner status={currentStatus.status} entityType="stock" />
+              <StatusWarningBanner status={currentStatus.status} />
             </div>
           )}
         </div>

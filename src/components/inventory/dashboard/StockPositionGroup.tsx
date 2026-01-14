@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Grid3X3, Layers, ChevronDown } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';
-import { StockItemCard } from './StockItemCard';
+import { StockItemCardV2 as StockItemCard } from './StockItemCardV2';
 import { InventoryCheckbox } from './InventoryCheckbox';
 
 interface StockPositionGroupProps {

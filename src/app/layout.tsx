@@ -15,16 +15,27 @@ const sarabun = Sarabun({
 });
 
 export const metadata: Metadata = {
-  title: 'WMS DEMO',
-  description: 'Warehouse Management System v.01',
+  title: 'WMS คลังสินค้า',
+  description: 'ระบบบริหารจัดการคลังสินค้า (Warehouse Management System)',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'WMS คลังสินค้า',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#0f172a" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta name="theme-color" content="#3b82f6" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body
         className={cn(

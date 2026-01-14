@@ -79,6 +79,19 @@ const config: Config = {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        // Mobile-First: Neutral Color Scale (Better Contrast)
+        neutral: {
+          50: 'hsl(220, 20%, 98%)',
+          100: 'hsl(220, 15%, 95%)',
+          200: 'hsl(220, 13%, 90%)',
+          300: 'hsl(220, 12%, 80%)',
+          400: 'hsl(220, 11%, 65%)',
+          500: 'hsl(220, 10%, 45%)',
+          600: 'hsl(220, 10%, 35%)',
+          700: 'hsl(220, 12%, 25%)',
+          800: 'hsl(220, 15%, 15%)',
+          900: 'hsl(224, 20%, 8%)',
+        },
       },
       boxShadow: {
         'glow-sm': '0 0 15px rgba(59, 130, 246, 0.15)',
@@ -143,6 +156,13 @@ const config: Config = {
       transitionTimingFunction: {
         'ease-out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
         'ease-spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'ease-smooth': 'cubic-bezier(0.16, 1, 0.3, 1)', // Premium smooth transitions
+      },
+      // Mobile-First: Touch Target Sizes
+      spacing: {
+        'touch-44': '44px',
+        'touch-48': '48px',
+        'touch-56': '56px',
       },
     },
   },

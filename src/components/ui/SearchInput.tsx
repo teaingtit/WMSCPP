@@ -12,7 +12,7 @@ interface SearchInputProps {
   className?: string;
 }
 
-export default function SearchInput({ placeholder = 'Search...', className }: SearchInputProps) {
+export default function SearchInput({ className }: SearchInputProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();

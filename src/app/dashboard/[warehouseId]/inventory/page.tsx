@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import InventoryDashboard from '@/components/inventory/InventoryDashboard';
+import InventoryFAB from '@/components/inventory/InventoryFAB';
 import { StockWithDetails } from '@/types/inventory';
 import { getProductCategories } from '@/actions/inbound-actions'; // Import getProductCategories
 import { isValidUUID } from '@/lib/utils';
@@ -157,6 +158,9 @@ export default async function InventoryPage({
           warehouses={warehouses} // Pass warehouses list
         />
       </div>
+
+      {/* Floating Action Button - Quick Add Stock */}
+      <InventoryFAB warehouseId={warehouseId} />
     </div>
   );
 }
