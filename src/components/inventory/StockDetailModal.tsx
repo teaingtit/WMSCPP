@@ -89,7 +89,7 @@ export default function StockDetailModal({
             <div className="relative z-10 text-center text-white px-4">
               <Package size={36} className="mx-auto mb-1 opacity-90" />
               <h2 id="stock-detail-modal-title" className="text-lg font-bold truncate max-w-xs">
-                {item.product?.name || 'Unknown Product'}
+                {item.product?.name || 'สินค้าไม่ระบุชื่อ'}
               </h2>
               <div className="flex items-center justify-center gap-1 text-white/80 text-xs mt-0.5">
                 <Hash size={10} /> {item.product?.sku || '-'}
@@ -97,7 +97,7 @@ export default function StockDetailModal({
             </div>
             <button
               onClick={onClose}
-              aria-label="Close modal"
+              aria-label="ปิดหน้าต่าง"
               className="absolute top-3 right-3 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all active:scale-90 touch-manipulation"
             >
               <X size={20} />
@@ -139,7 +139,7 @@ export default function StockDetailModal({
                 className="text-[10px] font-bold px-2 py-1 rounded-md bg-white/50 hover:bg-white/80 transition-colors"
                 style={{ color: status.status.text_color }}
               >
-                Manage
+                จัดการ
               </button>
             </div>
           )}
@@ -149,7 +149,7 @@ export default function StockDetailModal({
             {/* Product Details Card */}
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Box size={12} /> Product Information
+                <Box size={12} /> ข้อมูลสินค้า
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -159,19 +159,19 @@ export default function StockDetailModal({
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Category</span>
+                  <span className="text-[10px] text-slate-400 block">หมวดหมู่</span>
                   <span className="font-bold text-slate-700 text-sm">
                     {item.product?.category_id || '-'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Unit</span>
+                  <span className="text-[10px] text-slate-400 block">หน่วย</span>
                   <span className="font-bold text-slate-700 text-sm">
                     {item.product?.uom || '-'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Last Updated</span>
+                  <span className="text-[10px] text-slate-400 block">อัปเดตล่าสุด</span>
                   <span className="font-bold text-slate-700 text-sm flex items-center gap-1">
                     <Clock size={10} className="text-slate-400" />
                     {new Date(item.updated_at).toLocaleDateString('th-TH')}
@@ -183,11 +183,11 @@ export default function StockDetailModal({
             {/* Location Details */}
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <MapPin size={12} /> Location Details
+                <MapPin size={12} /> ข้อมูลตำแหน่ง
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4.5rem]">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">Location</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">ตำแหน่ง</span>
                   <span className="font-bold text-slate-700">{item.location?.code || '-'}</span>
                 </div>
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
@@ -201,7 +201,7 @@ export default function StockDetailModal({
                 {item.level && (
                   <div className="px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-200 flex flex-col items-center min-w-[4rem]">
                     <span className="text-[9px] font-bold text-indigo-400 uppercase flex items-center gap-0.5">
-                      <Layers size={9} /> Level
+                      <Layers size={9} /> ชั้น
                     </span>
                     <span className="font-bold text-indigo-700">{item.level}</span>
                   </div>
@@ -212,12 +212,12 @@ export default function StockDetailModal({
             {/* Quantity Status Breakdown */}
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Tag size={12} /> Quantity Breakdown
+                <Tag size={12} /> รายละเอียดจำนวน
               </div>
 
               {/* Total Quantity */}
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                <span className="text-sm text-slate-600 font-medium">Total Quantity</span>
+                <span className="text-sm text-slate-600 font-medium">รวมทั้งหมด</span>
                 <span
                   className={`text-2xl font-black ${
                     restricted ? 'text-red-600' : 'text-slate-800'
@@ -251,7 +251,7 @@ export default function StockDetailModal({
                         !status?.status ? 'text-emerald-700' : 'text-slate-500'
                       }`}
                     >
-                      Normal Status
+                      สถานะปกติ
                     </span>
                   </div>
                   <span
@@ -286,7 +286,7 @@ export default function StockDetailModal({
                       className="text-sm font-medium"
                       style={{ color: status?.status?.text_color || '#64748b' }}
                     >
-                      {status?.status?.name || 'No Status Applied'}
+                      {status?.status?.name || 'ไม่มีสถานะ'}
                     </span>
                   </div>
                   <span
@@ -304,7 +304,7 @@ export default function StockDetailModal({
                 className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 font-bold text-sm hover:bg-indigo-100 active:scale-[0.98] transition-all touch-manipulation"
               >
                 <Shield size={16} />
-                {status?.status ? 'Manage Status' : 'Apply Status'}
+                {status?.status ? 'จัดการสถานะ' : 'เพิ่มสถานะ'}
               </button>
             </div>
 
@@ -312,7 +312,7 @@ export default function StockDetailModal({
             {item.attributes && Object.keys(item.attributes).length > 0 && (
               <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  Additional Attributes
+                  คุณสมบัติเพิ่มเติม (Attributes)
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(item.attributes).map(([key, value]) => (
@@ -333,13 +333,13 @@ export default function StockDetailModal({
               <div className="bg-amber-50 rounded-xl border border-amber-200 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1.5">
-                    <StickyNote size={12} /> Notes ({notes.length})
+                    <StickyNote size={12} /> หมายเหตุ ({notes.length})
                   </div>
                   <button
                     onClick={() => setShowStatusModal(true)}
                     className="text-[10px] font-bold text-amber-600 hover:text-amber-700 hover:underline"
                   >
-                    View All
+                    ดูทั้งหมด
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -373,7 +373,7 @@ export default function StockDetailModal({
                       +
                       {notes.length -
                         (pinnedNotes.length > 0 ? Math.min(pinnedNotes.length, 2) : 1)}{' '}
-                      more notes
+                      รายการ
                     </button>
                   )}
                 </div>
@@ -385,14 +385,14 @@ export default function StockDetailModal({
               <div className="bg-slate-50 rounded-xl border border-dashed border-slate-300 p-4 text-center">
                 <Shield size={24} className="mx-auto text-slate-300 mb-2" />
                 <p className="text-sm text-slate-500 mb-3">
-                  No status or notes applied to this item
+                  ยังไม่มีสถานะหรือหมายเหตุสำหรับรายการนี้
                 </p>
                 <button
                   onClick={() => setShowStatusModal(true)}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 active:scale-[0.98] transition-all touch-manipulation"
                 >
                   <Shield size={16} />
-                  Add Status or Notes
+                  เพิ่มสถานะหรือหมายเหตุ
                 </button>
               </div>
             )}

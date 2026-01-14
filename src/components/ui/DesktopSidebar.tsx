@@ -79,13 +79,13 @@ export default function DesktopSidebar() {
       {/* Menu */}
       <nav className="flex-1 py-6 space-y-2 overflow-y-auto custom-scrollbar">
         {/* Group 1: General */}
-        <SidebarAccordion title="General" icon={LayoutGrid} defaultOpen={true}>
+        <SidebarAccordion title="ทั่วไป" icon={LayoutGrid} defaultOpen={true}>
           {MENU_ITEMS.filter((m) => m.matchPath === '/dashboard').map(renderLink)}
         </SidebarAccordion>
 
         {/* Group 2: Operations */}
         {warehouseId && (
-          <SidebarAccordion title="Operations" icon={ClipboardList} defaultOpen={true}>
+          <SidebarAccordion title="ปฏิบัติการ" icon={ClipboardList} defaultOpen={true}>
             {MENU_ITEMS.filter(
               (m) => ['/audit', '/history', '/inventory'].includes(m.matchPath) && !m.hidden,
             ).map(renderLink)}
@@ -100,14 +100,14 @@ export default function DesktopSidebar() {
               }`}
             >
               <Package size={18} />
-              <span className="relative z-10">Inventory</span>
+              <span className="relative z-10">สินค้าคงคลัง</span>
             </Link>
           </SidebarAccordion>
         )}
 
         {/* Group 3: System */}
         {isAdmin && (
-          <SidebarAccordion title="System" icon={Settings} defaultOpen={false}>
+          <SidebarAccordion title="ระบบ" icon={Settings} defaultOpen={false}>
             {MENU_ITEMS.filter((m) => m.matchPath === '/settings').map(renderLink)}
           </SidebarAccordion>
         )}
@@ -139,7 +139,7 @@ export default function DesktopSidebar() {
             {!isAdmin && (
               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 bg-slate-900/50 px-2 py-1 rounded border border-slate-800">
                 <Warehouse size={10} />
-                <span>Access: {user.allowed_warehouses?.length || 0} WH</span>
+                <span>เข้าถึง: {user.allowed_warehouses?.length || 0} คลัง</span>
               </div>
             )}
           </div>
@@ -150,7 +150,7 @@ export default function DesktopSidebar() {
             type="submit"
             className="flex items-center justify-center gap-2 w-full px-4 py-2 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-lg transition-all text-xs font-bold uppercase tracking-wider border border-rose-900/20 hover:border-rose-500/30"
           >
-            <LogOut size={14} /> Sign Out
+            <LogOut size={14} /> ออกจากระบบ
           </button>
         </form>
       </div>

@@ -273,8 +273,8 @@ export default function ProductManager({ products, category }: ProductManagerPro
               <tr>
                 <th className="p-4 w-32">SKU</th>
                 <th className="p-4">สินค้า</th>
-                <th className="p-4">Spec</th>
-                <th className="p-4 text-right w-20">Action</th>
+                <th className="p-4">สเปค (Spec)</th>
+                <th className="p-4 text-right w-20">จัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

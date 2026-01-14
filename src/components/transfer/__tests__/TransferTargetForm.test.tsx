@@ -144,7 +144,7 @@ describe('TransferTargetForm queue behavior', () => {
     // fireEvent.click(cartBtn);
 
     // Run first preview (will fail)
-    const previewBtn = await screen.findByText(/ตรวจสอบ \(Preview\)/i);
+    const previewBtn = await screen.findByRole('button', { name: /ตรวจสอบ \(Preview\)/i });
     fireEvent.click(previewBtn);
 
     // Expect failure badge or reason to appear (use getAllByText as multiple elements might show failure)
@@ -173,7 +173,7 @@ describe('TransferTargetForm queue behavior', () => {
 
     // Re-run preview (will now pass)
     // Note: Edit panel closing re-opens drawer automatically in component logic
-    const previewBtn2 = await screen.findByText(/ตรวจสอบ \(Preview\)/i);
+    const previewBtn2 = await screen.findByRole('button', { name: /ตรวจสอบ \(Preview\)/i });
     fireEvent.click(previewBtn2);
     // Wait for text to appear. Note: check strict string or regex.
     await waitFor(() => expect(screen.getByText(/ผลการตรวจสอบ/i)).toBeTruthy());

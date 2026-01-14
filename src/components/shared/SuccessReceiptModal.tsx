@@ -88,7 +88,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
               {data.type !== 'AUDIT' && (
                 <div>
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Product
+                    สินค้า
                   </div>
                   <div className="font-bold text-slate-800 text-lg leading-tight">
                     {data.productName || '-'}
@@ -103,7 +103,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
               {data.type === 'AUDIT' && (
                 <div>
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Session
+                    รอบการนับ (Session)
                   </div>
                   <div className="font-bold text-slate-800 text-lg leading-tight">
                     {data.sessionName}
@@ -119,7 +119,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                 {data.type !== 'AUDIT' && (
                   <div>
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                      Quantity
+                      จำนวน
                     </div>
                     <div className="text-2xl font-black text-emerald-600">
                       {data.quantity?.toLocaleString() || '0'}{' '}
@@ -133,17 +133,17 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                   <>
                     <div>
                       <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        Accuracy
+                        ความแม่นยำ (Accuracy)
                       </div>
                       <div className="text-2xl font-black text-emerald-600">{data.accuracy}</div>
                     </div>
                     <div>
                       <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        Variance
+                        ผลต่าง (Variance)
                       </div>
                       <div className="text-2xl font-black text-amber-500">
                         {data.varianceCount}{' '}
-                        <span className="text-sm text-slate-400 font-bold">Items</span>
+                        <span className="text-sm text-slate-400 font-bold">รายการ</span>
                       </div>
                     </div>
                   </>
@@ -155,7 +155,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                   {(data.type === 'INBOUND' || data.type === 'OUTBOUND') && (
                     <>
                       <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        {data.type === 'INBOUND' ? 'Stored At' : 'Picked From'}
+                        {data.type === 'INBOUND' ? 'จัดเก็บที่' : 'เบิกจ่ายจาก'}
                       </div>
                       <div className="flex items-center gap-1 font-bold text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-lg w-fit">
                         <MapPin size={14} className="text-indigo-500" /> {data.locationCode}
@@ -167,7 +167,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                   {(data.type === 'TRANSFER' || data.type === 'CROSS_TRANSFER') && (
                     <>
                       <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        Destination
+                        ปลายทาง
                       </div>
                       <div className="font-bold text-slate-700 leading-tight">
                         {data.type === 'CROSS_TRANSFER' ? data.toWarehouse : data.toLocation}
@@ -194,8 +194,8 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
               {/* Audit Total (Optional) */}
               {data.type === 'AUDIT' && (
                 <div className="pt-2 flex justify-between items-center text-sm bg-slate-100 rounded-lg p-3 mt-2">
-                  <span className="text-slate-500 font-medium">Total Counted</span>
-                  <span className="font-bold text-slate-800">{data.totalCounted} Items</span>
+                  <span className="text-slate-500 font-medium">นับแล้วทั้งหมด</span>
+                  <span className="font-bold text-slate-800">{data.totalCounted} รายการ</span>
                 </div>
               )}
 
@@ -203,7 +203,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
               {data.note && data.note !== '-' && (
                 <div className="pt-3">
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Note
+                    หมายเหตุ
                   </div>
                   <p className="text-sm text-slate-600 bg-slate-100 p-2 rounded-lg">{data.note}</p>
                 </div>

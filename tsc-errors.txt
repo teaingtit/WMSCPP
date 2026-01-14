@@ -1,0 +1,48 @@
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(58,11): error TS2322: Type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }[]' is not assignable to type 'StockWithDetails[]'.
+  Property 'updated_at' is missing in type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }' but required in type 'StockWithDetails'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(89,11): error TS2322: Type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }[]' is not assignable to type 'StockWithDetails[]'.
+  Property 'updated_at' is missing in type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }' but required in type 'StockWithDetails'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(136,11): error TS2322: Type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }[]' is not assignable to type 'StockWithDetails[]'.
+  Property 'updated_at' is missing in type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }' but required in type 'StockWithDetails'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(163,22): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Element | Node | Document | Window'.
+  Type 'undefined' is not assignable to type 'Element | Node | Document | Window'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(168,21): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Element | Node | Document | Window'.
+test/actions/auth-actions.test.ts(3,56): error TS6133: 'mockNextNavigation' is declared but its value is never read.
+test/actions/auth-actions.test.ts(38,15): error TS6133: 'result' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(19,26): error TS6133: 'supabase' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(125,13): error TS6133: 'result' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(176,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(220,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(293,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(314,13): error TS6133: 'result' is declared but its value is never read.
+test/actions/dashboard-actions.test.ts(58,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/dashboard-actions.test.ts(112,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/export-actions.test.ts(91,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/export-actions.test.ts(132,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/export-actions.test.ts(146,13): error TS6133: 'result' is declared but its value is never read.
+test/actions/export-actions.test.ts(186,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/export-actions.test.ts(225,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/history-actions.test.ts(90,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/history-actions.test.ts(107,14): error TS2532: Object is possibly 'undefined'.
+test/actions/history-actions.test.ts(108,14): error TS2532: Object is possibly 'undefined'.
+test/actions/history-actions.test.ts(145,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/history-actions.test.ts(212,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(9,3): error TS6133: 'deleteWarehouse' is declared but its value is never read.
+test/actions/settings-actions.test.ts(11,3): error TS6133: 'deleteCategory' is declared but its value is never read.
+test/actions/settings-actions.test.ts(127,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(169,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(247,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(309,13): error TS6133: 'mockUpdate' is declared but its value is never read.
+test/actions/status-actions.test.ts(4,3): error TS6133: 'getAllStatusDefinitions' is declared but its value is never read.
+test/actions/status-actions.test.ts(6,3): error TS6133: 'getLocationStatusDefinitions' is declared but its value is never read.
+test/actions/status-actions.test.ts(10,3): error TS6133: 'getEntityStatus' is declared but its value is never read.
+test/actions/status-actions.test.ts(11,3): error TS6133: 'getEntityStatuses' is declared but its value is never read.
+test/actions/status-actions.test.ts(14,3): error TS6133: 'getLotStatus' is declared but its value is never read.
+test/actions/status-actions.test.ts(15,3): error TS6133: 'setLotStatus' is declared but its value is never read.
+test/actions/status-actions.test.ts(17,3): error TS6133: 'getLotStatuses' is declared but its value is never read.
+test/actions/status-actions.test.ts(244,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/status-actions.test.ts(456,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/user-actions.test.ts(115,11): error TS6133: 'callCount' is declared but its value is never read.
+test/actions/user-actions.test.ts(130,14): error TS2532: Object is possibly 'undefined'.
+test/TypeError.test.ts(123,15): error TS6133: '_value' is declared but its value is never read.
+test/TypeError.test.ts(136,15): error TS6133: '_value' is declared but its value is never read.

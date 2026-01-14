@@ -37,7 +37,7 @@ describe('Export Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -49,6 +49,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockStocks = [
@@ -87,7 +88,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockResolvedValue({ data: mockCategories }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -114,6 +115,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockStocksQuery = {
@@ -127,7 +129,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockResolvedValue({ data: [] }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -151,6 +153,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
       };
       mockSupabase.from = vi.fn(() => mockWarehouseQuery);
 
@@ -166,6 +169,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockStocksQuery = {
@@ -179,7 +183,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockResolvedValue({ data: [] }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -205,6 +209,7 @@ describe('Export Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockStocksQuery = {
@@ -217,7 +222,7 @@ describe('Export Actions', () => {
         }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;

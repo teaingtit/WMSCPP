@@ -49,8 +49,6 @@ export default function HistoryFilterBar() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [query, type, mode, startDate, endDate, pathname, router, searchParams]);
 
-
-
   return (
     <div className="flex flex-col gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
       <div className="flex flex-col md:flex-row gap-4 justify-between">
@@ -69,6 +67,7 @@ export default function HistoryFilterBar() {
               <button
                 onClick={() => setText('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                aria-label="Clear search"
               >
                 <X size={14} />
               </button>
@@ -79,30 +78,32 @@ export default function HistoryFilterBar() {
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            aria-label="Filter by transaction type"
           >
-            <option value="ALL">All Types</option>
-            <optgroup label="Transactions">
-              <option value="INBOUND">Inbound</option>
-              <option value="OUTBOUND">Outbound</option>
-              <option value="TRANSFER">Transfer</option>
-              <option value="ADJUST">Adjustment</option>
+            <option value="ALL">ทุกประเภท (All Types)</option>
+            <optgroup label="รายการ (Transactions)">
+              <option value="INBOUND">รับเข้า (Inbound)</option>
+              <option value="OUTBOUND">เบิกจ่าย (Outbound)</option>
+              <option value="TRANSFER">ย้ายสินค้า (Transfer)</option>
+              <option value="ADJUST">ปรับยอด (Adjustment)</option>
             </optgroup>
             {mode === 'detailed' && (
-              <optgroup label="System">
-                <option value="STATUS_CHANGE">Status Changes</option>
+              <optgroup label="ระบบ (System)">
+                <option value="STATUS_CHANGE">เปลี่ยนสถานะ (Status Changes)</option>
               </optgroup>
             )}
           </select>
 
           <button
             onClick={() => setShowDateFilter(!showDateFilter)}
-            className={`px-3 py-2 rounded-lg border text-sm flex items-center gap-2 transition-colors ${showDateFilter || startDate
+            className={`px-3 py-2 rounded-lg border text-sm flex items-center gap-2 transition-colors ${
+              showDateFilter || startDate
                 ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
+            }`}
           >
             <Calendar size={16} />
-            <span className="hidden sm:inline">Date</span>
+            <span className="hidden sm:inline">วันที่</span>
           </button>
         </div>
 
@@ -110,19 +111,21 @@ export default function HistoryFilterBar() {
         <div className="flex items-center bg-slate-100 p-1 rounded-lg self-start md:self-auto">
           <button
             onClick={() => setMode('simple')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'simple'
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              mode === 'simple'
                 ? 'bg-white text-indigo-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
-              }`}
+            }`}
           >
             Simple
           </button>
           <button
             onClick={() => setMode('detailed')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'detailed'
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              mode === 'detailed'
                 ? 'bg-white text-indigo-600 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
-              }`}
+            }`}
           >
             Detailed / Terminal
           </button>
@@ -139,6 +142,7 @@ export default function HistoryFilterBar() {
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className="px-2 py-1 rounded border border-slate-200 text-xs"
+              aria-label="Start date"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -148,6 +152,7 @@ export default function HistoryFilterBar() {
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               className="px-2 py-1 rounded border border-slate-200 text-xs"
+              aria-label="End date"
             />
           </div>
           {(startDate || endDate) && (

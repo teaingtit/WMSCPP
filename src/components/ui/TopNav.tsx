@@ -139,13 +139,13 @@ export default function TopNav() {
             )}
           >
             <LayoutGrid size={18} />
-            <span>Dashboard</span>
+            <span>หน้าหลัก</span>
           </Link>
 
           {/* Operations Dropdown */}
           {warehouseId && (
             <NavDropdown
-              title="Operations"
+              title="ปฏิบัติการ"
               icon={ClipboardList}
               isActive={['/audit', '/history', '/inventory', '/inbound', '/outbound'].some((path) =>
                 pathname.includes(path),
@@ -154,7 +154,7 @@ export default function TopNav() {
               {renderLink(
                 MENU_ITEMS.find((m) => m.matchPath === '/inventory') ||
                   ({
-                    title: 'Inventory',
+                    title: 'สินค้าคงคลัง',
                     href: `/dashboard/${warehouseId}/inventory`,
                     icon: Package,
                     matchPath: '/inventory',
@@ -178,7 +178,7 @@ export default function TopNav() {
               )}
             >
               <Settings size={18} />
-              <span>System</span>
+              <span>ระบบ</span>
             </Link>
           )}
         </nav>

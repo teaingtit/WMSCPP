@@ -2,7 +2,7 @@
 import { Package, Settings, LayoutGrid, ClipboardCheck, History } from 'lucide-react';
 
 export const APP_CONFIG = {
-  name: 'WMS Pro',
+  name: 'WMS DEMO',
   version: '1.0.0',
   description: 'Warehouse Management System',
 };
@@ -17,14 +17,14 @@ export const MENU_ITEMS = [
     exact: true,
   },
   {
-    title: 'สต็อกสินค้า (Inventory)',
+    title: 'สินค้าคงคลัง (Inventory)',
     href: '/dashboard/[warehouseId]/inventory', // ตัวอย่าง URL Pattern
     icon: Package,
     matchPath: '/inventory',
     hidden: true, // ซ่อนจากเมนูหลัก (อาจจะใช้ใน Submenu)
   },
   {
-    title: 'Stock Audit',
+    title: 'ตรวจนับสต็อก (Audit)',
     href: '/dashboard/[warehouseId]/audit', // ใช้ Pattern เดียวกับ DesktopSidebar
     matchPath: '/audit',
     icon: ClipboardCheck,

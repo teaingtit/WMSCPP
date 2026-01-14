@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { submitBulkInbound } from '@/actions/inbound-actions';
-import { Loader2, Save, MapPin, Package, Plus, ListChecks, Trash2 } from 'lucide-react';
+import { Loader2, Save, MapPin, Package, Plus, PackageCheck, Trash2 } from 'lucide-react';
 import { notify } from '@/lib/ui-helpers';
 import { Product } from '@/types/inventory';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
@@ -13,8 +13,6 @@ import ProductAutocomplete from './ProductAutocomplete';
 import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal';
 import SuccessReceiptModal from '@/components/shared/SuccessReceiptModal';
 import useTransactionFlow from '@/hooks/useTransactionFlow';
-import { BaseCartDrawer } from '@/components/shared/BaseCartDrawer';
-import { CartFloatingButton } from '@/components/shared/CartFloatingButton';
 
 // --- Interfaces ---
 interface FormSchemaField {
@@ -64,7 +62,6 @@ export default function DynamicInboundForm({
   // 3. Other States
   const [quantity, setQuantity] = useState('');
   const [attributes, setAttributes] = useState<Record<string, any>>({});
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Suggestion 1: Memoize schema extraction for performance and clarity.
   const lotSchema = useMemo(
@@ -175,7 +172,6 @@ export default function DynamicInboundForm({
     } finally {
       setIsLoading(false);
       setSubmitting(false);
-      setIsCartOpen(false); // Close cart on finish
     }
   };
 
@@ -198,7 +194,7 @@ export default function DynamicInboundForm({
         <form onSubmit={handleAddToQueue} className="space-y-6">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
             <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
-              <Package className="text-indigo-600" /> ข้อมูลสินค้า (Product)
+              <Package className="text-indigo-600" /> ข้อมูลสินค้า
             </h3>
             <ProductAutocomplete
               products={products}
@@ -273,83 +269,90 @@ export default function DynamicInboundForm({
         </form>
       </div>
 
-      {/* --- Cart Trigger --- */}
-      <CartFloatingButton
-        itemCount={queue.length}
-        onClick={() => setIsCartOpen(true)}
-        label="รายการรับเข้า"
-      />
+      {/* --- Inline Queue Display --- */}
+      <div className="mt-8 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <h4 className="font-bold text-slate-800 flex items-center gap-2">
+            <PackageCheck size={18} className="text-emerald-600" /> รายการรอรับเข้า ({queue.length})
+          </h4>
+          <div className="text-sm text-slate-500">ตรวจสอบและแก้ไขรายการก่อนยืนยัน</div>
+        </div>
 
-      {/* --- Drawer --- */}
-      <BaseCartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        title="รายการรอรับเข้า"
-        icon={<ListChecks size={20} />}
-        itemCount={queue.length}
-        onClearAll={() => setQueue([])}
-        footer={
-          <div className="space-y-3">
+        <div className="flex flex-col gap-3">
+          <div className="flex-1 overflow-y-auto p-2 space-y-3 bg-slate-50/30 min-h-[200px] max-h-[60vh] custom-scrollbar">
+            {queue.length === 0 ? (
+              <div className="text-sm text-slate-400 text-center py-6">ยังไม่มีรายการ</div>
+            ) : (
+              queue.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-emerald-200 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <h4 className="font-bold text-slate-700 truncate text-sm">
+                        {idx + 1}. {item.product.name}
+                      </h4>
+                      <button
+                        onClick={() => removeFromQueue(item.id)}
+                        aria-label="ลบรายการ"
+                        className="text-slate-300 hover:text-rose-500 transition-colors p-1 -mr-1"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                    <div className="text-xs text-slate-500 font-mono mt-1">
+                      {item.location.code}
+                    </div>
+                    {lotSchema.length > 0 && Object.keys(item.attributes).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {lotSchema.map((field) => {
+                          const value = item.attributes[field.key];
+                          return value ? (
+                            <span
+                              key={field.key}
+                              className="bg-slate-100 text-slate-500 text-[10px] px-1.5 py-0.5 rounded border border-slate-200"
+                            >
+                              {field.label}: {value}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                    <div className="flex justify-end mt-2">
+                      <span className="text-emerald-600 font-black text-lg">+{item.quantity}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-4 space-y-3">
             <div className="flex justify-between items-center text-sm font-bold text-slate-600">
-              <span>Total Items:</span>
+              <span>จำนวนรายการ:</span>
               <span className="text-lg text-emerald-600">{queue.length}</span>
             </div>
-            <button
-              onClick={handleConfirmAll}
-              disabled={queue.length === 0 || submitting}
-              className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:grayscale"
-            >
-              {submitting ? <Loader2 className="animate-spin" /> : <Save size={20} />}
-              ยืนยันรับเข้าทั้งหมด
-            </button>
-          </div>
-        }
-      >
-        {queue.map((item, idx) => (
-          <div
-            key={item.id}
-            className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-emerald-200 transition-colors"
-          >
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-start">
-                <h4 className="font-bold text-slate-700 truncate text-sm">
-                  {idx + 1}. {item.product.name}
-                </h4>
-                <button
-                  onClick={() => removeFromQueue(item.id)}
-                  className="text-slate-300 hover:text-rose-500 transition-colors p-1 -mr-1"
-                >
-                  <span className="sr-only">Remove {item.product.name} from queue</span>
-                  <Trash2 size={14} />
-                </button>
-              </div>
-              <div className="text-xs text-slate-500 mb-1 font-mono">{item.location.code}</div>
-
-              {lotSchema.length > 0 && Object.keys(item.attributes).length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {lotSchema.map((field) => {
-                    const value = item.attributes[field.key];
-                    return value ? (
-                      <span
-                        key={field.key}
-                        className="bg-slate-100 text-slate-500 text-[10px] px-1.5 py-0.5 rounded border border-slate-200"
-                      >
-                        {field.label}: {value}
-                      </span>
-                    ) : null;
-                  })}
-                </div>
-              )}
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                  +{item.quantity} {item.product.uom}
-                </span>
-              </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setQueue([])}
+                disabled={queue.length === 0}
+                className="flex-1 py-3 border border-slate-200 rounded-xl bg-white font-bold text-sm disabled:opacity-50"
+              >
+                ล้างทั้งหมด
+              </button>
+              <button
+                onClick={handleConfirmAll}
+                disabled={queue.length === 0 || submitting}
+                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-2"
+              >
+                {submitting ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                ยืนยันรับเข้าทั้งหมด
+              </button>
             </div>
           </div>
-        ))}
-      </BaseCartDrawer>
+        </div>
+      </div>
 
       {/* --- Modals --- */}
       <TransactionConfirmModal

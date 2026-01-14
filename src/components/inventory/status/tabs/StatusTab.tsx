@@ -69,7 +69,7 @@ export default function StatusTab({
       {/* Current Status Display */}
       <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
         <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-          Current Status
+          สถานะปัจจุบัน
         </div>
         {currentStatus?.status ? (
           <div className="space-y-3">
@@ -82,7 +82,7 @@ export default function StatusTab({
                   }`}
                 >
                   {isProductStatus ? <Package size={12} /> : <MapPin size={12} />}
-                  {isProductStatus ? 'Product' : 'Location'}
+                  {isProductStatus ? 'รายชิ้น' : 'ทั้ง Location'}
                 </span>
               </div>
             </div>
@@ -90,8 +90,8 @@ export default function StatusTab({
             {/* Show affected quantity for product status */}
             {isProductStatus && currentAffectedQty < totalQuantity && (
               <div className="text-sm text-slate-600 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                <span className="font-bold text-amber-700">{currentAffectedQty}</span> of{' '}
-                <span className="font-bold">{totalQuantity}</span> {uom} have this status
+                <span className="font-bold text-amber-700">{currentAffectedQty}</span> จาก{' '}
+                <span className="font-bold">{totalQuantity}</span> {uom} ที่ติดสถานะนี้
               </div>
             )}
 
@@ -99,7 +99,7 @@ export default function StatusTab({
             {!isProductStatus && (
               <div className="text-sm text-slate-600 bg-cyan-50 p-2 rounded-lg border border-cyan-200 flex items-center gap-2">
                 <MapPin size={14} className="text-cyan-600" />
-                This status applies to the entire lot. All {totalQuantity} {uom} are affected.
+                สถานะนี้มีผลกับทั้ง Location สินค้าทั้งหมด {totalQuantity} {uom} จะถูกติดสถานะ
               </div>
             )}
 
@@ -112,14 +112,14 @@ export default function StatusTab({
                     disabled={isPending}
                     className="text-xs text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-amber-50"
                   >
-                    <Minus size={14} /> Partial Remove
+                    <Minus size={14} /> นำออกบางส่วน
                   </button>
                   <button
                     onClick={handleRemoveStatus}
                     disabled={isPending}
                     className="text-xs text-red-600 hover:text-red-700 font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50"
                   >
-                    <X size={14} /> Remove All
+                    <X size={14} /> นำออกทั้งหมด
                   </button>
                 </>
               ) : (
@@ -128,7 +128,7 @@ export default function StatusTab({
                   disabled={isPending}
                   className="text-xs text-red-600 hover:text-red-700 font-bold flex items-center gap-1"
                 >
-                  <X size={14} /> Remove Status
+                  <X size={14} /> ลบสถานะ
                 </button>
               )}
             </div>
@@ -139,7 +139,7 @@ export default function StatusTab({
                 <div className="flex items-center gap-2">
                   <Minus size={16} className="text-amber-600" />
                   <span className="text-sm font-bold text-slate-700">
-                    Remove Status from Quantity
+                    ระบุจำนวนที่ต้องการปลดสถานะ
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -155,7 +155,7 @@ export default function StatusTab({
                     aria-label="Quantity to remove status from"
                     className="w-24 px-3 py-2 border border-slate-200 rounded-lg text-lg font-bold text-center focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
                   />
-                  <span className="text-sm text-slate-500">of</span>
+                  <span className="text-sm text-slate-500">จาก</span>
                   <span className="text-lg font-bold text-slate-700">{currentAffectedQty}</span>
                   <span className="text-sm text-slate-500">{uom}</span>
                 </div>
@@ -169,7 +169,7 @@ export default function StatusTab({
                         : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    All ({currentAffectedQty})
+                    ทั้งหมด ({currentAffectedQty})
                   </button>
                   {currentAffectedQty > 1 && (
                     <button
@@ -181,7 +181,7 @@ export default function StatusTab({
                           : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      Half ({Math.ceil(currentAffectedQty / 2)})
+                      ครึ่งหนึ่ง ({Math.ceil(currentAffectedQty / 2)})
                     </button>
                   )}
                   <button
@@ -193,14 +193,14 @@ export default function StatusTab({
                         : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    1 Only
+                    1 ชิ้น
                   </button>
                 </div>
                 <input
                   type="text"
                   value={removeReason}
                   onChange={(e) => setRemoveReason(e.target.value)}
-                  placeholder="Reason for removal (optional)"
+                  placeholder="เหตุผล (ไม่บังคับ)"
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
                 />
                 <div className="flex gap-2">
@@ -214,27 +214,27 @@ export default function StatusTab({
                     ) : (
                       <Check size={16} />
                     )}
-                    Remove from {quantityToRemove} {uom}
+                    นำออกจาก {quantityToRemove} {uom}
                   </button>
                   <button
                     onClick={() => setShowPartialRemove(false)}
                     className="px-4 py-2 bg-slate-200 text-slate-700 font-bold rounded-lg hover:bg-slate-300"
                   >
-                    Cancel
+                    ยกเลิก
                   </button>
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <span className="text-slate-400 text-sm">No status assigned</span>
+          <span className="text-slate-400 text-sm">ปกติ (ไม่มีสถานะ)</span>
         )}
       </div>
 
       {/* Status Selection */}
       <div>
         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-          Apply New Status
+          เลือกสถานะใหม่
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {statusDefinitions.map((status) => {
@@ -280,7 +280,7 @@ export default function StatusTab({
           <div className="flex items-center gap-2 mb-3">
             <Hash size={16} className="text-amber-500" />
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Quantity to Apply Status
+              ระบุจำนวนที่ต้องการติดสถานะ
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -296,7 +296,7 @@ export default function StatusTab({
               aria-label="Affected quantity"
               className="w-24 px-3 py-2 border border-slate-200 rounded-lg text-lg font-bold text-center focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none"
             />
-            <span className="text-sm text-slate-500">of</span>
+            <span className="text-sm text-slate-500">จาก</span>
             <span className="text-lg font-bold text-slate-700">
               {totalQuantity.toLocaleString()}
             </span>
@@ -312,7 +312,7 @@ export default function StatusTab({
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
-              All ({totalQuantity})
+              ทั้งหมด ({totalQuantity})
             </button>
             {totalQuantity > 1 && (
               <button
@@ -324,7 +324,7 @@ export default function StatusTab({
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                Half ({Math.ceil(totalQuantity / 2)})
+                ครึ่งหนึ่ง ({Math.ceil(totalQuantity / 2)})
               </button>
             )}
             <button
@@ -336,13 +336,13 @@ export default function StatusTab({
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
-              1 Only
+              1 ชิ้น
             </button>
           </div>
           {affectedQuantity < totalQuantity && (
             <div className="mt-3 text-xs text-amber-700 bg-amber-100 p-2 rounded-lg flex items-center gap-2">
               <AlertTriangle size={12} />
-              {totalQuantity - affectedQuantity} {uom} will remain without this status
+              {totalQuantity - affectedQuantity} {uom} จะยังคงสถานะปกติ
             </div>
           )}
         </div>
@@ -353,13 +353,12 @@ export default function StatusTab({
         <div className="animate-in slide-in-from-top-2 p-4 bg-cyan-50 rounded-xl border border-cyan-200">
           <div className="flex items-center gap-2 mb-2">
             <MapPin size={16} className="text-cyan-600" />
-            <span className="text-sm font-bold text-cyan-800">Location Status</span>
+            <span className="text-sm font-bold text-cyan-800">สถานะแบบ Location</span>
           </div>
           <p className="text-sm text-cyan-700">
-            This status will apply to the entire lot/location. All{' '}
+            สถานะนี้จะมีผลกับทั้ง Lot/Location สินค้าทั้งหมด{' '}
             <span className="font-bold">{totalQuantity}</span> {uom}
-            in this location will be affected. To remove this status, you must remove it from the
-            entire location.
+            จะถูกติดสถานะ หากต้องการลบสถานะ ต้องลบออกจากทั้ง Location
           </p>
         </div>
       )}
@@ -368,12 +367,12 @@ export default function StatusTab({
       {isNewStatus && (
         <div className="animate-in slide-in-from-top-2">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-            Reason for Change (Optional)
+            เหตุผลการเปลี่ยนสถานะ (ไม่บังคับ)
           </label>
           <textarea
             value={statusReason}
             onChange={(e) => setStatusReason(e.target.value)}
-            placeholder="e.g., Damaged during inspection, Quarantine for quality check..."
+            placeholder="เช่น พบความเสียหายจากการขนส่ง, รอตรวจสอบคุณภาพ..."
             className="w-full p-3 border border-slate-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none"
             rows={3}
           />
@@ -407,7 +406,7 @@ export default function StatusTab({
           className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {isPending ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
-          Apply Status
+          บันทึกสถานะ
         </button>
       )}
     </div>

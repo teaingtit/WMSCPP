@@ -70,7 +70,7 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
         <DimensionConfig />
 
         <SubmitButton className="w-full bg-slate-900 text-white px-4 py-4 rounded-xl font-bold hover:bg-slate-800 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-          <Save size={18} /> สร้างคลังและ Generate Locations
+          <Save size={18} /> สร้างคลังและ สร้าง Locations อัตโนมัติ
         </SubmitButton>
       </form>
 

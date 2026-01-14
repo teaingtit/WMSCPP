@@ -19,19 +19,25 @@ describe('TypeError handling', () => {
     it('should handle TypeError when rawData is null', () => {
       const result = validateFormData(TestSchema, null as any);
       expect(result.success).toBe(false);
-      expect(result.response.message).toBeDefined();
+      if (!result.success) {
+        expect(result.response.message).toBeDefined();
+      }
     });
 
     it('should handle TypeError when rawData is undefined', () => {
       const result = validateFormData(TestSchema, undefined as any);
       expect(result.success).toBe(false);
-      expect(result.response.message).toBeDefined();
+      if (!result.success) {
+        expect(result.response.message).toBeDefined();
+      }
     });
 
     it('should handle TypeError when rawData is not an object', () => {
       const result = validateFormData(TestSchema, 'not an object' as any);
       expect(result.success).toBe(false);
-      expect(result.response.message).toBeDefined();
+      if (!result.success) {
+        expect(result.response.message).toBeDefined();
+      }
     });
 
     it('should handle TypeError when rawData contains wrong types', () => {
@@ -41,7 +47,9 @@ describe('TypeError handling', () => {
         email: 'invalid-email', // should be valid email
       });
       expect(result.success).toBe(false);
-      expect(result.response.errors).toBeDefined();
+      if (!result.success) {
+        expect(result.response.errors).toBeDefined();
+      }
     });
 
     it('should handle TypeError when accessing properties on null/undefined', () => {
@@ -52,7 +60,9 @@ describe('TypeError handling', () => {
       };
       const result = validateFormData(TestSchema, invalidData as any);
       expect(result.success).toBe(false);
-      expect(result.response.errors).toBeDefined();
+      if (!result.success) {
+        expect(result.response.errors).toBeDefined();
+      }
     });
   });
 
@@ -72,7 +82,7 @@ describe('TypeError handling', () => {
     it('should handle TypeError when fields is not an array', () => {
       const formData = new FormData();
       formData.append('field1', 'value1');
-      
+
       expect(() => {
         extractFormFields(formData, null as any);
       }).toThrow();
@@ -81,7 +91,7 @@ describe('TypeError handling', () => {
     it('should handle TypeError when fields contains non-string values', () => {
       const formData = new FormData();
       formData.append('field1', 'value1');
-      
+
       // TypeScript allows this with 'as any', but runtime behavior may vary
       // The function should still work, just with type coercion
       const result = extractFormFields(formData, [123, 'field2'] as any);
@@ -110,9 +120,9 @@ describe('TypeError handling', () => {
       const obj: any = null;
       // In strict mode, accessing properties on null throws TypeError
       expect(() => {
-        const value = obj.property;
+        const _value = obj.property;
       }).toThrow(TypeError);
-      
+
       // Calling a method on the result would also throw
       expect(() => {
         obj.property.toString();
@@ -123,9 +133,9 @@ describe('TypeError handling', () => {
       const obj: any = undefined;
       // In strict mode, accessing properties on undefined throws TypeError
       expect(() => {
-        const value = obj.property;
+        const _value = obj.property;
       }).toThrow(TypeError);
-      
+
       // Calling a method on the result would also throw
       expect(() => {
         obj.property.toString();

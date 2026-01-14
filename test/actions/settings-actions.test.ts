@@ -6,9 +6,7 @@ import {
   createProduct,
   deleteProduct,
   createWarehouse,
-  deleteWarehouse,
   createCategory,
-  deleteCategory,
   updateCategoryUnits,
   addUnitToCategory,
   removeUnitFromCategory,
@@ -29,23 +27,27 @@ describe('Settings Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
 
   describe('getAllWarehousesForAdmin', () => {
     it('should fetch all active warehouses', async () => {
-      const mockWarehouses = [
-        { id: 'wh1', code: 'WH01', name: 'Warehouse 1', is_active: true },
-      ];
+      const mockWarehouses = [{ id: 'wh1', code: 'WH01', name: 'Warehouse 1', is_active: true }];
 
       // Create query builder that supports multiple order() calls
       const createQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; });
-        query.order = vi.fn(function() { return query; }); // Support chaining - can be called multiple times
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        }); // Support chaining - can be called multiple times
         // Make it awaitable
         const promise = Promise.resolve({ data: mockWarehouses });
         query.then = promise.then.bind(promise);
@@ -67,9 +69,7 @@ describe('Settings Actions', () => {
 
   describe('getCategories', () => {
     it('should fetch all categories', async () => {
-      const mockCategories = [
-        { id: 'cat1', name: 'Category 1', form_schema: [] },
-      ];
+      const mockCategories = [{ id: 'cat1', name: 'Category 1', form_schema: [] }];
 
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
@@ -124,7 +124,7 @@ describe('Settings Actions', () => {
         insert: vi.fn().mockResolvedValue({ error: null }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'product_categories') {
           return mockCategoryQuery;
@@ -166,7 +166,7 @@ describe('Settings Actions', () => {
         }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'product_categories') {
           return mockCategoryQuery;
@@ -211,11 +211,11 @@ describe('Settings Actions', () => {
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'products') {
-          callCount++;
-          if (callCount === 1) return mockProductQuery;
+          _callCount++;
+          if (_callCount === 1) return mockProductQuery;
           return mockUpdateQuery;
         }
         if (table === 'stocks') {
@@ -244,7 +244,7 @@ describe('Settings Actions', () => {
         eq: vi.fn().mockResolvedValue({ count: 5 }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'products') {
           return mockProductQuery;
@@ -281,7 +281,10 @@ describe('Settings Actions', () => {
 
       const result = await createWarehouse(formData);
 
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('create_warehouse_xyz_grid', expect.any(Object));
+      expect(mockSupabase.rpc).toHaveBeenCalledWith(
+        'create_warehouse_xyz_grid',
+        expect.any(Object),
+      );
       expect(result.success).toBe(true);
     });
   });
@@ -306,7 +309,7 @@ describe('Settings Actions', () => {
 
   describe('updateCategoryUnits', () => {
     it('should update category units successfully', async () => {
-      const mockUpdate = vi.fn().mockResolvedValue({ error: null });
+      const _mockUpdate = vi.fn().mockResolvedValue({ error: null });
       const mockQuery = {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
@@ -338,11 +341,11 @@ describe('Settings Actions', () => {
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'product_categories') {
-          callCount++;
-          if (callCount === 1) return mockQuery;
+          _callCount++;
+          if (_callCount === 1) return mockQuery;
           return mockUpdateQuery;
         }
         return mockQuery;
@@ -368,11 +371,11 @@ describe('Settings Actions', () => {
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'product_categories') {
-          callCount++;
-          if (callCount === 1) return mockQuery;
+          _callCount++;
+          if (_callCount === 1) return mockQuery;
           return mockUpdateQuery;
         }
         return mockQuery;

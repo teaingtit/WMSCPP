@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import InventoryDashboard from '@/components/inventory/InventoryDashboard';
 import { StockWithDetails } from '@/types/inventory';
 import { getProductCategories } from '@/actions/inbound-actions'; // Import getProductCategories
+import { isValidUUID } from '@/lib/utils';
 
 export default async function InventoryPage({
   params,
@@ -16,11 +17,17 @@ export default async function InventoryPage({
 
   const supabase = await createClient();
 
-  const { data: wh } = await supabase
-    .from('warehouses')
-    .select('id')
-    .eq('code', warehouseId)
-    .single();
+  // ✅ FIX: Handle both UUID and code identifiers, use maybeSingle() to avoid PGRST116 error
+  let warehouseQuery = supabase.from('warehouses').select('id');
+
+  // If it's a UUID, query by id; otherwise query by code
+  if (isValidUUID(warehouseId)) {
+    warehouseQuery = warehouseQuery.eq('id', warehouseId);
+  } else {
+    warehouseQuery = warehouseQuery.eq('code', warehouseId);
+  }
+
+  const { data: wh } = await warehouseQuery.maybeSingle();
 
   if (!wh) {
     return (
@@ -29,8 +36,8 @@ export default async function InventoryPage({
           <span className="text-3xl">🏠</span>
         </div>
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold text-slate-900">Warehouse Not Found</h3>
-          <p className="text-sm text-slate-500">Could not find warehouse: {warehouseId}</p>
+          <h3 className="text-lg font-semibold text-slate-900">ไม่พบคลังสินค้า</h3>
+          <p className="text-sm text-slate-500">ไม่พบข้อมูลคลังสินค้า: {warehouseId}</p>
         </div>
       </div>
     );
@@ -89,8 +96,8 @@ export default async function InventoryPage({
           <span className="text-3xl">⚠️</span>
         </div>
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold text-slate-900">Error loading data</h3>
-          <p className="text-sm text-slate-500">Please try refreshing the page.</p>
+          <h3 className="text-lg font-semibold text-slate-900">เกิดข้อผิดพลาดในการโหลดข้อมูล</h3>
+          <p className="text-sm text-slate-500">กรุณาลองรีเฟรชหน้าใหม่อีกครั้ง</p>
         </div>
       </div>
     );

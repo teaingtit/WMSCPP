@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { searchStockForOutbound, submitOutbound, submitBulkOutbound } from '@/actions/outbound-actions';
+import { searchStockForOutbound, submitOutbound } from '@/actions/outbound-actions';
 import { createMockSupabaseClient, createMockUser } from '../utils/test-helpers';
 
 vi.mock('next/cache', () => ({
@@ -11,11 +11,13 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 vi.mock('@/lib/utils/db-helpers', () => ({
-  getWarehouseId: vi.fn((supabase, id) => Promise.resolve(id)),
+  getWarehouseId: vi.fn((_supabase, id) => Promise.resolve(id)),
 }));
 
 vi.mock('@/lib/action-utils', () => ({
-  withAuth: vi.fn((handler) => handler),
+  withAuth: vi.fn((handler, _options) => {
+    return (data: any, ctx?: any) => handler(data, ctx);
+  }),
   processBulkAction: vi.fn(),
 }));
 
@@ -25,7 +27,7 @@ describe('Outbound Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -114,7 +116,7 @@ describe('Outbound Actions', () => {
         note: 'Test outbound',
       };
 
-      const result = await submitOutbound(formData as any, {
+      const result = await (submitOutbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -131,7 +133,7 @@ describe('Outbound Actions', () => {
         qty: -5,
       };
 
-      const result = await submitOutbound(formData as any, {
+      const result = await (submitOutbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -174,7 +176,7 @@ describe('Outbound Actions', () => {
         qty: 10,
       };
 
-      const result = await submitOutbound(formData as any, {
+      const result = await (submitOutbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -224,7 +226,7 @@ describe('Outbound Actions', () => {
         qty: 5,
       };
 
-      const result = await submitOutbound(formData as any, {
+      const result = await (submitOutbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });

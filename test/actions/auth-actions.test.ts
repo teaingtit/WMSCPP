@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { login, logout } from '@/actions/auth-actions';
-import { createMockSupabaseClient, createMockFormData, mockNextNavigation } from '../utils/test-helpers';
+import { createMockSupabaseClient, createMockFormData } from '../utils/test-helpers';
 
 // Next.js navigation is mocked in test/setup.ts
 
@@ -20,7 +20,7 @@ describe('Auth Actions', () => {
     };
     mockSupabase = createMockSupabaseClient();
     mockSupabase.auth = mockAuth;
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -35,7 +35,7 @@ describe('Auth Actions', () => {
       });
 
       try {
-        const result = await login({ success: false } as any, formData);
+        const _result = await login({ success: false } as any, formData);
         // If redirect throws, that's expected - login was successful
       } catch (error: any) {
         // Expect redirect to be called (throws NEXT_REDIRECT error)

@@ -1,0 +1,38 @@
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(58,11): error TS2322: Type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }[]' is not assignable to type 'StockWithDetails[]'.
+  Property 'updated_at' is missing in type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }' but required in type 'StockWithDetails'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(89,11): error TS2322: Type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }[]' is not assignable to type 'StockWithDetails[]'.
+  Property 'updated_at' is missing in type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }' but required in type 'StockWithDetails'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(136,11): error TS2322: Type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }[]' is not assignable to type 'StockWithDetails[]'.
+  Property 'updated_at' is missing in type '{ id: string; name: string; quantity: number; product: { name: string; }; location: { id: string; code: string; }; }' but required in type 'StockWithDetails'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(163,22): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Element | Node | Document | Window'.
+  Type 'undefined' is not assignable to type 'Element | Node | Document | Window'.
+src/components/transfer/__tests__/TransferTargetForm.test.tsx(168,21): error TS2345: Argument of type 'HTMLElement | undefined' is not assignable to parameter of type 'Element | Node | Document | Window'.
+test/actions/auth-actions.test.ts(38,15): error TS6133: '_result' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(125,13): error TS6133: '_result' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(176,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(220,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(293,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/bulk-import-actions.test.ts(314,13): error TS6133: '_result' is declared but its value is never read.
+test/actions/dashboard-actions.test.ts(58,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/dashboard-actions.test.ts(112,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/dashboard-actions.test.ts(182,15): error TS2552: Cannot find name 'callCount'. Did you mean '_callCount'?
+test/actions/export-actions.test.ts(91,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/export-actions.test.ts(132,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/export-actions.test.ts(146,13): error TS6133: 'result' is declared but its value is never read.
+test/actions/export-actions.test.ts(186,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/export-actions.test.ts(225,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/history-actions.test.ts(90,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/history-actions.test.ts(107,14): error TS2532: Object is possibly 'undefined'.
+test/actions/history-actions.test.ts(108,14): error TS2532: Object is possibly 'undefined'.
+test/actions/history-actions.test.ts(145,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/history-actions.test.ts(212,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(125,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(167,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(245,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/settings-actions.test.ts(307,13): error TS6133: '_mockUpdate' is declared but its value is never read.
+test/actions/status-actions.test.ts(237,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/status-actions.test.ts(449,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/user-actions.test.ts(115,11): error TS6133: '_callCount' is declared but its value is never read.
+test/actions/user-actions.test.ts(130,14): error TS2532: Object is possibly 'undefined'.
+test/TypeError.test.ts(123,15): error TS6133: '_value' is declared but its value is never read.
+test/TypeError.test.ts(136,15): error TS6133: '_value' is declared but its value is never read.

@@ -4,12 +4,14 @@ import {
   getInventoryItems,
   getAuditSessions,
   getAuditItems,
-  getAuditSessionById,
   updateAuditItemCount,
   finalizeAuditSession,
-  updateAuditSession,
 } from '@/actions/audit-actions';
-import { createMockSupabaseClient, createMockUser, createMockFormData } from '../utils/test-helpers';
+import {
+  createMockSupabaseClient,
+  createMockUser,
+  createMockFormData,
+} from '../utils/test-helpers';
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
@@ -20,7 +22,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 vi.mock('@/lib/utils/db-helpers', () => ({
-  getWarehouseId: vi.fn((supabase, id) => Promise.resolve(id)),
+  getWarehouseId: vi.fn((_supabase, id) => Promise.resolve(id)),
 }));
 
 vi.mock('@/lib/auth-service', () => ({
@@ -28,7 +30,10 @@ vi.mock('@/lib/auth-service', () => ({
 }));
 
 vi.mock('@/lib/action-utils', () => ({
-  withAuth: vi.fn((handler, options) => handler),
+  withAuth: vi.fn((handler, _options) => {
+    // Return a function that accepts both data and optional context
+    return (data: any, ctx?: any) => handler(data, ctx);
+  }),
 }));
 
 describe('Audit Actions', () => {
@@ -39,7 +44,7 @@ describe('Audit Actions', () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     mockUser = createMockUser();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -47,19 +52,18 @@ describe('Audit Actions', () => {
   describe('createAuditSession', () => {
     it('should create audit session successfully', async () => {
       const mockSession = { id: 'session1' };
-      const mockInsert = vi.fn().mockResolvedValue({ data: mockSession, error: null });
-      
+
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         maybeSingle: vi.fn().mockResolvedValue({ data: null }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'audit_sessions') {
-          callCount++;
-          if (callCount === 1) {
+          _callCount++;
+          if (_callCount === 1) {
             return mockQuery; // First call: check for duplicate
           }
           // Second call: insert session
@@ -72,9 +76,13 @@ describe('Audit Actions', () => {
         if (table === 'stocks') {
           // When items is empty, it queries stocks for full audit
           const stocksQuery: any = {};
-          stocksQuery.select = vi.fn(function() { return stocksQuery; });
-          stocksQuery.eq = vi.fn(function() { return stocksQuery; });
-          stocksQuery.gt = vi.fn(function() { 
+          stocksQuery.select = vi.fn(function () {
+            return stocksQuery;
+          });
+          stocksQuery.eq = vi.fn(function () {
+            return stocksQuery;
+          });
+          stocksQuery.gt = vi.fn(function () {
             return Promise.resolve({ data: [] }); // Empty for this test
           });
           return stocksQuery;
@@ -93,7 +101,7 @@ describe('Audit Actions', () => {
         items: '[]',
       });
 
-      const result = await createAuditSession(formData, {
+      const result = await (createAuditSession as any)(formData, {
         user: mockUser,
         supabase: mockSupabase,
       });
@@ -116,7 +124,7 @@ describe('Audit Actions', () => {
         items: '[]',
       });
 
-      const result = await createAuditSession(formData, {
+      const result = await (createAuditSession as any)(formData, {
         user: mockUser,
         supabase: mockSupabase,
       });

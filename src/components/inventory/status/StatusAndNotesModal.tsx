@@ -31,9 +31,9 @@ interface StatusAndNotesModalProps {
 type TabType = 'status' | 'notes' | 'history';
 
 const TABS: { id: TabType; icon: typeof Shield; label: string }[] = [
-  { id: 'status', icon: Shield, label: 'Status' },
-  { id: 'notes', icon: StickyNote, label: 'Notes' },
-  { id: 'history', icon: History, label: 'History' },
+  { id: 'status', icon: Shield, label: 'สถานะ' },
+  { id: 'notes', icon: StickyNote, label: 'บันทึก' },
+  { id: 'history', icon: History, label: 'ประวัติ' },
 ];
 
 export default function StatusAndNotesModal({

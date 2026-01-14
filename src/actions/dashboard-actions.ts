@@ -2,6 +2,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getWarehouseId } from '@/lib/utils/db-helpers';
 
 // --- Function 1: สำหรับหน้า Dashboard รวม ---
 export async function getDashboardWarehouses() {
@@ -40,17 +41,14 @@ export async function getDashboardStats(warehouseCode: string) {
   const supabase = await createClient();
 
   try {
-    const { data: wh } = await supabase
-      .from('warehouses')
-      .select('id')
-      .eq('code', warehouseCode)
-      .single();
-    if (!wh) throw new Error('Warehouse not found');
+    // ✅ FIX: Handle both UUID and code identifiers
+    const whId = await getWarehouseId(supabase, warehouseCode);
+    if (!whId) throw new Error('Warehouse not found');
 
     const { data: stocks } = await supabase
       .from('stocks')
       .select('quantity, locations!inner(warehouse_id)')
-      .eq('locations.warehouse_id', wh.id);
+      .eq('locations.warehouse_id', whId);
 
     const totalItems = stocks?.length || 0;
     const totalQty = stocks?.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0) || 0;
@@ -60,7 +58,7 @@ export async function getDashboardStats(warehouseCode: string) {
         supabase
           .from('audit_sessions')
           .select('id, name, created_at, status')
-          .eq('warehouse_id', wh.id)
+          .eq('warehouse_id', whId)
           .eq('status', 'OPEN')
           .order('created_at', { ascending: false }),
         supabase
@@ -73,13 +71,13 @@ export async function getDashboardStats(warehouseCode: string) {
             to_location:locations!transactions_to_location_id_fkey(code)
           `,
           )
-          .eq('warehouse_id', wh.id)
+          .eq('warehouse_id', whId)
           .order('created_at', { ascending: false })
           .limit(20),
         supabase
           .from('transactions')
           .select('*', { count: 'exact', head: true })
-          .eq('warehouse_id', wh.id)
+          .eq('warehouse_id', whId)
           .gte('created_at', new Date().setHours(0, 0, 0, 0)),
       ]);
 

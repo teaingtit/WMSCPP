@@ -4,7 +4,6 @@ import {
   searchStockForTransfer,
   submitTransfer,
   submitCrossTransfer,
-  submitBulkTransfer,
   preflightBulkTransfer,
 } from '@/actions/transfer-actions';
 import { createMockSupabaseClient, createMockUser } from '../utils/test-helpers';
@@ -25,11 +24,13 @@ vi.mock('@/lib/supabase/admin', () => ({
 }));
 
 vi.mock('@/lib/utils/db-helpers', () => ({
-  getWarehouseId: vi.fn((supabase, id) => Promise.resolve(id)),
+  getWarehouseId: vi.fn((_supabase, id) => Promise.resolve(id)),
 }));
 
 vi.mock('@/lib/action-utils', () => ({
-  withAuth: vi.fn((handler) => handler),
+  withAuth: vi.fn((handler, _options) => {
+    return (data: any, ctx?: any) => handler(data, ctx);
+  }),
 }));
 
 describe('Transfer Actions', () => {
@@ -38,7 +39,7 @@ describe('Transfer Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -117,8 +118,12 @@ describe('Transfer Actions', () => {
       // Create target location query builder
       const createTargetQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; });
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
         query.single = vi.fn().mockResolvedValue({ data: { code: 'L01-P02-1' } });
         return query;
       };
@@ -159,7 +164,7 @@ describe('Transfer Actions', () => {
         transferQty: 5,
       };
 
-      const result = await submitTransfer(formData as any, {
+      const result = await (submitTransfer as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -180,8 +185,12 @@ describe('Transfer Actions', () => {
       // Create query builder that supports chaining
       const createSourceQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; });
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
         query.single = vi.fn().mockResolvedValue({ data: mockSourceStock });
         return query;
       };
@@ -213,7 +222,7 @@ describe('Transfer Actions', () => {
         transferQty: 5,
       };
 
-      const result = await submitTransfer(formData as any, {
+      const result = await (submitTransfer as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -241,8 +250,12 @@ describe('Transfer Actions', () => {
       // Create query builder that supports chaining
       const createSourceQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; });
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
         query.single = vi.fn().mockResolvedValue({ data: mockSourceStock });
         return query;
       };
@@ -274,7 +287,7 @@ describe('Transfer Actions', () => {
         transferQty: 5,
       };
 
-      const result = await submitTransfer(formData as any, {
+      const result = await (submitTransfer as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -294,7 +307,7 @@ describe('Transfer Actions', () => {
         transferQty: 5,
       };
 
-      const result = await submitCrossTransfer(formData as any, {
+      const result = await (submitCrossTransfer as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });

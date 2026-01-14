@@ -122,16 +122,16 @@ export default function LocationSelector({
     <div className={`grid grid-cols-3 gap-3 ${className}`}>
       {/* LOT */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">LOT</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ล็อต (LOT)</label>
         <div className="relative">
           <select
-            aria-label="Select Lot" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
+            aria-label="เลือก Lot" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-indigo-500 disabled:opacity-50"
             value={selectedLot}
             onChange={(e) => setSelectedLot(e.target.value)}
             disabled={disabled || loadingLots || !warehouseId}
           >
-            <option value="">-</option>
+            <option value="">- เลือก -</option>
             {lots.map((l) => (
               <option key={l} value={l}>
                 {l}
@@ -146,16 +146,18 @@ export default function LocationSelector({
 
       {/* POSITION */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">POSITION</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">
+          ตำแหน่ง (POSITION)
+        </label>
         <div className="relative">
           <select
-            aria-label="Select Position" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
+            aria-label="เลือก Position" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-indigo-500 disabled:opacity-50"
             value={selectedPos}
             onChange={(e) => setSelectedPos(e.target.value)}
             disabled={disabled || !selectedLot}
           >
-            <option value="">-</option>
+            <option value="">- เลือก -</option>
             {positions.map((p) => (
               <option key={p} value={p}>
                 {p}
@@ -170,10 +172,10 @@ export default function LocationSelector({
 
       {/* LEVEL */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">LEVEL</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ชั้น (LEVEL)</label>
         <div className="relative">
           <select
-            aria-label="Select Level" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
+            aria-label="เลือก Level" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
             className={`w-full p-2.5 border-2 rounded-lg font-black text-sm outline-none transition-colors disabled:opacity-50
               ${
                 selectedLevelId
@@ -184,7 +186,7 @@ export default function LocationSelector({
             onChange={(e) => handleLevelChange(e.target.value)}
             disabled={disabled || !selectedPos}
           >
-            <option value="">-</option>
+            <option value="">- เลือก -</option>
             {levels.map((l: any) => (
               <option key={l.id} value={l.id}>
                 {l.level}

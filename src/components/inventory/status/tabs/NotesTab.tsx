@@ -31,12 +31,12 @@ export default function NotesTab({
       {/* Add Note Form */}
       <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-          Add New Note
+          เพิ่มบันทึกใหม่
         </label>
         <textarea
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
-          placeholder="Add a note about this item... (e.g., handling instructions, damage report, special conditions)"
+          placeholder="เพิ่มบันทึกเกี่ยวกับสินค้านี้... (เช่น ข้อควรระวัง, รายงานความเสียหาย, หรือเงื่อนไขพิเศษ)"
           className="w-full p-3 border border-slate-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none bg-white"
           rows={3}
         />
@@ -49,7 +49,7 @@ export default function NotesTab({
               className="rounded border-slate-300"
             />
             <Pin size={14} />
-            Pin this note
+            ปักหมุดบันทึกนี้
           </label>
           <button
             onClick={handleAddNote}
@@ -57,7 +57,7 @@ export default function NotesTab({
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-50 text-sm"
           >
             {isPending ? <Loader2 className="animate-spin" size={16} /> : <Plus size={16} />}
-            Add Note
+            บันทึกข้อความ
           </button>
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function NotesTab({
         {notes.length === 0 ? (
           <div className="text-center py-8 text-slate-400">
             <StickyNote size={32} className="mx-auto mb-2 opacity-50" />
-            <p>No notes yet</p>
+            <p>ยังไม่มีบันทึก</p>
           </div>
         ) : (
           notes.map((note) => (
@@ -81,7 +81,7 @@ export default function NotesTab({
                 <div className="flex-1 min-w-0">
                   {note.is_pinned && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full mb-2">
-                      <Pin size={10} /> Pinned
+                      <Pin size={10} /> ปักหมุด
                     </span>
                   )}
                   <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.content}</p>
@@ -94,14 +94,14 @@ export default function NotesTab({
                   <button
                     onClick={() => handleTogglePin(note.id, note.is_pinned)}
                     className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
-                    title={note.is_pinned ? 'Unpin' : 'Pin'}
+                    title={note.is_pinned ? 'เลิกปักหมุด' : 'ปักหมุด'}
                   >
                     {note.is_pinned ? <PinOff size={16} /> : <Pin size={16} />}
                   </button>
                   <button
                     onClick={() => handleDeleteNote(note.id)}
                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                    title="Delete"
+                    title="ลบ"
                   >
                     <Trash2 size={16} />
                   </button>

@@ -7,7 +7,6 @@ import {
   getCartsByLot,
   getLevelsByCart,
   submitInbound,
-  submitBulkInbound,
 } from '@/actions/inbound-actions';
 import { createMockSupabaseClient, createMockUser } from '../utils/test-helpers';
 
@@ -20,11 +19,13 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 vi.mock('@/lib/utils/db-helpers', () => ({
-  getWarehouseId: vi.fn((supabase, id) => Promise.resolve(id)),
+  getWarehouseId: vi.fn((_supabase, id) => Promise.resolve(id)),
 }));
 
 vi.mock('@/lib/action-utils', () => ({
-  withAuth: vi.fn((handler) => handler),
+  withAuth: vi.fn((handler, _options) => {
+    return (data: any, ctx?: any) => handler(data, ctx);
+  }),
   processBulkAction: vi.fn(),
 }));
 
@@ -34,7 +35,7 @@ describe('Inbound Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -90,9 +91,7 @@ describe('Inbound Actions', () => {
 
   describe('getInboundOptions', () => {
     it('should fetch products for a category', async () => {
-      const mockProducts = [
-        { id: 'prod1', name: 'Product 1', category_id: 'cat1' },
-      ];
+      const mockProducts = [{ id: 'prod1', name: 'Product 1', category_id: 'cat1' }];
 
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
@@ -109,11 +108,7 @@ describe('Inbound Actions', () => {
 
   describe('getWarehouseLots', () => {
     it('should fetch unique lots for a warehouse', async () => {
-      const mockLocations = [
-        { lot: 'L01' },
-        { lot: 'L01' },
-        { lot: 'L02' },
-      ];
+      const mockLocations = [{ lot: 'L01' }, { lot: 'L01' }, { lot: 'L02' }];
 
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
@@ -130,11 +125,7 @@ describe('Inbound Actions', () => {
 
   describe('getCartsByLot', () => {
     it('should fetch unique carts for a lot', async () => {
-      const mockLocations = [
-        { cart: 'P01' },
-        { cart: 'P01' },
-        { cart: 'P02' },
-      ];
+      const mockLocations = [{ cart: 'P01' }, { cart: 'P01' }, { cart: 'P02' }];
 
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
@@ -187,7 +178,11 @@ describe('Inbound Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
-          data: { id: '00000000-0000-0000-0000-000000000000', warehouse_id: 'wh1', is_active: true },
+          data: {
+            id: '00000000-0000-0000-0000-000000000000',
+            warehouse_id: 'wh1',
+            is_active: true,
+          },
         }),
       };
 
@@ -232,7 +227,7 @@ describe('Inbound Actions', () => {
         attributes: {},
       };
 
-      const result = await submitInbound(formData as any, {
+      const result = await (submitInbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -259,7 +254,7 @@ describe('Inbound Actions', () => {
         attributes: {},
       };
 
-      const result = await submitInbound(formData as any, {
+      const result = await (submitInbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -287,7 +282,7 @@ describe('Inbound Actions', () => {
         attributes: {},
       };
 
-      const result = await submitInbound(formData as any, {
+      const result = await (submitInbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });
@@ -305,7 +300,7 @@ describe('Inbound Actions', () => {
         quantity: -5,
       };
 
-      const result = await submitInbound(formData as any, {
+      const result = await (submitInbound as any)(formData as any, {
         user: mockUser as any,
         supabase: mockSupabase,
       });

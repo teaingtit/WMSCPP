@@ -59,7 +59,7 @@ export default function AsyncSelect<T extends any>({
         className="w-full p-2 border rounded-md"
       />
 
-      {loading && <div className="absolute right-2 top-2 text-xs text-slate-500">Loading...</div>}
+      {loading && <div className="absolute right-2 top-2 text-xs text-slate-500">กำลังโหลด...</div>}
 
       {options.length > 0 && (
         <div className="absolute z-20 left-0 right-0 bg-white border rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">

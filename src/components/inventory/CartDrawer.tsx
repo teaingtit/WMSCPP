@@ -33,8 +33,8 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
               <Package size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-800">Inventory Cart</h2>
-              <p className="text-xs text-slate-500">{items.length} items selected</p>
+              <h2 className="text-lg font-black text-slate-800">ตะกร้าสินค้า (Cart)</h2>
+              <p className="text-xs text-slate-500">{items.length} รายการที่เลือก</p>
             </div>
           </div>
           <button
@@ -51,7 +51,7 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
               <Package size={48} className="opacity-20" />
-              <p>No items in cart</p>
+              <p>ไม่มีสินค้าในตะกร้า</p>
             </div>
           ) : (
             items.map((item) => (
@@ -108,7 +108,7 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
         {/* Footer Actions */}
         <div className="p-4 bg-white border-t border-slate-100 space-y-3 pb-safe">
           <div className="flex justify-between items-center text-sm font-bold text-slate-600 mb-2">
-            <span>Total Items:</span>
+            <span>จำนวนรายการ:</span>
             <span className="text-lg text-indigo-600">{items.length}</span>
           </div>
 
@@ -118,14 +118,14 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
               className="w-full bg-slate-700 hover:bg-slate-800 text-white"
               disabled={items.length === 0}
             >
-              <ArrowRightLeft className="mr-2 h-4 w-4" /> Internal Move
+              <ArrowRightLeft className="mr-2 h-4 w-4" /> ย้ายภายใน
             </Button>
             <Button
               onClick={() => onAction('cross')}
               className="w-full bg-amber-500 hover:bg-amber-600 text-white border-amber-600"
               disabled={items.length === 0}
             >
-              <ArrowRightLeft className="mr-2 h-4 w-4" /> Cross Dock
+              <ArrowRightLeft className="mr-2 h-4 w-4" /> ย้ายข้ามคลัง (Cross Dock)
             </Button>
           </div>
           <Button
@@ -133,7 +133,7 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-100"
             disabled={items.length === 0}
           >
-            <Truck className="mr-2 h-4 w-4" /> Issue / Outbound
+            <Truck className="mr-2 h-4 w-4" /> เบิกจ่าย (Outbound)
           </Button>
         </div>
       </div>

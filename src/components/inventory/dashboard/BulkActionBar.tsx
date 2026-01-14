@@ -22,7 +22,7 @@ export const BulkActionBar = ({ selectedCount, onOpenCart, onClear }: BulkAction
           <div className="bg-indigo-500 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
             {selectedCount}
           </div>
-          <span className="font-bold text-sm">Items in Cart</span>
+          <span className="font-bold text-sm">รายการในตะกร้า</span>
         </div>
 
         <div className="h-6 w-px bg-slate-700"></div>
@@ -34,7 +34,7 @@ export const BulkActionBar = ({ selectedCount, onOpenCart, onClear }: BulkAction
           }}
           className="text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase"
         >
-          Clear
+          ล้าง
         </button>
 
         <div className="h-6 w-px bg-slate-700"></div>
@@ -46,7 +46,7 @@ export const BulkActionBar = ({ selectedCount, onOpenCart, onClear }: BulkAction
           }}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-full font-bold text-sm transition-colors shadow-lg shadow-indigo-900/50"
         >
-          <ShoppingCart size={16} /> View Cart
+          <ShoppingCart size={16} /> ดูตะกร้า
         </button>
       </div>
     </div>

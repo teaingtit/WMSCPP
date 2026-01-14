@@ -8,28 +8,44 @@ export function createMockSupabaseClient(): Partial<SupabaseClient> {
   // Create a chainable query builder that supports multiple method calls
   const createQueryBuilder = (defaultResult: any = { data: null, error: null }) => {
     const builder: any = {};
-    
+
     // Chainable methods that return the builder itself (allowing infinite chaining)
-    const chainableMethods = ['select', 'insert', 'update', 'delete', 'upsert', 'eq', 'neq', 'in', 'gt', 'gte', 'lte', 'or', 'not', 'order', 'limit'];
-    chainableMethods.forEach(method => {
-      builder[method] = vi.fn(function(...args: any[]) {
+    const chainableMethods = [
+      'select',
+      'insert',
+      'update',
+      'delete',
+      'upsert',
+      'eq',
+      'neq',
+      'in',
+      'gt',
+      'gte',
+      'lte',
+      'or',
+      'not',
+      'order',
+      'limit',
+    ];
+    chainableMethods.forEach((method) => {
+      builder[method] = vi.fn(function (..._args: any[]) {
         return builder; // Always return builder for chaining
       });
     });
-    
+
     // Terminal methods that return promises
     builder.single = vi.fn().mockResolvedValue(defaultResult);
     builder.maybeSingle = vi.fn().mockResolvedValue(defaultResult);
-    
+
     // Make it thenable (Promise-like) - this allows the query to be awaited
-    const promise = defaultResult.error 
+    const promise = defaultResult.error
       ? Promise.reject(defaultResult.error)
       : Promise.resolve(defaultResult);
-    
+
     builder.then = promise.then.bind(promise);
     builder.catch = promise.catch.bind(promise);
     builder.finally = promise.finally?.bind(promise);
-    
+
     return builder;
   };
 
@@ -75,7 +91,7 @@ export function createMockFormData(data: Record<string, string>): FormData {
 export function mockNextNavigation() {
   const pushMock = vi.fn();
   const redirectMock = vi.fn();
-  
+
   vi.mock('next/navigation', () => ({
     redirect: redirectMock,
     revalidatePath: vi.fn(),

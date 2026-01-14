@@ -5,6 +5,7 @@
     "forceConsistentCasingInFileNames": true,
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["vitest/globals", "node"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -48,5 +49,5 @@
     "src/**/*.mts",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "**/__tests__/**", "e2e/**", "test/**"]
+  "exclude": ["node_modules", "e2e/**", "test/**", "**/__tests__/**"]
 }

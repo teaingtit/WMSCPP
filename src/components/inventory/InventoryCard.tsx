@@ -100,7 +100,7 @@ export default function InventoryCard({ item }: InventoryCardProps) {
       <div className="pt-3 border-t border-slate-100 relative z-10 mt-auto">
         <div className="flex items-center justify-between text-[10px] text-slate-400 mb-2">
           <span className="font-bold uppercase tracking-wide flex items-center gap-1">
-            <Box size={10} /> Quantity Status
+            <Box size={10} /> สถานะจำนวน
           </span>
           <span className="font-medium">{item.product?.uom}</span>
         </div>
@@ -110,7 +110,7 @@ export default function InventoryCard({ item }: InventoryCardProps) {
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200">
             <div className="flex items-center gap-1.5">
               <CheckCircle size={12} className="text-emerald-500" />
-              <span className="text-xs font-medium text-emerald-700">Normal</span>
+              <span className="text-xs font-medium text-emerald-700">ปกติ</span>
             </div>
             <span className="text-sm font-bold text-emerald-700">
               {normalQuantity.toLocaleString()}
@@ -121,7 +121,7 @@ export default function InventoryCard({ item }: InventoryCardProps) {
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
             <div className="flex items-center gap-1.5">
               <Shield size={12} className="text-slate-300" />
-              <span className="text-xs font-medium text-slate-400">Affected</span>
+              <span className="text-xs font-medium text-slate-400">ติดสถานะ</span>
             </div>
             <span className="text-sm font-bold text-slate-400">
               {affectedQuantity.toLocaleString()}
@@ -131,7 +131,7 @@ export default function InventoryCard({ item }: InventoryCardProps) {
 
         {/* Total Row */}
         <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-slate-200">
-          <span className="text-xs font-bold text-slate-600">Total Qty</span>
+          <span className="text-xs font-bold text-slate-600">รวมทั้งหมด</span>
           <span className="text-xl font-black text-indigo-600">
             {totalQuantity.toLocaleString()}
           </span>

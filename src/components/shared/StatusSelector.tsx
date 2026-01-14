@@ -48,7 +48,7 @@ export function StatusBadge({
         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs ${className}`}
       >
         <Tag size={10} />
-        No Status
+        ไม่มีสถานะ
       </span>
     );
   }
@@ -68,14 +68,20 @@ export function StatusBadge({
   return (
     <span
       className={`inline-flex items-center gap-1.5 font-medium border-2 ${shapeClasses} ${sizeClasses[size]} ${className}`}
-      style={{
-        backgroundColor: status.bg_color,
-        color: status.text_color,
-        borderColor: status.color + '40', // 40 = 25% opacity
-      }}
+      style={
+        {
+          ['--status-bg' as string]: status.bg_color,
+          ['--status-text' as string]: status.text_color,
+          ['--status-border' as string]: status.color + '40',
+          ['--status-dot' as string]: status.color,
+          backgroundColor: 'var(--status-bg)',
+          color: 'var(--status-text)',
+          borderColor: 'var(--status-border)',
+        } as React.CSSProperties
+      }
     >
       <span className="text-xs opacity-80">{typeIcon}</span>
-      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color }} />
+      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--status-dot)' }} />
       {status.name}
       {showEffect && effectOption && <span className="opacity-70">{effectOption.icon}</span>}
     </span>
@@ -177,7 +183,7 @@ export function StatusSelector({
             ) : (
               <span className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1">
                 <Tag size={12} />
-                Set Status
+                ตั้งสถานะ
               </span>
             )}
             <ChevronDown size={12} className="text-slate-400" />
@@ -192,7 +198,7 @@ export function StatusSelector({
             ) : (
               <>
                 <Tag size={14} />
-                Set Status
+                ตั้งสถานะ
                 <ChevronDown size={14} />
               </>
             )}
@@ -203,7 +209,7 @@ export function StatusSelector({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield size={20} className="text-amber-600" />
-            {showReasonInput ? 'Confirm Status Change' : 'Select Status'}
+            {showReasonInput ? 'ยืนยันการเปลี่ยนสถานะ' : 'เลือกสถานะ'}
           </DialogTitle>
         </DialogHeader>
 
@@ -215,12 +221,12 @@ export function StatusSelector({
 
             <div className="p-4 bg-slate-50 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Changing to:</span>
+                <span className="text-sm text-slate-500">เปลี่ยนเป็น:</span>
                 <StatusBadge status={selectedStatus} showEffect />
               </div>
               {currentStatus?.status && (
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
-                  <span className="text-sm text-slate-500">From:</span>
+                  <span className="text-sm text-slate-500">จาก:</span>
                   <StatusBadge status={currentStatus.status} size="sm" />
                 </div>
               )}
@@ -228,25 +234,25 @@ export function StatusSelector({
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Reason for Change
+                เหตุผลการเปลี่ยน
               </label>
               <Input
                 name="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Optional: Why is this status being changed?"
+                placeholder="ระบุเหตุผล (ไม่บังคับ)"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Additional Notes
+                หมายเหตุเพิ่มเติม
               </label>
               <Input
                 name="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Optional: Add notes to this status"
+                placeholder="ระบุหมายเหตุ (ไม่บังคับ)"
               />
             </div>
 
@@ -259,9 +265,9 @@ export function StatusSelector({
                   setSelectedStatus(null);
                 }}
               >
-                Back
+                ย้อนกลับ
               </Button>
-              <SubmitButton className="bg-amber-600 hover:bg-amber-700">Apply Status</SubmitButton>
+              <SubmitButton className="bg-amber-600 hover:bg-amber-700">บันทึกสถานะ</SubmitButton>
             </div>
           </form>
         ) : (
@@ -271,7 +277,7 @@ export function StatusSelector({
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs text-slate-500 block mb-1">Current Status</span>
+                    <span className="text-xs text-slate-500 block mb-1">สถานะปัจจุบัน</span>
                     <StatusBadge status={currentStatus.status} showEffect />
                   </div>
                   <form action={removeAction}>
@@ -284,7 +290,7 @@ export function StatusSelector({
                       className="text-red-500 hover:text-red-600 hover:bg-red-50"
                     >
                       <X size={14} className="mr-1" />
-                      Remove
+                      ลบสถานะ
                     </Button>
                   </form>
                 </div>
@@ -298,7 +304,7 @@ export function StatusSelector({
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {activeStatuses.length === 0 ? (
                 <p className="text-center text-slate-500 py-4">
-                  No statuses defined. Create statuses in Settings.
+                  ไม่พบสถานะที่กำหนดไว้ กรุณาสร้างสถานะในหน้าตั้งค่า
                 </p>
               ) : (
                 activeStatuses.map((status) => {
@@ -311,28 +317,38 @@ export function StatusSelector({
                       type="button"
                       onClick={() => handleSelectStatus(status)}
                       disabled={isCurrentStatus}
-                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${isCurrentStatus
-                        ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
-                        : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50'
-                        }`}
-                      style={
+                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
                         isCurrentStatus
-                          ? {}
-                          : { borderLeftColor: status.color, borderLeftWidth: '4px' }
+                          ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
+                          : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50'
+                      }`}
+                      style={
+                        {
+                          ...(!isCurrentStatus && {
+                            ['--status-border-left' as string]: status.color,
+                            borderLeftColor: 'var(--status-border-left)',
+                            borderLeftWidth: '4px',
+                          }),
+                        } as React.CSSProperties
                       }
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span
                             className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: status.color }}
+                            style={
+                              {
+                                ['--status-color' as string]: status.color,
+                                backgroundColor: 'var(--status-color)',
+                              } as React.CSSProperties
+                            }
                           />
                           <span className="font-medium text-slate-800">{status.name}</span>
                           {isCurrentStatus && <Check size={14} className="text-green-600" />}
                         </div>
                         <span
                           className={`text-xs px-2 py-0.5 rounded ${getEffectBadgeClasses(
-                            status.effect
+                            status.effect,
                           )}`}
                         >
                           {effectOption?.icon} {effectOption?.label}
@@ -366,7 +382,7 @@ export function StatusHistoryButton(_props: StatusHistoryButtonProps) {
   return (
     <Button variant="ghost" size="sm" className="gap-1 text-slate-500">
       <History size={14} />
-      History
+      ประวัติ
     </Button>
   );
 }

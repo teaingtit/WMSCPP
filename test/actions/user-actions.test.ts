@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getUsers, createUser, deleteUser, reactivateUser } from '@/actions/user-actions';
-import { createMockSupabaseClient, createMockFormData, createMockUser } from '../utils/test-helpers';
+import {
+  createMockSupabaseClient,
+  createMockFormData,
+  createMockUser,
+} from '../utils/test-helpers';
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
@@ -32,7 +36,7 @@ describe('User Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
@@ -112,7 +116,7 @@ describe('User Actions', () => {
         }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn(() => mockRoleQuery);
       mockSupabaseAdmin.from = vi.fn((table) => {
         if (table === 'user_roles') {
@@ -233,8 +237,10 @@ describe('User Actions', () => {
       // Create query builder for count query
       const createCountQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { 
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
           // Return result with count when eq is called
           return Promise.resolve({ count: 5 });
         });
@@ -275,8 +281,10 @@ describe('User Actions', () => {
       // Create query builder for count query
       const createCountQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { 
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
           // Return result with count when eq is called
           return Promise.resolve({ count: 0 });
         });

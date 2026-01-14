@@ -1,0 +1,73 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90mC:/Users/nteai/Desktop/project/WMSCPP[39m
+
+stderr | test/actions/outbound-actions.test.ts > Outbound Actions > searchStockForOutbound > should return empty array on error
+Search Error: Error: DB Error
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/outbound-actions.test.ts:68:63
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | test/actions/auth-actions.test.ts > Auth Actions > login > should handle invalid login credentials
+Login Error: Invalid login credentials
+
+ [32mΓ£ô[39m test/actions/outbound-actions.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/auth-actions.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+stderr | test/actions/export-actions.test.ts > Export Actions > exportInventoryToExcel > should return error when warehouse not found
+Export Error: Error: α╣äα╕íα╣êα╕₧α╕Üα╕äα╕Ñα╕▒α╕çα╕¬α╕┤α╕Öα╕äα╣ëα╕▓α╕úα╕½α╕▒α╕¬: INVALID
+    at Module.exportInventoryToExcel (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/export-actions.ts:30:22)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/export-actions.test.ts:160:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/bulk-import-actions.test.ts > Bulk Import Actions > importInboundStock > should import inbound stock successfully
+TypeError: supabase.from(...).select(...).eq is not a function
+    at _prefetchInboundData (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/bulk-import-actions.ts:342:49)
+    at Module.importInboundStock (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/bulk-import-actions.ts:252:27)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/bulk-import-actions.test.ts:314:23
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/export-actions.test.ts > Export Actions > exportInventoryToExcel > should handle errors gracefully
+Export Error: Error: Database error
+    at Module.exportInventoryToExcel (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/export-actions.ts:58:22)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/export-actions.test.ts:236:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/actions/audit-actions.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/user-actions.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/inbound-actions.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/bulk-import-actions.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/export-actions.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/settings-actions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/status-actions.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/warehouse-actions.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/transfer-actions.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32mΓ£ô[39m test/TypeError.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/button.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32mΓ£ô[39m src/components/transfer/__tests__/TransferTargetForm.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 300[2mms[22m[39m
+stderr | test/actions/history-actions.test.ts > History Actions > getHistory > should handle errors gracefully
+Fetch History Error: Error: Database error
+    at createTransactionsQuery (C:/Users/nteai/Desktop/project/WMSCPP/test/actions/history-actions.test.ts:200:25)
+    at Object.<anonymous> (C:/Users/nteai/Desktop/project/WMSCPP/test/actions/history-actions.test.ts:221:18)
+    at Object.Mock (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/spy/dist/index.js:285:34)
+    at Module.getHistory (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/history-actions.ts:48:6)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/history-actions.test.ts:226:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/actions/history-actions.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/dashboard-actions.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[32m128 passed[39m[22m[90m (128)[39m
+[2m   Start at [22m 13:47:42
+[2m   Duration [22m 17.71s[2m (transform 16.27s, setup 6.87s, import 22.81s, tests 621ms, environment 26.10s)[22m
+

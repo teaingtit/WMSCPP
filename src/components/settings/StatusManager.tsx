@@ -18,12 +18,7 @@ import {
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SubmitButton } from '@/components/SubmitButton';
 import { EffectSelector } from './EffectSelector';
@@ -146,12 +141,15 @@ export function StatusManager({ statuses }: StatusManagerProps) {
             Status Design System
           </h3>
           <p className="text-slate-500 text-sm mt-1">
-            Manage status definitions for Items and Lots (Locations)
+            จัดการรูปแบบสถานะสำหรับสินค้า (Items) และจุดเก็บ (Location/Lot)
           </p>
         </div>
-        <Button onClick={handleCreateClick} className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-sm">
+        <Button
+          onClick={handleCreateClick}
+          className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-sm"
+        >
           <Plus size={18} />
-          Create New Status
+          สร้างสถานะใหม่
         </Button>
       </div>
 
@@ -160,7 +158,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Tag size={20} className="text-indigo-600" />
-              Create New Status
+              สร้างสถานะใหม่
             </DialogTitle>
           </DialogHeader>
           <StatusForm
@@ -188,7 +186,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
               className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 hover:text-slate-700 transition-colors gap-2"
             >
               <Package size={18} />
-              Item Statuses
+              สถานะสินค้า (Item)
               <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
                 {productStatuses.length}
               </span>
@@ -198,7 +196,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
               className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-cyan-600 data-[state=active]:text-cyan-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 hover:text-slate-700 transition-colors gap-2"
             >
               <MapPin size={18} />
-              Lot Statuses
+              สถานะ Lot (Location)
               <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
                 {locationStatuses.length}
               </span>
@@ -210,11 +208,11 @@ export function StatusManager({ statuses }: StatusManagerProps) {
           <div className="bg-indigo-50/50 border border-indigo-100 rounded-lg p-4 flex items-start gap-3 text-sm text-indigo-900">
             <Info className="shrink-0 text-indigo-500 mt-0.5" size={18} />
             <div>
-              <p className="font-semibold mb-1">About Item Statuses</p>
+              <p className="font-semibold mb-1">เกี่ยวกับสถานะรายสินค้า (Item Statuses)</p>
               <p className="opacity-90 leading-relaxed">
-                Item statuses (Product Statuses) are applied to specific quantities of stock.
-                They can be used to mark items as Damaged, Reserved, QC Pending, etc.
-                Applying an item status affects only the selected units, not the entire location.
+                สถานะรายสินค้า (Item Statuses) ใช้สำหรับระบุสถานะของสินค้าในระดับจำนวน (Quantity)
+                เช่น สินค้าเสียหาย, ถูกจอง, หรือรอตรวจสอบคุณภาพ (QC)
+                การใช้งานสถานะนี้จะมีผลเฉพาะกับจำนวนสินค้าที่เลือกเท่านั้น ไม่ส่งผลทั้ง Location
               </p>
             </div>
           </div>
@@ -222,7 +220,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
             statuses={productStatuses}
             onEdit={handleEditClick}
             deleteAction={deleteAction}
-            emptyMessage="No item statuses defined."
+            emptyMessage="ไม่พบสถานะรายสินค้า"
             emptyIcon={<Package size={48} className="text-slate-300" />}
           />
         </TabsContent>
@@ -231,11 +229,11 @@ export function StatusManager({ statuses }: StatusManagerProps) {
           <div className="bg-cyan-50/50 border border-cyan-100 rounded-lg p-4 flex items-start gap-3 text-sm text-cyan-900">
             <Info className="shrink-0 text-cyan-500 mt-0.5" size={18} />
             <div>
-              <p className="font-semibold mb-1">About Lot Statuses</p>
+              <p className="font-semibold mb-1">เกี่ยวกับสถานะราย Lot (Lot Statuses)</p>
               <p className="opacity-90 leading-relaxed">
-                Lot statuses (Location Statuses) are applied to an entire Lot or Zone.
-                When a Lot has a status (e.g., "Quarantine"), it overrides the status of all items within it.
-                Useful for blocking entire shipments or zones.
+                สถานะราย Lot (Lot/Location Statuses) ใช้สำหรับระบุสถานะของทั้ง Location หรือ Zone
+                เมื่อมีการใช้งานสถานะนี้ (เช่น "Quarantine") จะมีผลครอบคลุมสินค้าทุกชิ้นใน Lot
+                นั้นทันที เหมาะสำหรับการบล็อกสินค้ายก Lot หรือปิด Zone ชั่วคราว
               </p>
             </div>
           </div>
@@ -255,7 +253,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit2 size={20} className="text-amber-600" />
-              Edit Status
+              แก้ไขสถานะ
             </DialogTitle>
           </DialogHeader>
           {editingStatus && (
@@ -337,10 +335,12 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
             <GripVertical size={16} className="text-slate-300 cursor-grab" />
             <div
               className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm ${styles['statusAvatar']}`}
-              style={{
-                '--status-bg-color': status.bg_color,
-                '--status-text-color': status.text_color,
-              } as React.CSSProperties}
+              style={
+                {
+                  '--status-bg-color': status.bg_color,
+                  '--status-text-color': status.text_color,
+                } as React.CSSProperties
+              }
             >
               {status.name.substring(0, 2).toUpperCase()}
             </div>
@@ -361,10 +361,11 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
                 {status.code}
               </span>
               <span
-                className={`text-xs px-2 py-0.5 rounded border ${status.status_type === 'LOCATION'
-                  ? 'bg-cyan-100 text-cyan-800 border-cyan-200'
-                  : 'bg-violet-100 text-violet-800 border-violet-200'
-                  }`}
+                className={`text-xs px-2 py-0.5 rounded border ${
+                  status.status_type === 'LOCATION'
+                    ? 'bg-cyan-100 text-cyan-800 border-cyan-200'
+                    : 'bg-violet-100 text-violet-800 border-violet-200'
+                }`}
               >
                 {statusTypeOption?.icon} {statusTypeOption?.label || 'Product'}
               </span>
@@ -473,7 +474,7 @@ function StatusForm({
       <div>
         <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
           <Tag size={14} />
-          Status Type
+          ประเภทสถานะ (Status Type)
         </label>
         <div className="grid grid-cols-2 gap-3">
           {STATUS_TYPE_OPTIONS.map((option) => (
@@ -481,10 +482,11 @@ function StatusForm({
               key={option.value}
               type="button"
               onClick={() => setSelectedStatusType(option.value)}
-              className={`text-left p-3 rounded-lg border-2 transition-all ${selectedStatusType === option.value
-                ? 'border-amber-500 bg-amber-50'
-                : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
+              className={`text-left p-3 rounded-lg border-2 transition-all ${
+                selectedStatusType === option.value
+                  ? 'border-amber-500 bg-amber-50'
+                  : 'border-slate-200 hover:border-slate-300 bg-white'
+              }`}
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">{option.icon}</span>
@@ -499,25 +501,25 @@ function StatusForm({
       {/* Name & Code */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Status Name *</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อสถานะ *</label>
           <Input
             name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g., On Hold"
+            placeholder="ตัวอย่างเช่น, รอตรวจสอบ"
             required
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Code *
+            รหัส (Code) *
             {!initialData && (
               <button
                 type="button"
                 className="ml-2 text-xs text-amber-600 hover:underline"
                 onClick={() => setAutoCode(!autoCode)}
               >
-                {autoCode ? 'Edit manually' : 'Auto-generate'}
+                {autoCode ? 'แก้ไขเอง' : 'สร้างอัตโนมัติ'}
               </button>
             )}
           </label>
@@ -538,12 +540,12 @@ function StatusForm({
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">คำอธิบาย</label>
         <Input
           name="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional description of when to use this status"
+          placeholder="คำอธิบายเพิ่มเติมสำหรับการใช้งานสถานะนี้"
         />
       </div>
 
@@ -551,7 +553,7 @@ function StatusForm({
       <div>
         <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
           <Palette size={14} />
-          Status Color
+          สีสถานะ (Color)
         </label>
         <div className="flex flex-wrap gap-2">
           {STATUS_COLOR_PALETTE.map((color) => (
@@ -559,10 +561,11 @@ function StatusForm({
               key={color.value}
               type="button"
               onClick={() => setSelectedColor(color)}
-              className={`w-8 h-8 rounded-lg border-2 transition-all ${styles['colorButton']} ${selectedColor.value === color.value
-                ? 'border-slate-800 ring-2 ring-slate-300 scale-110'
-                : 'border-transparent hover:scale-105'
-                }`}
+              className={`w-8 h-8 rounded-lg border-2 transition-all ${styles['colorButton']} ${
+                selectedColor.value === color.value
+                  ? 'border-slate-800 ring-2 ring-slate-300 scale-110'
+                  : 'border-transparent hover:scale-105'
+              }`}
               style={{ '--color-value': color.value } as React.CSSProperties}
               title={color.name}
             />
@@ -572,10 +575,12 @@ function StatusForm({
           <span className="text-sm text-slate-500">Preview:</span>
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${styles['statusPreview']}`}
-            style={{
-              '--preview-bg-color': selectedColor.bg,
-              '--preview-text-color': selectedColor.text,
-            } as React.CSSProperties}
+            style={
+              {
+                '--preview-bg-color': selectedColor.bg,
+                '--preview-text-color': selectedColor.text,
+              } as React.CSSProperties
+            }
           >
             {name || 'Status Name'}
           </span>
@@ -596,8 +601,12 @@ function StatusForm({
               className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
             />
             <div>
-              <span className="text-sm font-medium text-slate-800 block">Default Status</span>
-              <span className="text-xs text-slate-500 block">Apply to new items automatically</span>
+              <span className="text-sm font-medium text-slate-800 block">
+                สถานะเริ่มต้น (Default)
+              </span>
+              <span className="text-xs text-slate-500 block">
+                ใช้สถานะนี้อัตโนมัติเมื่อมีการรับเข้าสินค้าใหม่
+              </span>
             </div>
           </label>
         </div>
@@ -608,7 +617,7 @@ function StatusForm({
       {/* Submit */}
       <div className="flex justify-end pt-4">
         <SubmitButton className="bg-amber-600 hover:bg-amber-700 px-6">
-          {initialData ? 'Update Status' : 'Create Status'}
+          {initialData ? 'บันทึกแก้ไข' : 'สร้างสถานะ'}
         </SubmitButton>
       </div>
     </form>

@@ -25,7 +25,7 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
         .from('warehouses')
         .select('id')
         .eq('code', warehouseIdentifier)
-        .single();
+        .maybeSingle();
 
       if (!wh) throw new Error(`ไม่พบคลังสินค้ารหัส: ${warehouseIdentifier}`);
       targetWhId = wh.id;

@@ -1,22 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getStatusDefinitions,
-  getAllStatusDefinitions,
   getDefaultStatus,
-  getLocationStatusDefinitions,
   createStatusDefinition,
   updateStatusDefinition,
   deleteStatusDefinition,
-  getEntityStatus,
-  getEntityStatuses,
   applyEntityStatus,
   removeEntityStatus,
-  getLotStatus,
-  setLotStatus,
   getInventoryStatusData,
-  getLotStatuses,
 } from '@/actions/status-actions';
-import { createMockSupabaseClient, createMockFormData, createMockUser } from '../utils/test-helpers';
+import {
+  createMockSupabaseClient,
+  createMockFormData,
+  createMockUser,
+} from '../utils/test-helpers';
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
@@ -34,7 +31,7 @@ describe('Status Actions', () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     mockUser = createMockUser();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -53,9 +50,15 @@ describe('Status Actions', () => {
       // Create query builder that supports multiple order() calls
       const createQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; });
-        query.order = vi.fn(function() { return query; }); // Support chaining
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        }); // Support chaining
         const promise = Promise.resolve({ data: mockStatuses });
         query.then = promise.then.bind(promise);
         query.catch = promise.catch.bind(promise);
@@ -105,12 +108,12 @@ describe('Status Actions', () => {
       // Create insert query builder - insert() should return a promise
       const createInsertQuery = () => {
         const query: any = {};
-        const promise = Promise.resolve({ 
+        const promise = Promise.resolve({
           data: null,
-          error: null 
+          error: null,
         });
         // insert() is called directly on the query builder
-        query.insert = vi.fn(function() {
+        query.insert = vi.fn(function () {
           return promise;
         });
         return query;
@@ -151,11 +154,11 @@ describe('Status Actions', () => {
 
       const mockInsert = vi.fn().mockResolvedValue({ error: null });
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'status_definitions') {
-          callCount++;
-          if (callCount === 1) return mockUpdateQuery;
+          _callCount++;
+          if (_callCount === 1) return mockUpdateQuery;
           return { insert: mockInsert };
         }
         return mockUpdateQuery;
@@ -193,12 +196,14 @@ describe('Status Actions', () => {
       // update().eq() should return a promise with { data, error }
       const createUpdateQuery = () => {
         const query: any = {};
-        const promise = Promise.resolve({ 
+        const promise = Promise.resolve({
           data: null,
-          error: null 
+          error: null,
         });
-        query.update = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { 
+        query.update = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
           return promise;
         });
         return query;
@@ -241,7 +246,7 @@ describe('Status Actions', () => {
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'entity_statuses') {
           return mockCheckQuery;
@@ -282,7 +287,7 @@ describe('Status Actions', () => {
       mockSupabase.auth = {
         getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
       };
-      
+
       // Mock user_roles query for getAuthUser
       const mockRoleQuery = {
         select: vi.fn().mockReturnThis(),
@@ -302,39 +307,39 @@ describe('Status Actions', () => {
       // upsert() is called with data and options, returns { data, error }
       const createUpsertQuery = () => {
         const query: any = {};
-        const promise = Promise.resolve({ 
+        const promise = Promise.resolve({
           data: null,
-          error: null 
+          error: null,
         });
-        query.upsert = vi.fn(function() {
+        query.upsert = vi.fn(function () {
           return promise;
         });
         return query;
       };
       const mockUpsertQuery = createUpsertQuery();
-      
+
       // Create insert query that returns a promise
       const createInsertQuery = () => {
         const query: any = {};
-        const promise = Promise.resolve({ 
+        const promise = Promise.resolve({
           data: null,
-          error: null 
+          error: null,
         });
-        query.insert = vi.fn(function() {
+        query.insert = vi.fn(function () {
           return promise;
         });
         return query;
       };
       const mockInsertQuery = createInsertQuery();
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'user_roles') {
           return mockRoleQuery;
         }
         if (table === 'entity_statuses') {
-          callCount++;
-          if (callCount === 1) return mockCurrentStatusQuery;
+          _callCount++;
+          if (_callCount === 1) return mockCurrentStatusQuery;
           return mockUpsertQuery;
         }
         if (table === 'status_change_logs') {
@@ -378,8 +383,10 @@ describe('Status Actions', () => {
       const createDeleteQuery = () => {
         const query: any = {};
         const promise = Promise.resolve({ error: null });
-        query.delete = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { 
+        query.delete = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
           // After second eq(), return the promise
           return query;
         });
@@ -390,26 +397,26 @@ describe('Status Actions', () => {
         return query;
       };
       const mockDeleteQuery = createDeleteQuery();
-      
+
       // Create insert query that returns a promise
       const createInsertQuery = () => {
         const query: any = {};
-        const promise = Promise.resolve({ 
+        const promise = Promise.resolve({
           data: null,
-          error: null 
+          error: null,
         });
-        query.insert = vi.fn(function() {
+        query.insert = vi.fn(function () {
           return promise;
         });
         return query;
       };
       const mockInsertQuery = createInsertQuery();
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'entity_statuses') {
-          callCount++;
-          if (callCount === 1) return mockCurrentStatusQuery;
+          _callCount++;
+          if (_callCount === 1) return mockCurrentStatusQuery;
           return mockDeleteQuery;
         }
         if (table === 'status_change_logs') {
@@ -453,7 +460,7 @@ describe('Status Actions', () => {
         in: vi.fn().mockResolvedValue({ data: mockNotes, error: null }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'entity_statuses') {
           return mockStatusQuery;

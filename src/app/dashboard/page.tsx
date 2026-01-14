@@ -23,7 +23,7 @@ export default async function DashboardPage() {
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-5 h-5 text-blue-200" />
             <span className="text-sm font-medium text-blue-100/80">
-              {user?.role === 'admin' ? 'Administrator Access' : 'Staff Access'}
+              {user?.role === 'admin' ? 'ผู้ดูแลระบบ (Administrator)' : 'พนักงาน (Staff)'}
             </span>
           </div>
 
@@ -43,7 +43,7 @@ export default async function DashboardPage() {
               <ShieldCheck size={16} />
             </div>
             <div>
-              <div className="text-xs text-blue-100/70">Signed in as</div>
+              <div className="text-xs text-blue-100/70">เข้าสู่ระบบโดย</div>
               <div className="text-sm font-semibold truncate max-w-[200px]">{user?.email}</div>
             </div>
           </div>
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
           </div>
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-white">คลังสินค้าของคุณ</h2>
-            <p className="text-sm text-slate-400">{warehouses.length} warehouses available</p>
+            <p className="text-sm text-slate-400">{warehouses.length} คลังสินค้า</p>
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
               {wh.is_active && (
                 <span className="flex items-center gap-1.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20">
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                  Online
+                  ออนไลน์
                 </span>
               )}
             </div>

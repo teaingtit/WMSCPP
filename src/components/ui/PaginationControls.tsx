@@ -24,19 +24,19 @@ export default function PaginationControls({ totalPages }: { totalPages: number 
           href={createPageURL(currentPage - 1)}
           className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-indigo-300 transition-all"
         >
-          <ArrowLeft size={16} /> Previous
+          <ArrowLeft size={16} /> ก่อนหน้า
         </Link>
       ) : (
         <button
           disabled
           className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-lg cursor-not-allowed"
         >
-          <ArrowLeft size={16} /> Previous
+          <ArrowLeft size={16} /> ก่อนหน้า
         </button>
       )}
 
       <span className="text-sm font-medium text-slate-500">
-        Page <span className="text-indigo-600 font-bold">{currentPage}</span> of {totalPages}
+        หน้า <span className="text-indigo-600 font-bold">{currentPage}</span> จาก {totalPages}
       </span>
 
       {/* ปุ่ม Next */}
@@ -45,14 +45,14 @@ export default function PaginationControls({ totalPages }: { totalPages: number 
           href={createPageURL(currentPage + 1)}
           className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-indigo-300 transition-all"
         >
-          Next <ArrowRight size={16} />
+          ถัดไป <ArrowRight size={16} />
         </Link>
       ) : (
         <button
           disabled
           className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-lg cursor-not-allowed"
         >
-          Next <ArrowRight size={16} />
+          ถัดไป <ArrowRight size={16} />
         </button>
       )}
     </div>

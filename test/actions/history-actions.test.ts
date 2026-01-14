@@ -16,7 +16,7 @@ describe('History Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -28,6 +28,7 @@ describe('History Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockCategories = [
@@ -62,14 +63,30 @@ describe('History Actions', () => {
       const createTransactionsQuery = () => {
         const query: any = {};
         // Initialize methods that return the query itself
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; });
-        query.in = vi.fn(function() { return query; });
-        query.or = vi.fn(function() { return query; });
-        query.gte = vi.fn(function() { return query; });
-        query.lte = vi.fn(function() { return query; });
-        query.order = vi.fn(function() { return query; });
-        query.limit = vi.fn(function() { return query; });
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
         // Make it thenable
         const promise = Promise.resolve({ data: mockTransactions, error: null });
         query.then = promise.then.bind(promise);
@@ -86,7 +103,7 @@ describe('History Actions', () => {
         return query;
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -113,6 +130,7 @@ describe('History Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockCategoriesQuery = {
@@ -123,14 +141,30 @@ describe('History Actions', () => {
       // The query is created initially, then reassigned with .eq() or .in()
       const createTransactionsQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; }); // Supports reassignment: txQuery = txQuery.eq(...)
-        query.in = vi.fn(function() { return query; }); // Supports reassignment: txQuery = txQuery.in(...)
-        query.or = vi.fn(function() { return query; });
-        query.gte = vi.fn(function() { return query; });
-        query.lte = vi.fn(function() { return query; });
-        query.order = vi.fn(function() { return query; });
-        query.limit = vi.fn(function() { return query; });
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        }); // Supports reassignment: txQuery = txQuery.eq(...)
+        query.in = vi.fn(function () {
+          return query;
+        }); // Supports reassignment: txQuery = txQuery.in(...)
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
         // Make it thenable
         const promise = Promise.resolve({ data: [], error: null });
         query.then = promise.then.bind(promise);
@@ -140,7 +174,7 @@ describe('History Actions', () => {
         return query;
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -164,6 +198,7 @@ describe('History Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
       };
       mockSupabase.from = vi.fn(() => mockWarehouseQuery);
 
@@ -178,6 +213,7 @@ describe('History Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockCategoriesQuery = {
@@ -187,12 +223,24 @@ describe('History Actions', () => {
       // Create a query builder that supports reassignment
       const createTransactionsQuery = () => {
         const query: any = {};
-        query.select = vi.fn(function() { return query; });
-        query.eq = vi.fn(function() { return query; });
-        query.in = vi.fn(function() { return query; });
-        query.or = vi.fn(function() { return query; });
-        query.order = vi.fn(function() { return query; });
-        query.limit = vi.fn(function() { return query; });
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
         const dbError = new Error('Database error');
         const promise = Promise.resolve({
           data: null,
@@ -205,7 +253,7 @@ describe('History Actions', () => {
         return query;
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;

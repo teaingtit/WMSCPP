@@ -84,11 +84,11 @@ export default function MobileNav() {
         <div className="flex items-center justify-between p-5 border-b border-white/10 bg-gradient-to-r from-slate-900 to-slate-800">
           <div className="flex items-center gap-2">
             <Sparkles size={18} className="text-primary" />
-            <h2 className="font-bold text-white text-lg">Menu</h2>
+            <h2 className="font-bold text-white text-lg">เมนู</h2>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            aria-label="Close menu"
+            aria-label="ปิดเมนู"
             className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
           >
             <X size={22} />
@@ -128,11 +128,11 @@ export default function MobileNav() {
                 <div className="flex items-center gap-2.5 text-sm text-slate-400 bg-white/5 p-3 rounded-xl border border-white/5">
                   <Warehouse size={16} className="text-slate-500 flex-shrink-0" />
                   <span>
-                    Access:{' '}
+                    สิทธิ์เข้าถึง:{' '}
                     <span className="font-bold text-white">
                       {user.allowed_warehouses?.length || 0}
                     </span>{' '}
-                    Warehouses
+                    คลังสินค้า
                   </span>
                 </div>
               )}
@@ -142,7 +142,7 @@ export default function MobileNav() {
           {/* Navigation Links */}
           <nav className="space-y-1.5">
             <div className="px-3 text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
-              Navigation
+              เมนูนำทาง
             </div>
             {MENU_ITEMS.filter((m) => !m.hidden).map((item) => {
               // Security & Logic Filters
@@ -195,7 +195,7 @@ export default function MobileNav() {
               className="flex items-center justify-center gap-2.5 w-full p-3.5 text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/30 rounded-xl font-semibold transition-all shadow-sm active:scale-[0.98]"
             >
               <LogOut size={18} />
-              <span>Sign Out</span>
+              <span>ออกจากระบบ</span>
             </button>
           </form>
         </div>

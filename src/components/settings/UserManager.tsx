@@ -82,7 +82,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
                 type="text"
                 required
                 className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                placeholder="Somchai"
+                placeholder="สมชาย"
               />
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
               type="text"
               required
               className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-              placeholder="Jaidee"
+              placeholder="ใจดี"
             />
           </div>
 
@@ -213,9 +213,9 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
               {loading ? (
                 <RefreshCw className="animate-spin" />
               ) : inviteMode ? (
-                'ส่งคำเชิญ (Send Invite)'
+                'ส่งคำเชิญ'
               ) : (
-                'สร้างผู้ใช้ (Create User)'
+                'สร้างผู้ใช้'
               )}
             </Button>
           </div>
@@ -232,11 +232,11 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
           <table data-stack="true" className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
               <tr>
-                <th className="p-4">Name / Email</th>
-                <th className="p-4">Role</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Warehouses</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4">ชื่อ / อีเมล</th>
+                <th className="p-4">บทบาท</th>
+                <th className="p-4">สถานะ</th>
+                <th className="p-4">คลังสินค้า</th>
+                <th className="p-4 text-right">ดําเนินการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -276,22 +276,26 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
                             : 'bg-slate-100 text-slate-700'
                         }`}
                       >
-                        {u.role.toUpperCase()}
+                        {u.role === 'admin'
+                          ? 'ผู้ดูแลระบบ'
+                          : u.role === 'manager'
+                          ? 'ผู้จัดการ'
+                          : 'พนักงาน'}
                       </span>
                     </td>
                     <td className="p-4">
                       {isBanned ? (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-600">
-                          <Lock size={12} /> Suspended
+                          <Lock size={12} /> ระงับการใช้งาน
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-600">
-                          Active
+                          ใช้งานอยู่
                         </span>
                       )}
                     </td>
                     <td className="p-4 text-slate-500">
-                      {u.role === 'admin' ? 'ALL' : u.allowed_warehouses.join(', ') || '-'}
+                      {u.role === 'admin' ? 'ทุกคลัง' : u.allowed_warehouses.join(', ') || '-'}
                     </td>
                     <td className="p-4 text-right">
                       {isBanned ? (
@@ -302,7 +306,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
                           className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 gap-1 font-bold"
                           title="เปิดใช้งานอีกครั้ง"
                         >
-                          <Unlock size={16} /> Reactivate
+                          <Unlock size={16} /> เปิดใช้งานคืน
                         </Button>
                       ) : (
                         <Button

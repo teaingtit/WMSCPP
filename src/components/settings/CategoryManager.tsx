@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react';
 import { useFormState } from 'react-dom';
 import { deleteCategory } from '@/actions/settings-actions';
 import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-actions';
-import { Trash2, Download, Upload, Loader2, BookOpen, Package, ArrowLeft } from 'lucide-react';
+import { Trash2, Download, Upload, Loader2, Package, ArrowLeft } from 'lucide-react';
 import { SubmitButton } from '@/components/SubmitButton';
 import ProductManager from './ProductManager';
-import CategoryForm from './CategoryForm';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 import { Button } from '@/components/ui/button';
 
@@ -110,7 +109,7 @@ export default function CategoryManager({
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleDownload} disabled={loading}>
-            <Download size={14} className="mr-2" /> Template
+            <Download size={14} className="mr-2" /> เทมเพลต
           </Button>
           <div className="relative">
             <input
@@ -119,8 +118,8 @@ export default function CategoryManager({
               disabled={loading}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
               accept=".xlsx"
-              title="Import Categories from Excel"
-              aria-label="Import Categories from Excel"
+              title="นำเข้าหมวดหมู่จาก Excel"
+              aria-label="นำเข้าหมวดหมู่จาก Excel"
             />
             <Button
               size="sm"
@@ -133,60 +132,13 @@ export default function CategoryManager({
               ) : (
                 <Upload size={14} className="mr-2" />
               )}
-              Import
+              นำเข้า
             </Button>
           </div>
         </div>
       </div>
 
       {/* ✅ ADDED: Info Guide Section (ส่วนที่หายไป) */}
-      <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-5 shadow-sm animate-in fade-in slide-in-from-top-2">
-        <div className="flex items-start gap-4">
-          <div className="p-2 bg-white rounded-lg border border-blue-100 shadow-sm text-blue-600">
-            <BookOpen size={20} />
-          </div>
-          <div className="space-y-3 flex-1">
-            <h4 className="text-sm font-bold text-blue-900">
-              คำแนะนำการกำหนดโครงสร้างข้อมูล (Data Structure Guide)
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded border border-indigo-200">
-                    Spec
-                  </span>
-                  <span className="text-xs font-bold text-slate-700">รายละเอียดคงที่ (Static)</span>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  ข้อมูลที่ไม่เปลี่ยนแปลงของสินค้านั้นๆ เช่น ขนาด, วัสดุ, แรงดันไฟ (ใช้สำหรับ
-                  Product Scope)
-                </p>
-              </div>
-
-              <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-200">
-                    Inbound
-                  </span>
-                  <span className="text-xs font-bold text-slate-700">
-                    รายละเอียดผันแปร (Dynamic)
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  ข้อมูลที่อาจเปลี่ยนแปลงได้ในการรับเข้าแต่ละครั้ง เช่น วันหมดอายุ, Serial No., Lot
-                  No. (ใช้สำหรับ Lot Scope)
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Creation Form */}
-      <CategoryForm />
-
-      {/* Categories List */}
       <div className="grid grid-cols-1 gap-3 pt-6 border-t border-slate-100">
         {categories.map((cat) => (
           <div

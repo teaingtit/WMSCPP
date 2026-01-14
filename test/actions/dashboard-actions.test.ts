@@ -12,7 +12,7 @@ describe('Dashboard Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -40,19 +40,20 @@ describe('Dashboard Actions', () => {
         single: vi.fn().mockResolvedValue({
           data: { role: 'admin', allowed_warehouses: [] },
         }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { role: 'admin', allowed_warehouses: [] },
+        }),
       };
 
       const mockWarehouseQuery = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({
-          data: [
-            { id: 'wh1', code: 'WH01', name: 'Warehouse 1', is_active: true },
-          ],
+          data: [{ id: 'wh1', code: 'WH01', name: 'Warehouse 1', is_active: true }],
         }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'user_roles') {
           return mockRoleQuery;
@@ -77,6 +78,9 @@ describe('Dashboard Actions', () => {
         single: vi.fn().mockResolvedValue({
           data: { role: 'staff', allowed_warehouses: ['WH01'] },
         }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { role: 'staff', allowed_warehouses: ['WH01'] },
+        }),
       };
 
       // Create a query builder that supports chaining and reassignment
@@ -86,10 +90,18 @@ describe('Dashboard Actions', () => {
       };
       const createWarehouseQuery = () => {
         const query: any = {
-          select: vi.fn(function() { return query; }),
-          eq: vi.fn(function() { return query; }),
-          in: vi.fn(function() { return query; }),
-          order: vi.fn(function() { return query; }),
+          select: vi.fn(function () {
+            return query;
+          }),
+          eq: vi.fn(function () {
+            return query;
+          }),
+          in: vi.fn(function () {
+            return query;
+          }),
+          order: vi.fn(function () {
+            return query;
+          }),
         };
         // Make it thenable and awaitable
         const promise = Promise.resolve(warehouseQueryResult);
@@ -103,7 +115,7 @@ describe('Dashboard Actions', () => {
         return query;
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'user_roles') {
           return mockRoleQuery;
@@ -124,6 +136,7 @@ describe('Dashboard Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
       };
 
       const mockStocks = [
@@ -159,7 +172,7 @@ describe('Dashboard Actions', () => {
         gte: vi.fn().mockResolvedValue({ count: 5 }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -171,8 +184,8 @@ describe('Dashboard Actions', () => {
           return mockAuditsQuery;
         }
         if (table === 'transactions') {
-          callCount++;
-          if (callCount === 1) return mockTransactionsQuery;
+          _callCount++;
+          if (_callCount === 1) return mockTransactionsQuery;
           return mockCountQuery;
         }
         return mockWarehouseQuery;
@@ -191,6 +204,7 @@ describe('Dashboard Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
       };
       mockSupabase.from = vi.fn(() => mockWarehouseQuery);
 

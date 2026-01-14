@@ -58,7 +58,7 @@ export default function ExportButton({ warehouseId }: { warehouseId: string }) {
       className="bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border-slate-200 transition-all gap-2 shadow-sm"
     >
       {loading ? <Loader2 className="animate-spin" size={18} /> : <FileSpreadsheet size={18} />}
-      <span className="hidden md:inline font-medium">Export Excel</span>
+      <span className="hidden md:inline font-medium">ส่งออก Excel</span>
     </Button>
   );
 }

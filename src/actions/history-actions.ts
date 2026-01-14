@@ -9,6 +9,7 @@ import {
   SystemLogEntry,
   HistoryFilter,
 } from '@/types/history';
+import { getWarehouseId } from '@/lib/utils/db-helpers';
 
 export { type HistoryMode };
 
@@ -21,14 +22,10 @@ export async function getHistory(
   noStore();
   const supabase = await createClient();
 
-  // 1. Get Warehouse ID
-  const { data: wh } = await supabase
-    .from('warehouses')
-    .select('id')
-    .eq('code', warehouseId)
-    .single();
+  // 1. Get Warehouse ID (handles both UUID and code)
+  const whId = await getWarehouseId(supabase, warehouseId);
 
-  if (!wh) return [];
+  if (!whId) return [];
 
   // 1.5 Fetch Attribute Schemas for Label Resolution
   const { data: categories } = await supabase.from('product_categories').select('form_schema');
@@ -57,7 +54,7 @@ export async function getHistory(
       to_loc:locations!to_location_id(code, warehouse:warehouses(name))
     `,
     )
-    .eq('warehouse_id', wh.id)
+    .eq('warehouse_id', whId)
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -162,7 +159,7 @@ export async function getHistory(
   // 3. Fetch System Logs (Detailed Mode Only)
 
   // Get Location IDs
-  const { data: locIds } = await supabase.from('locations').select('id').eq('warehouse_id', wh.id);
+  const { data: locIds } = await supabase.from('locations').select('id').eq('warehouse_id', whId);
   const locationIds = locIds?.map((l) => l.id) || [];
 
   let logs: any[] = [];

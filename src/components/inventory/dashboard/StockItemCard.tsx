@@ -1,14 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Layers,
-  Package,
-  Shield,
-  StickyNote,
-  AlertTriangle,
-  Lock,
-} from 'lucide-react';
+import { Layers, Package, Shield, StickyNote, AlertTriangle, Lock } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';
 import { InventoryCheckbox } from './InventoryCheckbox';
@@ -38,10 +31,10 @@ export const StockItemCard = ({
   // Use shared status helpers
   const restricted = isRestricted(status);
   const warning = hasWarning(status);
-  const {
-    total: totalQty,
-    affected: affectedQty,
-  } = calculateQuantityBreakdown(item.quantity, status);
+  const { total: totalQty, affected: affectedQty } = calculateQuantityBreakdown(
+    item.quantity,
+    status,
+  );
 
   const handleCardClick = () => {
     // If onCardClick is provided, open detail modal
@@ -54,13 +47,14 @@ export const StockItemCard = ({
     <div
       onClick={handleCardClick}
       className={`relative flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.99] touch-manipulation select-none
-        ${isSelected
-          ? 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'
-          : restricted
+        ${
+          isSelected
+            ? 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'
+            : restricted
             ? 'bg-red-50/50 border-red-200 hover:border-red-300'
             : warning
-              ? 'bg-amber-50/50 border-amber-200 hover:border-amber-300'
-              : 'bg-white border-slate-200 hover:border-indigo-200'
+            ? 'bg-amber-50/50 border-amber-200 hover:border-amber-300'
+            : 'bg-white border-slate-200 hover:border-indigo-200'
         }`}
     >
       {/* Restriction Indicator */}
@@ -68,7 +62,12 @@ export const StockItemCard = ({
         <div className="absolute -top-1 -right-1 z-10">
           <span
             className="flex items-center justify-center w-5 h-5 rounded-full text-white animate-pulse"
-            style={{ backgroundColor: status?.status?.color || '#ef4444' }}
+            style={
+              {
+                ['--status-color' as string]: status?.status?.color || '#ef4444',
+                backgroundColor: 'var(--status-color)',
+              } as React.CSSProperties
+            }
             title={status?.status?.name}
           >
             <Lock size={10} />
@@ -124,11 +123,16 @@ export const StockItemCard = ({
                   onStatusClick?.(item);
                 }}
                 className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border transition-all hover:opacity-80 active:scale-95"
-                style={{
-                  backgroundColor: status.status.bg_color,
-                  color: status.status.text_color,
-                  borderColor: status.status.color + '40',
-                }}
+                style={
+                  {
+                    ['--status-bg' as string]: status.status.bg_color,
+                    ['--status-text' as string]: status.status.text_color,
+                    ['--status-border' as string]: status.status.color + '40',
+                    backgroundColor: 'var(--status-bg)',
+                    color: 'var(--status-text)',
+                    borderColor: 'var(--status-border)',
+                  } as React.CSSProperties
+                }
               >
                 {restricted ? (
                   <Lock size={10} />

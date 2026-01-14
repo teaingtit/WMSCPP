@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth-service';
 import WarehouseHeader from '@/components/ui/WarehouseHeader';
+import { isValidUUID } from '@/lib/utils';
 
 export default async function WarehouseLayout({
   children,
@@ -19,12 +20,17 @@ export default async function WarehouseLayout({
   const { warehouseId } = params;
   const decodedId = decodeURIComponent(warehouseId);
 
-  // ✅ FIX: เพิ่ม is_active ใน select เพื่อให้ WarehouseHeader ไม่ error
-  const { data: warehouse, error } = await supabase
-    .from('warehouses')
-    .select('id, name, code, is_active')
-    .eq('code', decodedId)
-    .single();
+  // ✅ FIX: Handle both UUID and code identifiers, use maybeSingle() to avoid PGRST116 error
+  let warehouseQuery = supabase.from('warehouses').select('id, name, code, is_active');
+
+  // If it's a UUID, query by id; otherwise query by code
+  if (isValidUUID(decodedId)) {
+    warehouseQuery = warehouseQuery.eq('id', decodedId);
+  } else {
+    warehouseQuery = warehouseQuery.eq('code', decodedId);
+  }
+
+  const { data: warehouse, error } = await warehouseQuery.maybeSingle();
 
   if (error) {
     console.error(`Error fetching warehouse ${decodedId} (raw: ${warehouseId}):`, error);

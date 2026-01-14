@@ -252,7 +252,7 @@ export default function CountingInterface({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 name="searchItems"
-                placeholder="Search SKU, Name, Location..."
+                placeholder="ค้นหา SKU, ชื่อสินค้า, Location..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="pl-9 bg-slate-50 border-slate-200 focus:bg-white rounded-xl h-10"

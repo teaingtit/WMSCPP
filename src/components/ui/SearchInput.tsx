@@ -81,7 +81,7 @@ export default function SearchInput({ placeholder = 'Search...', className }: Se
           // Hover
           'hover:bg-white/[0.07] hover:border-white/20',
         )}
-        placeholder={placeholder}
+        placeholder="ค้นหา..."
         onChange={(e) => handleSearch(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}

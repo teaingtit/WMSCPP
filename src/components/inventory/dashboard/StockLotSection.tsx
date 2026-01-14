@@ -113,10 +113,10 @@ export const StockLotSection = ({
                   onLotStatusClick(lot);
                 }}
                 className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-cyan-600 px-2 py-1 rounded-lg border border-dashed border-slate-300 hover:border-cyan-400 transition-all"
-                title="Set lot status"
+                title="ตั้งค่าสถานะ"
               >
                 <Settings2 size={12} />
-                Set Status
+                ตั้งค่าสถานะ
               </button>
             )}
           </div>
@@ -125,11 +125,11 @@ export const StockLotSection = ({
         <div className="flex items-center gap-2">
           {restrictedCount > 0 && (
             <span className="flex items-center gap-1 text-[10px] font-bold bg-red-100 text-red-700 px-2 py-1 rounded-full border border-red-200">
-              <AlertTriangle size={12} /> {restrictedCount} restricted
+              <AlertTriangle size={12} /> {restrictedCount} รายการติดสถานะ
             </span>
           )}
           <span className="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200 text-slate-500">
-            {totalItemsInLot} Items
+            {totalItemsInLot} รายการ
           </span>
         </div>
       </div>

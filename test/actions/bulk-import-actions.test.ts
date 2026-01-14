@@ -5,7 +5,11 @@ import {
   downloadInboundTemplate,
   importInboundStock,
 } from '@/actions/bulk-import-actions';
-import { createMockSupabaseClient, createMockFormData, createMockUser } from '../utils/test-helpers';
+import {
+  createMockSupabaseClient,
+  createMockFormData,
+  createMockUser,
+} from '../utils/test-helpers';
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
@@ -16,7 +20,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 vi.mock('@/lib/utils/db-helpers', () => ({
-  getWarehouseId: vi.fn((supabase, id) => Promise.resolve(id)),
+  getWarehouseId: vi.fn((_supabase, id) => Promise.resolve(id)),
 }));
 
 vi.mock('@/lib/auth-service', () => ({
@@ -32,7 +36,9 @@ vi.mock('@/lib/utils/excel-utils', () => ({
 }));
 
 vi.mock('@/lib/utils', () => ({
-  isValidUUID: vi.fn((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)),
+  isValidUUID: vi.fn((id) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id),
+  ),
 }));
 
 describe('Bulk Import Actions', () => {
@@ -43,7 +49,7 @@ describe('Bulk Import Actions', () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
     mockUser = createMockUser();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });
@@ -51,7 +57,7 @@ describe('Bulk Import Actions', () => {
   describe('downloadMasterTemplate', () => {
     it('should download category template', async () => {
       const { generateCategoryTemplate } = await import('@/lib/utils/excel-utils');
-      
+
       const result = await downloadMasterTemplate('category');
 
       expect(generateCategoryTemplate).toHaveBeenCalled();
@@ -117,12 +123,14 @@ describe('Bulk Import Actions', () => {
       const mockUpsert = vi.fn().mockResolvedValue({ error: null });
       mockSupabase.from = vi.fn(() => ({ upsert: mockUpsert }));
 
-      const file = new File(['test'], 'test.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       const formData = createMockFormData({
         file: file as any,
       });
 
-      const result = await importMasterData(formData, 'category');
+      const _result = await importMasterData(formData, 'category');
 
       // Note: This test may need adjustment based on actual implementation
       expect(mockSupabase.from).toHaveBeenCalled();
@@ -136,7 +144,9 @@ describe('Bulk Import Actions', () => {
       const { checkManagerRole } = await import('@/lib/auth-service');
       vi.mocked(checkManagerRole).mockResolvedValue(false);
 
-      const file = new File(['test'], 'test.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       const formData = createMockFormData({
         file: file as any,
       });
@@ -173,7 +183,7 @@ describe('Bulk Import Actions', () => {
         single: vi.fn().mockResolvedValue({ data: mockCategory }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -217,7 +227,7 @@ describe('Bulk Import Actions', () => {
         single: vi.fn().mockResolvedValue({ data: mockCategory }),
       };
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'warehouses') {
           return mockWarehouseQuery;
@@ -271,7 +281,9 @@ describe('Bulk Import Actions', () => {
       vi.mocked(parseExcel).mockResolvedValue(mockWorksheet as any);
 
       const mockProducts = [{ id: 'prod1', sku: 'SKU001' }];
-      const mockLocations = [{ id: 'loc1', code: 'L01-P01-1', lot: 'L01', cart: 'P01', level: '1' }];
+      const mockLocations = [
+        { id: 'loc1', code: 'L01-P01-1', lot: 'L01', cart: 'P01', level: '1' },
+      ];
       const mockCategory = { form_schema: [] };
 
       const mockProductsQuery = {
@@ -290,7 +302,7 @@ describe('Bulk Import Actions', () => {
 
       mockSupabase.rpc = vi.fn().mockResolvedValue({ error: null });
 
-      let callCount = 0;
+      let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'products') {
           return mockProductsQuery;
@@ -304,14 +316,16 @@ describe('Bulk Import Actions', () => {
         return mockProductsQuery;
       });
 
-      const file = new File(['test'], 'test.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       const formData = createMockFormData({
         file: file as any,
         warehouseId: 'wh1',
         categoryId: 'cat1',
       });
 
-      const result = await importInboundStock(formData);
+      const _result = await importInboundStock(formData);
 
       // Note: This test may need adjustment based on actual implementation
       expect(mockSupabase.from).toHaveBeenCalled();
@@ -325,7 +339,9 @@ describe('Bulk Import Actions', () => {
       const { getWarehouseId } = await import('@/lib/utils/db-helpers');
       vi.mocked(getWarehouseId).mockResolvedValue(null);
 
-      const file = new File(['test'], 'test.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       const formData = createMockFormData({
         file: file as any,
         warehouseId: 'invalid',

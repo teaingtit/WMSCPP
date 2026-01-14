@@ -40,7 +40,7 @@ export default function LoginForm() {
 
       <div>
         <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">
-          Email Address
+          อีเมล (Email)
         </label>
         <input
           name="email"
@@ -53,7 +53,7 @@ export default function LoginForm() {
 
       <div>
         <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">
-          Password
+          รหัสผ่าน (Password)
         </label>
         <input
           name="password"

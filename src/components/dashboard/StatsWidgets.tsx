@@ -27,7 +27,7 @@ export function ActiveAuditList({
     <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 mb-6 shadow-sm relative overflow-hidden group">
       <h3 className="text-base font-bold text-slate-200 flex items-center gap-2 mb-4 relative z-10">
         <ClipboardList size={20} className="text-amber-400" />
-        กำลังดำเนินการนับสต็อก (Active Sessions)
+        กำลังดำเนินการนับสต็อก (Audits)
       </h3>
       <div className="space-y-3 relative z-10">
         {sessions.map((session) => (
@@ -69,7 +69,7 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
           รายการเคลื่อนไหวล่าสุด
         </h3>
         <span className="text-[10px] font-bold bg-blue-900/30 text-blue-400 px-3 py-1 rounded-full border border-blue-800">
-          Recent
+          ล่าสุด
         </span>
       </div>
 
@@ -111,7 +111,7 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
                     <h4 className="font-bold text-slate-200 text-sm truncate pr-2 group-hover:text-blue-400 transition-colors">
-                      {log.products?.name || 'Unknown Product'}
+                      {log.products?.name || 'ไม่ระบุสินค้า'}
                     </h4>
                     <span className="text-[10px] text-slate-500 flex-shrink-0 whitespace-nowrap bg-slate-900/50 px-2 py-0.5 rounded-full">
                       {format(new Date(log.created_at), 'HH:mm', { locale: th })}

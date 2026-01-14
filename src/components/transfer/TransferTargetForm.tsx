@@ -138,7 +138,41 @@ export default function TransferTargetForm({
         } as const;
       }
 
-      return { success: false, message: result.message || 'มีบางรายการล้มเหลว' };
+      // If there are failures, preserve the error details for display
+      if (!result.success && result.details) {
+        // Map errors to stock IDs for better visibility
+        const errorMap: Record<string, string> = {};
+        queue.forEach((item, idx) => {
+          // Match errors by index (errors array corresponds to items array)
+          const errorMsg = result.details.errors[idx];
+          if (idx < result.details.errors.length && errorMsg) {
+            errorMap[item.sourceStock.id] = errorMsg;
+          }
+        });
+        setTransferErrors(errorMap);
+
+        // Update preview results to show failures
+        setPreviewResults((prev) => {
+          const updated = prev ? { ...prev } : {};
+          Object.keys(errorMap).forEach((stockId) => {
+            const errorReason = errorMap[stockId];
+            if (!errorReason) return;
+
+            if (updated[stockId]) {
+              updated[stockId] = { stockId, ok: false, reason: errorReason };
+            } else {
+              updated[stockId] = { stockId, ok: false, reason: errorReason };
+            }
+          });
+          return updated;
+        });
+      }
+
+      return {
+        success: false,
+        message: result.message || 'มีบางรายการล้มเหลว',
+        details: result.details,
+      };
     } finally {
       setIsLoading(false);
       setPendingAction(null);
@@ -164,6 +198,7 @@ export default function TransferTargetForm({
     null,
   );
   const [previewSummary, setPreviewSummary] = useState<{ total: number; ok: number } | null>(null);
+  const [transferErrors, setTransferErrors] = useState<Record<string, string>>({});
   const [targetWarehouseId, setTargetWarehouseId] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0); // Key to force reset LocationSelector
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -249,14 +284,25 @@ export default function TransferTargetForm({
       qty: Number(editingQty) || 0,
       targetLocation: editingLocation,
     });
-    // clear preview for this stock so user can re-run preview
+    // clear preview and errors for this stock so user can re-run preview
+    const stockId = queue.find((q) => q.id === editingItemId)?.sourceStock.id;
     setPreviewResults((prev) => {
       if (!prev) return prev;
       const copy = { ...prev };
-      const stockId = queue.find((q) => q.id === editingItemId)?.sourceStock.id;
       if (stockId && copy[stockId]) delete copy[stockId];
       return copy;
     });
+    // Clear transfer error for this item when editing
+    if (stockId) {
+      setTransferErrors((prev) => {
+        if (prev[stockId]) {
+          const copy = { ...prev };
+          delete copy[stockId];
+          return copy;
+        }
+        return prev;
+      });
+    }
     setEditingItemId(null);
     setEditingQty('');
     setEditingLocation(null);
@@ -296,8 +342,27 @@ export default function TransferTargetForm({
       const res = await execute(true);
       if (res.success) {
         setQueue([]);
+        setPreviewResults(null);
+        setPreviewSummary(null);
+        setTransferErrors({});
       } else {
-        notify.error(res.message || 'มีบางรายการล้มเหลว');
+        // Show detailed error message with failed items count
+        const errorDetails = res.details as
+          | { success: number; failed: number; errors: string[] }
+          | undefined;
+        if (errorDetails) {
+          const errorMsg = `ย้ายสำเร็จ ${errorDetails.success} รายการ, ไม่สำเร็จ ${
+            errorDetails.failed
+          } รายการ${errorDetails.errors.length > 0 ? `: ${errorDetails.errors[0]}` : ''}`;
+          notify.error(errorMsg);
+
+          // If there are multiple errors, log them for debugging
+          if (errorDetails.errors.length > 1) {
+            console.warn('Transfer errors:', errorDetails.errors);
+          }
+        } else {
+          notify.error(res.message || 'มีบางรายการล้มเหลว');
+        }
       }
     } catch (err: any) {
       console.error('Transfer Error:', err);
@@ -311,6 +376,9 @@ export default function TransferTargetForm({
     if (queue.length === 0) return;
     setIsLoading(true);
     try {
+      // Clear previous transfer errors when running new preview
+      setTransferErrors({});
+
       const payload = queue.map((item) => ({
         sourceStock: { id: item.sourceStock.id },
         qty: item.qty,
@@ -326,7 +394,16 @@ export default function TransferTargetForm({
       });
       setPreviewResults(map);
       setPreviewSummary(res.summary || null);
-      notify.success('ตรวจสอบสถานะเรียบร้อย — ดู badge ในแต่ละรายการ');
+
+      const okCount = res.summary?.ok ?? Object.values(map).filter((r: any) => r.ok).length;
+      const total = res.summary?.total ?? Object.keys(map).length;
+      if (okCount === total) {
+        notify.success(`ตรวจสอบสถานะเรียบร้อย — ทุกรายการพร้อมย้าย (${okCount}/${total})`);
+      } else {
+        notify.error(
+          `ตรวจสอบสถานะ: ผ่าน ${okCount}/${total} รายการ — กรุณาแก้ไขรายการที่ล้มเหลวก่อนย้าย`,
+        );
+      }
     } catch (err: any) {
       console.error('Preflight Error', err);
       notify.error(err.message || 'เกิดข้อผิดพลาดในการตรวจสอบ');
@@ -454,21 +531,28 @@ export default function TransferTargetForm({
                     )}
                     {(() => {
                       const pr = previewResults?.[item.sourceStock.id];
-                      if (!pr) return null;
+                      const transferError = transferErrors[item.sourceStock.id];
+                      const hasError = (pr && !pr.ok) || transferError;
+                      const errorReason = transferError || pr?.reason;
+
+                      if (!pr && !transferError) return null;
                       return (
                         <>
                           <span
                             className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-                              pr.ok
+                              !hasError
                                 ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                 : 'bg-rose-50 text-rose-600 border-rose-100'
                             }`}
                           >
-                            {pr.ok ? 'Ready' : 'Failed'}
+                            {!hasError ? 'Ready' : 'Failed'}
                           </span>
-                          {!pr.ok && (
-                            <span className="text-[10px] text-rose-500 font-medium truncate max-w-[100px]">
-                              {pr.reason}
+                          {hasError && errorReason && (
+                            <span
+                              className="text-[10px] text-rose-500 font-medium truncate max-w-[150px]"
+                              title={errorReason}
+                            >
+                              {errorReason}
                             </span>
                           )}
                         </>
@@ -518,6 +602,7 @@ export default function TransferTargetForm({
             <button
               onClick={handlePreview}
               className="py-2.5 px-4 bg-amber-50 text-amber-600 rounded-xl font-bold text-sm hover:bg-amber-100 transition-colors flex items-center justify-center gap-2"
+              title="ตรวจสอบความพร้อมก่อนย้ายจริง (ไม่บันทึกข้อมูล)"
             >
               <Eye size={16} /> ตรวจสอบ (Preview)
             </button>
@@ -527,6 +612,13 @@ export default function TransferTargetForm({
             <div className="text-xs text-center text-slate-400 font-bold">
               ผลการตรวจสอบ: <span className="text-emerald-500">{previewSummary.ok}</span> /{' '}
               {previewSummary.total}
+            </div>
+          )}
+
+          {/* Help text for Preview */}
+          {!previewSummary && queue.length > 0 && (
+            <div className="text-xs text-center text-slate-400 italic">
+              💡 แนะนำ: คลิก "ตรวจสอบ (Preview)" เพื่อตรวจสอบความพร้อมก่อนย้ายจริง
             </div>
           )}
 
