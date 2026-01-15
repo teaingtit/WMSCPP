@@ -147,6 +147,7 @@ docker compose logs -f wmscpp
 - **เช็ค Resource:** `docker stats`
 - **Restart App:** `docker compose restart`
 - **กรณีรันไม่ขึ้น:** เช็ค `.env` ว่าค่า Supabase ถูกต้องหรือไม่ และเช็ค firewall ของ server ปิดพอร์ต 3000 หรือไม่
+
   (บน Local):
   tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
   scp project.tar.gz teaingtit@100.96.9.50:/opt/wmscpp/
