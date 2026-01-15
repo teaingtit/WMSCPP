@@ -30,6 +30,7 @@ test/
 ## Test Coverage
 
 ### Authentication (`auth-actions.test.ts`)
+
 - ✅ Login with valid credentials
 - ✅ Login validation (email format, password requirements)
 - ✅ Invalid login credentials handling
@@ -37,6 +38,7 @@ test/
 - ✅ Logout functionality
 
 ### Inbound Operations (`inbound-actions.test.ts`)
+
 - ✅ Fetch product categories
 - ✅ Fetch category details
 - ✅ Fetch inbound options
@@ -48,6 +50,7 @@ test/
 - ✅ Bulk inbound operations
 
 ### Outbound Operations (`outbound-actions.test.ts`)
+
 - ✅ Search stock for outbound
 - ✅ Submit outbound transaction
 - ✅ Quantity validation
@@ -56,6 +59,7 @@ test/
 - ✅ Bulk outbound operations
 
 ### Transfer Operations (`transfer-actions.test.ts`)
+
 - ✅ Get stock by ID
 - ✅ Search stock for transfer
 - ✅ Internal transfer
@@ -65,10 +69,12 @@ test/
 - ✅ Preflight validation
 
 ### Warehouse Management (`warehouse-actions.test.ts`)
+
 - ✅ Fetch active warehouses
 - ✅ Warehouse listing
 
 ### Audit Operations (`audit-actions.test.ts`)
+
 - ✅ Create audit session
 - ✅ Duplicate session name validation
 - ✅ Fetch inventory items
@@ -81,6 +87,7 @@ test/
 - ✅ Update audit session
 
 ### Bulk Import (`bulk-import-actions.test.ts`)
+
 - ✅ Download master templates (category, product)
 - ✅ Download inbound template
 - ✅ Import master data (category, product)
@@ -90,24 +97,28 @@ test/
 - ✅ Warehouse validation
 
 ### Export Operations (`export-actions.test.ts`)
+
 - ✅ Export inventory to Excel
 - ✅ Warehouse code lookup
 - ✅ Error handling (warehouse not found, no stock)
 - ✅ Excel file generation
 
 ### Dashboard (`dashboard-actions.test.ts`)
+
 - ✅ Get dashboard warehouses (admin, staff roles)
 - ✅ Get dashboard statistics
 - ✅ Warehouse filtering by role
 - ✅ Error handling
 
 ### History (`history-actions.test.ts`)
+
 - ✅ Fetch transaction history (simple mode)
 - ✅ Filter by transaction type
 - ✅ Warehouse validation
 - ✅ Error handling
 
 ### Settings (`settings-actions.test.ts`)
+
 - ✅ Get warehouses, categories, products
 - ✅ Create product
 - ✅ Delete product (soft delete with stock check)
@@ -119,6 +130,7 @@ test/
 - ✅ Duplicate validation
 
 ### Status Management (`status-actions.test.ts`)
+
 - ✅ Get status definitions
 - ✅ Get default status
 - ✅ Create status definition
@@ -130,6 +142,7 @@ test/
 - ✅ Get lot statuses
 
 ### User Management (`user-actions.test.ts`)
+
 - ✅ Get users (admin only)
 - ✅ Create user (with password, email invite)
 - ✅ Delete user (soft/hard delete based on history)
@@ -165,6 +178,7 @@ The `test/utils/test-helpers.ts` file provides:
 ## Mocking Strategy
 
 All tests use mocks for:
+
 - **Supabase Client**: Mocked to avoid actual database calls
 - **Next.js Navigation**: `redirect`, `revalidatePath` are mocked
 - **Authentication**: User authentication is mocked

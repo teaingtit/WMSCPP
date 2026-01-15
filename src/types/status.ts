@@ -17,21 +17,21 @@ export const STATUS_TYPE_OPTIONS: {
   description: string;
   icon: string;
 }[] = [
-    {
-      value: 'PRODUCT',
-      label: 'Product Status',
-      description:
-        'Applies to a specific quantity of products. You can select how many units are affected and partially remove the status.',
-      icon: '📦',
-    },
-    {
-      value: 'LOCATION',
-      label: 'Location Status',
-      description:
-        'Applies to the entire lot/location. All products in this location will inherit this status.',
-      icon: '📍',
-    },
-  ];
+  {
+    value: 'PRODUCT',
+    label: 'Product Status',
+    description:
+      'Applies to a specific quantity of products. You can select how many units are affected and partially remove the status.',
+    icon: '📦',
+  },
+  {
+    value: 'LOCATION',
+    label: 'Location Status',
+    description:
+      'Applies to the entire lot/location. All products in this location will inherit this status.',
+    icon: '📍',
+  },
+];
 
 /**
  * Status Effect Types

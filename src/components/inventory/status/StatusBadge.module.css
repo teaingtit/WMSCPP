@@ -1,36 +1,36 @@
 /* StatusBadge Component Styles */
 
 .statusBadge {
-    border-color: var(--status-border-color);
+  border-color: var(--status-border-color);
 }
 
 .statusDot {
-    background-color: var(--status-color);
+  background-color: var(--status-color);
 }
 
 .statusDotPulse {
-    background-color: var(--status-color);
+  background-color: var(--status-color);
 }
 
 .statusIndicatorBadge {
-    background-color: var(--status-bg-color);
-    color: var(--status-text-color);
-    border-color: var(--status-border-color);
+  background-color: var(--status-bg-color);
+  color: var(--status-text-color);
+  border-color: var(--status-border-color);
 }
 
 .statusWarningBanner {
-    background-color: var(--status-bg-color);
-    border-color: var(--status-color);
+  background-color: var(--status-bg-color);
+  border-color: var(--status-color);
 }
 
 .statusWarningIcon {
-    color: var(--status-color);
+  color: var(--status-color);
 }
 
 .statusWarningTitle {
-    color: var(--status-text-color);
+  color: var(--status-text-color);
 }
 
 .statusWarningMessage {
-    color: var(--status-text-color);
+  color: var(--status-text-color);
 }

@@ -105,14 +105,15 @@ export default async function HistoryPage({
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${tx.type === 'INBOUND'
-                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                : tx.type === 'OUTBOUND'
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
+                                tx.type === 'INBOUND'
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                  : tx.type === 'OUTBOUND'
                                   ? 'bg-rose-50 text-rose-600 border-rose-100'
                                   : tx.type === 'TRANSFER' || tx.type === 'TRANSFER_OUT'
-                                    ? 'bg-orange-50 text-orange-600 border-orange-100'
-                                    : 'bg-slate-100 text-slate-600 border-slate-200'
-                                }`}
+                                  ? 'bg-orange-50 text-orange-600 border-orange-100'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}
                             >
                               {tx.type === 'INBOUND' && <ArrowRight size={10} />}
                               {tx.type === 'OUTBOUND' && <ArrowLeft size={10} />}

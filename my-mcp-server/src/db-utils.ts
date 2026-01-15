@@ -2,10 +2,10 @@
  * Supabase Database Utility Script
  * ================================
  * A comprehensive CLI tool for managing Supabase/PostgreSQL database
- * 
+ *
  * Usage:
  *   npx ts-node db-utils.ts <command> [options]
- * 
+ *
  * Commands:
  *   schema              - Show all tables and their structure
  *   tables              - List all tables
@@ -23,12 +23,13 @@ import pg from 'pg';
 import * as readline from 'readline';
 
 // Database configuration
-const DATABASE_URL = process.env.DATABASE_URL ||
-    'postgresql://postgres:Pj-468278963@db.pbqiaqrrtyjarrkbvmyz.supabase.co:5432/postgres?sslmode=require';
+const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:Pj-468278963@db.pbqiaqrrtyjarrkbvmyz.supabase.co:5432/postgres?sslmode=require';
 
 const pool = new pg.Pool({
-    connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+  connectionString: DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
 // ============================================
@@ -39,21 +40,22 @@ const pool = new pg.Pool({
  * Get all tables in the database
  */
 async function listTables(): Promise<string[]> {
-    const result = await pool.query(`
+  const result = await pool.query(`
     SELECT table_name 
     FROM information_schema.tables 
     WHERE table_schema = 'public' 
     AND table_type = 'BASE TABLE'
     ORDER BY table_name;
   `);
-    return result.rows.map(row => row.table_name);
+  return result.rows.map((row) => row.table_name);
 }
 
 /**
  * Get table structure (columns, types, constraints)
  */
 async function describeTable(tableName: string): Promise<void> {
-    const result = await pool.query(`
+  const result = await pool.query(
+    `
     SELECT 
       c.column_name,
       c.data_type,
@@ -73,45 +75,43 @@ async function describeTable(tableName: string): Promise<void> {
     WHERE c.table_name = $1 
       AND c.table_schema = 'public'
     ORDER BY c.ordinal_position;
-  `, [tableName]);
+  `,
+    [tableName],
+  );
 
-    console.log(`\n📋 Table: ${tableName}`);
-    console.log('─'.repeat(80));
-    console.log(
-        'Column'.padEnd(25) +
-        'Type'.padEnd(20) +
-        'Nullable'.padEnd(10) +
-        'PK'.padEnd(5) +
-        'Default'
-    );
-    console.log('─'.repeat(80));
+  console.log(`\n📋 Table: ${tableName}`);
+  console.log('─'.repeat(80));
+  console.log(
+    'Column'.padEnd(25) + 'Type'.padEnd(20) + 'Nullable'.padEnd(10) + 'PK'.padEnd(5) + 'Default',
+  );
+  console.log('─'.repeat(80));
 
-    for (const row of result.rows) {
-        let dataType = row.data_type;
-        if (row.character_maximum_length) {
-            dataType += `(${row.character_maximum_length})`;
-        }
-        console.log(
-            row.column_name.padEnd(25) +
-            dataType.padEnd(20) +
-            row.is_nullable.padEnd(10) +
-            row.is_primary_key.padEnd(5) +
-            (row.column_default || '-')
-        );
+  for (const row of result.rows) {
+    let dataType = row.data_type;
+    if (row.character_maximum_length) {
+      dataType += `(${row.character_maximum_length})`;
     }
-    console.log('');
+    console.log(
+      row.column_name.padEnd(25) +
+        dataType.padEnd(20) +
+        row.is_nullable.padEnd(10) +
+        row.is_primary_key.padEnd(5) +
+        (row.column_default || '-'),
+    );
+  }
+  console.log('');
 }
 
 /**
  * Show full schema (all tables with their columns)
  */
 async function showSchema(): Promise<void> {
-    const tables = await listTables();
-    console.log(`\n🗄️  Database Schema (${tables.length} tables)\n`);
+  const tables = await listTables();
+  console.log(`\n🗄️  Database Schema (${tables.length} tables)\n`);
 
-    for (const table of tables) {
-        await describeTable(table);
-    }
+  for (const table of tables) {
+    await describeTable(table);
+  }
 }
 
 // ============================================
@@ -122,32 +122,32 @@ async function showSchema(): Promise<void> {
  * Execute a SELECT query and display results
  */
 async function executeQuery(sql: string): Promise<any[]> {
-    const result = await pool.query(sql);
-    return result.rows;
+  const result = await pool.query(sql);
+  return result.rows;
 }
 
 /**
  * Execute any SQL statement (INSERT, UPDATE, DELETE, CREATE, etc)
  */
 async function executeSql(sql: string): Promise<{ rowCount: number; rows: any[] }> {
-    const result = await pool.query(sql);
-    return { rowCount: result.rowCount || 0, rows: result.rows };
+  const result = await pool.query(sql);
+  return { rowCount: result.rowCount || 0, rows: result.rows };
 }
 
 /**
  * Count rows in a table
  */
 async function countRows(tableName: string): Promise<number> {
-    const result = await pool.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
-    return parseInt(result.rows[0].count);
+  const result = await pool.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
+  return parseInt(result.rows[0].count);
 }
 
 /**
  * Get sample rows from a table
  */
 async function sampleRows(tableName: string, limit: number = 10): Promise<any[]> {
-    const result = await pool.query(`SELECT * FROM "${tableName}" LIMIT $1`, [limit]);
-    return result.rows;
+  const result = await pool.query(`SELECT * FROM "${tableName}" LIMIT $1`, [limit]);
+  return result.rows;
 }
 
 // ============================================
@@ -158,41 +158,41 @@ async function sampleRows(tableName: string, limit: number = 10): Promise<any[]>
  * Insert data into a table
  */
 async function insertRow(tableName: string, data: Record<string, any>): Promise<any> {
-    const columns = Object.keys(data);
-    const values = Object.values(data);
-    const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
+  const columns = Object.keys(data);
+  const values = Object.values(data);
+  const placeholders = columns.map((_, i) => `$${i + 1}`).join(', ');
 
-    const sql = `INSERT INTO "${tableName}" (${columns.map(c => `"${c}"`).join(', ')}) 
+  const sql = `INSERT INTO "${tableName}" (${columns.map((c) => `"${c}"`).join(', ')}) 
                VALUES (${placeholders}) RETURNING *`;
 
-    const result = await pool.query(sql, values);
-    return result.rows[0];
+  const result = await pool.query(sql, values);
+  return result.rows[0];
 }
 
 /**
  * Update rows in a table
  */
 async function updateRows(
-    tableName: string,
-    data: Record<string, any>,
-    whereClause: string
+  tableName: string,
+  data: Record<string, any>,
+  whereClause: string,
 ): Promise<number> {
-    const columns = Object.keys(data);
-    const values = Object.values(data);
-    const setClause = columns.map((col, i) => `"${col}" = $${i + 1}`).join(', ');
+  const columns = Object.keys(data);
+  const values = Object.values(data);
+  const setClause = columns.map((col, i) => `"${col}" = $${i + 1}`).join(', ');
 
-    const sql = `UPDATE "${tableName}" SET ${setClause} WHERE ${whereClause}`;
-    const result = await pool.query(sql, values);
-    return result.rowCount || 0;
+  const sql = `UPDATE "${tableName}" SET ${setClause} WHERE ${whereClause}`;
+  const result = await pool.query(sql, values);
+  return result.rowCount || 0;
 }
 
 /**
  * Delete rows from a table
  */
 async function deleteRows(tableName: string, whereClause: string): Promise<number> {
-    const sql = `DELETE FROM "${tableName}" WHERE ${whereClause}`;
-    const result = await pool.query(sql);
-    return result.rowCount || 0;
+  const sql = `DELETE FROM "${tableName}" WHERE ${whereClause}`;
+  const result = await pool.query(sql);
+  return result.rowCount || 0;
 }
 
 // ============================================
@@ -203,18 +203,18 @@ async function deleteRows(tableName: string, whereClause: string): Promise<numbe
  * Create a new table
  */
 async function createTable(tableName: string, columns: string): Promise<void> {
-    const sql = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns})`;
-    await pool.query(sql);
-    console.log(`✅ Table "${tableName}" created successfully`);
+  const sql = `CREATE TABLE IF NOT EXISTS "${tableName}" (${columns})`;
+  await pool.query(sql);
+  console.log(`✅ Table "${tableName}" created successfully`);
 }
 
 /**
  * Drop a table
  */
 async function dropTable(tableName: string): Promise<void> {
-    const sql = `DROP TABLE IF EXISTS "${tableName}" CASCADE`;
-    await pool.query(sql);
-    console.log(`🗑️  Table "${tableName}" dropped successfully`);
+  const sql = `DROP TABLE IF EXISTS "${tableName}" CASCADE`;
+  await pool.query(sql);
+  console.log(`🗑️  Table "${tableName}" dropped successfully`);
 }
 
 // ============================================
@@ -222,61 +222,61 @@ async function dropTable(tableName: string): Promise<void> {
 // ============================================
 
 async function interactiveMode(): Promise<void> {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  console.log('\n🔌 Connected to Supabase Database');
+  console.log('Type SQL commands or use these shortcuts:');
+  console.log('  \\dt          - List tables');
+  console.log('  \\d <table>   - Describe table');
+  console.log('  \\q           - Quit');
+  console.log('─'.repeat(50));
+
+  const prompt = () => {
+    rl.question('supabase> ', async (input) => {
+      const cmd = input.trim();
+
+      if (!cmd) {
+        prompt();
+        return;
+      }
+
+      try {
+        if (cmd === '\\q' || cmd === 'exit' || cmd === 'quit') {
+          console.log('Goodbye! 👋');
+          rl.close();
+          await pool.end();
+          return;
+        }
+
+        if (cmd === '\\dt') {
+          const tables = await listTables();
+          console.log('\n📋 Tables:');
+          tables.forEach((t) => console.log(`  • ${t}`));
+          console.log('');
+        } else if (cmd.startsWith('\\d ')) {
+          const tableName = cmd.slice(3).trim();
+          await describeTable(tableName);
+        } else {
+          // Execute as SQL
+          const result = await pool.query(cmd);
+          if (result.rows.length > 0) {
+            console.table(result.rows);
+          } else {
+            console.log(`✅ Query executed. Rows affected: ${result.rowCount}`);
+          }
+        }
+      } catch (error: any) {
+        console.error(`❌ Error: ${error.message}`);
+      }
+
+      prompt();
     });
+  };
 
-    console.log('\n🔌 Connected to Supabase Database');
-    console.log('Type SQL commands or use these shortcuts:');
-    console.log('  \\dt          - List tables');
-    console.log('  \\d <table>   - Describe table');
-    console.log('  \\q           - Quit');
-    console.log('─'.repeat(50));
-
-    const prompt = () => {
-        rl.question('supabase> ', async (input) => {
-            const cmd = input.trim();
-
-            if (!cmd) {
-                prompt();
-                return;
-            }
-
-            try {
-                if (cmd === '\\q' || cmd === 'exit' || cmd === 'quit') {
-                    console.log('Goodbye! 👋');
-                    rl.close();
-                    await pool.end();
-                    return;
-                }
-
-                if (cmd === '\\dt') {
-                    const tables = await listTables();
-                    console.log('\n📋 Tables:');
-                    tables.forEach(t => console.log(`  • ${t}`));
-                    console.log('');
-                } else if (cmd.startsWith('\\d ')) {
-                    const tableName = cmd.slice(3).trim();
-                    await describeTable(tableName);
-                } else {
-                    // Execute as SQL
-                    const result = await pool.query(cmd);
-                    if (result.rows.length > 0) {
-                        console.table(result.rows);
-                    } else {
-                        console.log(`✅ Query executed. Rows affected: ${result.rowCount}`);
-                    }
-                }
-            } catch (error: any) {
-                console.error(`❌ Error: ${error.message}`);
-            }
-
-            prompt();
-        });
-    };
-
-    prompt();
+  prompt();
 }
 
 // ============================================
@@ -284,7 +284,7 @@ async function interactiveMode(): Promise<void> {
 // ============================================
 
 function printHelp(): void {
-    console.log(`
+  console.log(`
 🔧 Supabase Database Utility
 ============================
 
@@ -311,12 +311,12 @@ Examples:
 }
 
 function formatOutput(rows: any[]): void {
-    if (rows.length === 0) {
-        console.log('(No rows returned)');
-        return;
-    }
-    console.table(rows);
-    console.log(`(${rows.length} rows)`);
+  if (rows.length === 0) {
+    console.log('(No rows returned)');
+    return;
+  }
+  console.table(rows);
+  console.log(`(${rows.length} rows)`);
 }
 
 // ============================================
@@ -324,109 +324,109 @@ function formatOutput(rows: any[]): void {
 // ============================================
 
 async function main(): Promise<void> {
-    const args = process.argv.slice(2);
-    const command = args[0]?.toLowerCase();
+  const args = process.argv.slice(2);
+  const command = args[0]?.toLowerCase();
 
-    if (!command || command === 'help') {
-        printHelp();
-        await pool.end();
-        return;
-    }
-
-    try {
-        switch (command) {
-            case 'schema':
-                await showSchema();
-                break;
-
-            case 'tables':
-                const tables = await listTables();
-                console.log('\n📋 Tables in database:');
-                tables.forEach(t => console.log(`  • ${t}`));
-                console.log(`\nTotal: ${tables.length} tables\n`);
-                break;
-
-            case 'describe':
-            case 'desc':
-                if (!args[1]) {
-                    console.error('❌ Please specify a table name');
-                    break;
-                }
-                await describeTable(args[1]);
-                break;
-
-            case 'query':
-                if (!args[1]) {
-                    console.error('❌ Please provide a SQL query');
-                    break;
-                }
-                const queryResult = await executeQuery(args.slice(1).join(' '));
-                formatOutput(queryResult);
-                break;
-
-            case 'exec':
-                if (!args[1]) {
-                    console.error('❌ Please provide a SQL statement');
-                    break;
-                }
-                const execResult = await executeSql(args.slice(1).join(' '));
-                console.log(`✅ Executed. Rows affected: ${execResult.rowCount}`);
-                if (execResult.rows.length > 0) {
-                    formatOutput(execResult.rows);
-                }
-                break;
-
-            case 'count':
-                if (!args[1]) {
-                    console.error('❌ Please specify a table name');
-                    break;
-                }
-                const count = await countRows(args[1]);
-                console.log(`\n📊 Table "${args[1]}" has ${count} rows\n`);
-                break;
-
-            case 'sample':
-                if (!args[1]) {
-                    console.error('❌ Please specify a table name');
-                    break;
-                }
-                const limit = parseInt(args[2] ?? '10') || 10;
-                const sample = await sampleRows(args[1]!, limit);
-                console.log(`\n📋 Sample from "${args[1]}" (${limit} rows):`);
-                formatOutput(sample);
-                break;
-
-            case 'interactive':
-            case 'i':
-                await interactiveMode();
-                return; // Don't close pool here, interactive mode handles it
-
-            default:
-                console.error(`❌ Unknown command: ${command}`);
-                printHelp();
-        }
-    } catch (error: any) {
-        console.error(`❌ Error: ${error.message}`);
-    }
-
+  if (!command || command === 'help') {
+    printHelp();
     await pool.end();
+    return;
+  }
+
+  try {
+    switch (command) {
+      case 'schema':
+        await showSchema();
+        break;
+
+      case 'tables':
+        const tables = await listTables();
+        console.log('\n📋 Tables in database:');
+        tables.forEach((t) => console.log(`  • ${t}`));
+        console.log(`\nTotal: ${tables.length} tables\n`);
+        break;
+
+      case 'describe':
+      case 'desc':
+        if (!args[1]) {
+          console.error('❌ Please specify a table name');
+          break;
+        }
+        await describeTable(args[1]);
+        break;
+
+      case 'query':
+        if (!args[1]) {
+          console.error('❌ Please provide a SQL query');
+          break;
+        }
+        const queryResult = await executeQuery(args.slice(1).join(' '));
+        formatOutput(queryResult);
+        break;
+
+      case 'exec':
+        if (!args[1]) {
+          console.error('❌ Please provide a SQL statement');
+          break;
+        }
+        const execResult = await executeSql(args.slice(1).join(' '));
+        console.log(`✅ Executed. Rows affected: ${execResult.rowCount}`);
+        if (execResult.rows.length > 0) {
+          formatOutput(execResult.rows);
+        }
+        break;
+
+      case 'count':
+        if (!args[1]) {
+          console.error('❌ Please specify a table name');
+          break;
+        }
+        const count = await countRows(args[1]);
+        console.log(`\n📊 Table "${args[1]}" has ${count} rows\n`);
+        break;
+
+      case 'sample':
+        if (!args[1]) {
+          console.error('❌ Please specify a table name');
+          break;
+        }
+        const limit = parseInt(args[2] ?? '10') || 10;
+        const sample = await sampleRows(args[1]!, limit);
+        console.log(`\n📋 Sample from "${args[1]}" (${limit} rows):`);
+        formatOutput(sample);
+        break;
+
+      case 'interactive':
+      case 'i':
+        await interactiveMode();
+        return; // Don't close pool here, interactive mode handles it
+
+      default:
+        console.error(`❌ Unknown command: ${command}`);
+        printHelp();
+    }
+  } catch (error: any) {
+    console.error(`❌ Error: ${error.message}`);
+  }
+
+  await pool.end();
 }
 
 // Export functions for programmatic use
 export {
-    listTables,
-    describeTable,
-    showSchema,
-    executeQuery,
-    executeSql,
-    countRows,
-    sampleRows,
-    insertRow,
-    updateRows,
-    deleteRows,
-    createTable,
-    dropTable,
-    pool
+  listTables,
+  describeTable,
+  showSchema,
+  executeQuery,
+  executeSql,
+  countRows,
+  sampleRows,
+  insertRow,
+  updateRows,
+  deleteRows,
+  createTable,
+  dropTable,
+  pool,
 };
 
 // Run CLI if executed directly

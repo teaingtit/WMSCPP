@@ -12,7 +12,7 @@ describe('Warehouse Actions', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockSupabase = createMockSupabaseClient();
-    
+
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
   });

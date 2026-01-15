@@ -160,7 +160,6 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
 function SystemLine({ entry }: { entry: SystemLogEntry }) {
   // If entity type is location, link to settings
 
-
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">

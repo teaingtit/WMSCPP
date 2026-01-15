@@ -36,7 +36,6 @@ const CreateStatusSchema = z.object({
   sort_order: z.coerce.number().min(0).default(0),
 });
 
-
 const UpdateStatusSchema = CreateStatusSchema.partial().extend({
   id: z.string().uuid('Invalid status ID'),
 });
