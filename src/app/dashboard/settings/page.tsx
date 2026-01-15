@@ -6,6 +6,9 @@ import { getUsers } from '@/actions/user-actions';
 import { Settings } from 'lucide-react';
 import { SettingsTabs } from '@/components/settings/SettingsTabs';
 
+// Force dynamic rendering (ป้องกัน static generation ตอน build time)
+export const dynamic = 'force-dynamic';
+
 export default async function SettingsPage() {
   const user = await requireAdmin();
 
