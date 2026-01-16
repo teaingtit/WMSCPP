@@ -129,7 +129,7 @@ export const STATUS_COLOR_PALETTE = [
   { name: 'Pink', value: '#ec4899', bg: '#fce7f3', text: '#9d174d' },
   { name: 'Cyan', value: '#06b6d4', bg: '#cffafe', text: '#155e75' },
   { name: 'Slate', value: '#64748b', bg: '#f1f5f9', text: '#334155' },
-  { name: 'Indigo', value: '#6366f1', bg: '#e0e7ff', text: '#3730a3' },
+  { name: 'Indigo', value: '#6366f1', bg: '#e0e7ff', text: '#312e81' },
 ] as const;
 
 /**

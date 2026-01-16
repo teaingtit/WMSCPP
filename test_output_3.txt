@@ -1,0 +1,283 @@
+
+> my-wms-app@0.1.0 test:unit
+> vitest schema-version-actions.test.ts bulk-schema-actions.test.ts VisualSchemaDesigner.test.tsx --run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90mC:/Users/nteai/Desktop/project/WMSCPP[39m
+
+ [31mΓ¥»[39m test/actions/schema-version-actions.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 10[2mms[22m[39m
+       [32mΓ£ô[39m should retrieve schema history for a category[32m 2[2mms[22m[39m
+       [32mΓ£ô[39m should return empty array for category with no history[32m 0[2mms[22m[39m
+[31m       [31m├ù[31m should create a new schema version[39m[32m 3[2mms[22m[39m
+       [32mΓ£ô[39m should auto-increment version number[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should revert to a previous version by creating a new version[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should fail if target version does not exist[32m 0[2mms[22m[39m
+[31m       [31m├ù[31m should compare two schema versions and return differences[39m[32m 3[2mms[22m[39m
+       [32mΓ£ô[39m should detect removed fields[32m 0[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/bulk-schema-actions.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [31mΓ¥»[39m test/components/VisualSchemaDesigner.test.tsx [2m([22m[2m9 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1136[2mms[22m[39m
+     [32mΓ£ô[39m should render field palette and drop zones[32m 23[2mms[22m[39m
+     [32mΓ£ô[39m should add field to PRODUCT scope on drop[32m 23[2mms[22m[39m
+     [32mΓ£ô[39m should load initial schema[32m 5[2mms[22m[39m
+     [32mΓ£ô[39m should delete field when delete button clicked[32m 10[2mms[22m[39m
+     [32mΓ£ô[39m should open property panel when field is selected[32m 17[2mms[22m[39m
+     [32mΓ£ô[39m should update field properties[32m 16[2mms[22m[39m
+     [32mΓ£ô[39m should emit schema changes on every update[32m 8[2mms[22m[39m
+     [32mΓ£ô[39m should separate PRODUCT and LOT scope fields[32m 3[2mms[22m[39m
+[31m     [31m├ù[31m should auto-generate field keys from labels[39m[33m 1029[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  test/actions/schema-version-actions.test.ts > Schema Version Actions > createSchemaVersion > should create a new schema version
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ Γ¥» test/actions/schema-version-actions.test.ts:131:36
+    129| 
+    130|             expect(result.success).toBe(true);
+    131|             expect(result.message).toContain('Created version 3');
+       |                                    ^
+    132|         });
+    133| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/3]ΓÄ»
+
+ FAIL  test/actions/schema-version-actions.test.ts > Schema Version Actions > compareSchemaVersions > should compare two schema versions and return differences
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ Γ¥» test/actions/schema-version-actions.test.ts:178:39
+    176|             expect(result.success).toBe(true);
+    177|             expect(result.diff).toBeDefined();
+    178|             expect(result.diff.added).toHaveLength(1); // expiry fieldΓÇª
+       |                                       ^
+    179|             expect(result.diff.removed).toHaveLength(0);
+    180|             expect(result.diff.added[0].key).toBe('expiry');
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/3]ΓÄ»
+
+ FAIL  test/components/VisualSchemaDesigner.test.tsx > VisualSchemaDesigner > should auto-generate field keys from labels
+AssertionError: expected 'α╕ƒα╕┤α╕Ñα╕öα╣îα╕éα╣ëα╕¡α╕äα╕ºα╕▓α╕í' to match /^[a-z0-9_]+$/
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="flex gap-4"
+      >
+        <div
+          class="flex-1 space-y-4"
+        >
+          <div
+            data-testid="field-palette"
+          >
+            <button>
+              Text Field
+            </button>
+            <button>
+              Number Field
+            </button>
+            <button>
+              Date Field
+            </button>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-package text-indigo-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m7.5 4.27 9 5.15"
+                />
+                <path
+                  d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                />
+                <path
+                  d="m3.3 7 8.7 5 8.7-5"
+                />
+                <path
+                  d="M12 22V12"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                PRODUCT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕¬α╕┤α╕Öα╕äα╣ëα╕▓ - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕äα╕úα╕▒α╣ëα╕çα╣Çα╕öα╕╡α╕óα╕º)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+              data-testid="drop-zone-PRODUCT"
+            >
+              <div
+                class="space-y-2"
+              >
+                <div
+                  data-testid="field-card-field-1768536007811"
+                >
+                  <span>
+                    α╕ƒα╕┤α╕Ñα╕öα╣îα╕éα╣ëα╕¡α╕äα╕ºα╕▓α╕í
+                  </span>
+                  <button>
+                    Select
+                  </button>
+                  <button>
+                    Delete
+                  </button>
+                  <button>
+                    Update
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-layers text-emerald-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                />
+                <path
+                  d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                />
+                <path
+                  d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                LOT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕Ñα╣çα╕¡α╕ò - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕ùα╕╕α╕üα╕äα╕úα╕▒α╣ëα╕çα╕ùα╕╡α╣êα╕úα╕▒α╕Üα╣Çα╕éα╣ëα╕▓)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+              data-testid="drop-zone-LOT"
+            >
+              <div
+                class="text-center text-slate-400 py-8"
+              >
+                <svg
+                  class="lucide lucide-layers mx-auto mb-2 opacity-50"
+                  fill="none"
+                  height="32"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                  />
+                  <path
+                    d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                  />
+                  <path
+                    d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                  />
+                </svg>
+                <p
+                  class="text-sm"
+                >
+                  α╕Ñα╕▓α╕üα╕ƒα╕┤α╕Ñα╕öα╣îα╕íα╕▓α╕ºα╕▓α╕çα╕ùα╕╡α╣êα╕Öα╕╡α╣ê...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          data-testid="property-panel"
+        >
+          <span>
+            Editing: 
+            α╕ƒα╕┤α╕Ñα╕öα╣îα╕éα╣ëα╕¡α╕äα╕ºα╕▓α╕í
+          </span>
+          <button>
+            Make Required
+          </button>
+          <button>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+- Expected: 
+/^[a-z0-9_]+$/
+
++ Received: 
+"α╕ƒα╕┤α╕Ñα╕öα╣îα╕éα╣ëα╕¡α╕äα╕ºα╕▓α╕í"
+
+ Γ¥» test/components/VisualSchemaDesigner.test.tsx:182:35
+    180|             const schema = JSON.parse(lastCall);
+    181|             expect(schema[0].key).toBeDefined();
+    182|             expect(schema[0].key).toMatch(/^[a-z0-9_]+$/);
+       |                                   ^
+    183|         });
+    184|     });
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/3]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m20 passed[39m[22m[90m (23)[39m
+[2m   Start at [22m 11:00:04
+[2m   Duration [22m 4.46s[2m (transform 178ms, setup 248ms, import 304ms, tests 1.15s, environment 1.51s)[22m
+

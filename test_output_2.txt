@@ -1,0 +1,695 @@
+
+> my-wms-app@0.1.0 test:unit
+> vitest schema-version-actions.test.ts bulk-schema-actions.test.ts VisualSchemaDesigner.test.tsx --run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.16 [39m[90mC:/Users/nteai/Desktop/project/WMSCPP[39m
+
+ [31mΓ¥»[39m test/actions/schema-version-actions.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 12[2mms[22m[39m
+       [32mΓ£ô[39m should retrieve schema history for a category[32m 2[2mms[22m[39m
+       [32mΓ£ô[39m should return empty array for category with no history[32m 0[2mms[22m[39m
+[31m       [31m├ù[31m should create a new schema version[39m[32m 4[2mms[22m[39m
+       [32mΓ£ô[39m should auto-increment version number[32m 1[2mms[22m[39m
+       [32mΓ£ô[39m should revert to a previous version by creating a new version[32m 0[2mms[22m[39m
+       [32mΓ£ô[39m should fail if target version does not exist[32m 0[2mms[22m[39m
+[31m       [31m├ù[31m should compare two schema versions and return differences[39m[32m 3[2mms[22m[39m
+       [32mΓ£ô[39m should detect removed fields[32m 0[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/bulk-schema-actions.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [31mΓ¥»[39m test/components/VisualSchemaDesigner.test.tsx [2m([22m[2m9 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 3107[2mms[22m[39m
+     [32mΓ£ô[39m should render field palette and drop zones[32m 25[2mms[22m[39m
+[31m     [31m├ù[31m should add field to PRODUCT scope on drop[39m[33m 1029[2mms[22m[39m
+     [32mΓ£ô[39m should load initial schema[32m 7[2mms[22m[39m
+     [32mΓ£ô[39m should delete field when delete button clicked[32m 8[2mms[22m[39m
+     [32mΓ£ô[39m should open property panel when field is selected[32m 6[2mms[22m[39m
+     [32mΓ£ô[39m should update field properties[32m 10[2mms[22m[39m
+[31m     [31m├ù[31m should emit schema changes on every update[39m[33m 1011[2mms[22m[39m
+     [32mΓ£ô[39m should separate PRODUCT and LOT scope fields[32m 4[2mms[22m[39m
+[31m     [31m├ù[31m should auto-generate field keys from labels[39m[33m 1006[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 5 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  test/components/VisualSchemaDesigner.test.tsx > VisualSchemaDesigner > should add field to PRODUCT scope on drop
+AssertionError: expected 0 to be greater than 0
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="flex gap-4"
+      >
+        <div
+          class="flex-1 space-y-4"
+        >
+          <div
+            data-testid="field-palette"
+          >
+            <button>
+              Text Field
+            </button>
+            <button>
+              Number Field
+            </button>
+            <button>
+              Date Field
+            </button>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-package text-indigo-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m7.5 4.27 9 5.15"
+                />
+                <path
+                  d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                />
+                <path
+                  d="m3.3 7 8.7 5 8.7-5"
+                />
+                <path
+                  d="M12 22V12"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                PRODUCT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕¬α╕┤α╕Öα╕äα╣ëα╕▓ - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕äα╕úα╕▒α╣ëα╕çα╣Çα╕öα╕╡α╕óα╕º)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+            >
+              <div
+                class="text-center text-slate-400 py-8"
+              >
+                <svg
+                  class="lucide lucide-package mx-auto mb-2 opacity-50"
+                  fill="none"
+                  height="32"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m7.5 4.27 9 5.15"
+                  />
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path
+                    d="m3.3 7 8.7 5 8.7-5"
+                  />
+                  <path
+                    d="M12 22V12"
+                  />
+                </svg>
+                <p
+                  class="text-sm"
+                >
+                  α╕Ñα╕▓α╕üα╕ƒα╕┤α╕Ñα╕öα╣îα╕íα╕▓α╕ºα╕▓α╕çα╕ùα╕╡α╣êα╕Öα╕╡α╣ê...
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-layers text-emerald-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                />
+                <path
+                  d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                />
+                <path
+                  d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                LOT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕Ñα╣çα╕¡α╕ò - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕ùα╕╕α╕üα╕äα╕úα╕▒α╣ëα╕çα╕ùα╕╡α╣êα╕úα╕▒α╕Üα╣Çα╕éα╣ëα╕▓)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+            >
+              <div
+                class="text-center text-slate-400 py-8"
+              >
+                <svg
+                  class="lucide lucide-layers mx-auto mb-2 opacity-50"
+                  fill="none"
+                  height="32"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                  />
+                  <path
+                    d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                  />
+                  <path
+                    d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                  />
+                </svg>
+                <p
+                  class="text-sm"
+                >
+                  α╕Ñα╕▓α╕üα╕ƒα╕┤α╕Ñα╕öα╣îα╕íα╕▓α╕ºα╕▓α╕çα╕ùα╕╡α╣êα╕Öα╕╡α╣ê...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+ Γ¥» test/components/VisualSchemaDesigner.test.tsx:72:35
+     70|             const lastCall = mockOnSchemaChange.mock.calls[mockOnSchemΓÇª
+     71|             const schema = JSON.parse(lastCall);
+     72|             expect(schema.length).toBeGreaterThan(0);
+       |                                   ^
+     73|         });
+     74|     });
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/5]ΓÄ»
+
+ FAIL  test/components/VisualSchemaDesigner.test.tsx > VisualSchemaDesigner > should emit schema changes on every update
+AssertionError: expected [] to have a length of 1 but got +0
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="flex gap-4"
+      >
+        <div
+          class="flex-1 space-y-4"
+        >
+          <div
+            data-testid="field-palette"
+          >
+            <button>
+              Text Field
+            </button>
+            <button>
+              Number Field
+            </button>
+            <button>
+              Date Field
+            </button>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-package text-indigo-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m7.5 4.27 9 5.15"
+                />
+                <path
+                  d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                />
+                <path
+                  d="m3.3 7 8.7 5 8.7-5"
+                />
+                <path
+                  d="M12 22V12"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                PRODUCT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕¬α╕┤α╕Öα╕äα╣ëα╕▓ - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕äα╕úα╕▒α╣ëα╕çα╣Çα╕öα╕╡α╕óα╕º)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+            >
+              <div
+                class="text-center text-slate-400 py-8"
+              >
+                <svg
+                  class="lucide lucide-package mx-auto mb-2 opacity-50"
+                  fill="none"
+                  height="32"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m7.5 4.27 9 5.15"
+                  />
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path
+                    d="m3.3 7 8.7 5 8.7-5"
+                  />
+                  <path
+                    d="M12 22V12"
+                  />
+                </svg>
+                <p
+                  class="text-sm"
+                >
+                  α╕Ñα╕▓α╕üα╕ƒα╕┤α╕Ñα╕öα╣îα╕íα╕▓α╕ºα╕▓α╕çα╕ùα╕╡α╣êα╕Öα╕╡α╣ê...
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-layers text-emerald-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                />
+                <path
+                  d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                />
+                <path
+                  d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                LOT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕Ñα╣çα╕¡α╕ò - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕ùα╕╕α╕üα╕äα╕úα╕▒α╣ëα╕çα╕ùα╕╡α╣êα╕úα╕▒α╕Üα╣Çα╕éα╣ëα╕▓)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+            >
+              <div
+                class="text-center text-slate-400 py-8"
+              >
+                <svg
+                  class="lucide lucide-layers mx-auto mb-2 opacity-50"
+                  fill="none"
+                  height="32"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                  />
+                  <path
+                    d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                  />
+                  <path
+                    d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                  />
+                </svg>
+                <p
+                  class="text-sm"
+                >
+                  α╕Ñα╕▓α╕üα╕ƒα╕┤α╕Ñα╕öα╣îα╕íα╕▓α╕ºα╕▓α╕çα╕ùα╕╡α╣êα╕Öα╕╡α╣ê...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ Γ¥» test/components/VisualSchemaDesigner.test.tsx:155:28
+    153|             const lastCall = mockOnSchemaChange.mock.calls[mockOnSchemΓÇª
+    154|             const schema = JSON.parse(lastCall);
+    155|             expect(schema).toHaveLength(1);
+       |                            ^
+    156|             expect(schema[0].type).toBe('text');
+    157|         });
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/5]ΓÄ»
+
+ FAIL  test/components/VisualSchemaDesigner.test.tsx > VisualSchemaDesigner > should auto-generate field keys from labels
+TypeError: Cannot read properties of undefined (reading 'key')
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="flex gap-4"
+      >
+        <div
+          class="flex-1 space-y-4"
+        >
+          <div
+            data-testid="field-palette"
+          >
+            <button>
+              Text Field
+            </button>
+            <button>
+              Number Field
+            </button>
+            <button>
+              Date Field
+            </button>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-package text-indigo-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m7.5 4.27 9 5.15"
+                />
+                <path
+                  d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                />
+                <path
+                  d="m3.3 7 8.7 5 8.7-5"
+                />
+                <path
+                  d="M12 22V12"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                PRODUCT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕¬α╕┤α╕Öα╕äα╣ëα╕▓ - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕äα╕úα╕▒α╣ëα╕çα╣Çα╕öα╕╡α╕óα╕º)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+            >
+              <div
+                class="text-center text-slate-400 py-8"
+              >
+                <svg
+                  class="lucide lucide-package mx-auto mb-2 opacity-50"
+                  fill="none"
+                  height="32"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m7.5 4.27 9 5.15"
+                  />
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path
+                    d="m3.3 7 8.7 5 8.7-5"
+                  />
+                  <path
+                    d="M12 22V12"
+                  />
+                </svg>
+                <p
+                  class="text-sm"
+                >
+                  α╕Ñα╕▓α╕üα╕ƒα╕┤α╕Ñα╕öα╣îα╕íα╕▓α╕ºα╕▓α╕çα╕ùα╕╡α╣êα╕Öα╕╡α╣ê...
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="bg-white border border-slate-200 rounded-xl p-4"
+          >
+            <div
+              class="flex items-center gap-2 mb-3"
+            >
+              <svg
+                class="lucide lucide-layers text-emerald-600"
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                />
+                <path
+                  d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                />
+                <path
+                  d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                />
+              </svg>
+              <h4
+                class="font-bold text-slate-700"
+              >
+                LOT Scope
+              </h4>
+              <span
+                class="text-xs text-slate-500"
+              >
+                (α╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕Ñα╣çα╕¡α╕ò - α╕Üα╕▒α╕Öα╕ùα╕╢α╕üα╕ùα╕╕α╕üα╕äα╕úα╕▒α╣ëα╕çα╕ùα╕╡α╣êα╕úα╕▒α╕Üα╣Çα╕éα╣ëα╕▓)
+              </span>
+            </div>
+            <div
+              class="
+              min-h-32 p-4 rounded-lg border-2 border-dashed transition-all
+              bg-slate-50 border-slate-300
+            "
+            >
+              <div
+                class="text-center text-slate-400 py-8"
+              >
+                <svg
+                  class="lucide lucide-layers mx-auto mb-2 opacity-50"
+                  fill="none"
+                  height="32"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="32"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"
+                  />
+                  <path
+                    d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"
+                  />
+                  <path
+                    d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"
+                  />
+                </svg>
+                <p
+                  class="text-sm"
+                >
+                  α╕Ñα╕▓α╕üα╕ƒα╕┤α╕Ñα╕öα╣îα╕íα╕▓α╕ºα╕▓α╕çα╕ùα╕╡α╣êα╕Öα╕╡α╣ê...
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+ Γ¥» test/components/VisualSchemaDesigner.test.tsx:187:30
+    185|             const lastCall = mockOnSchemaChange.mock.calls[mockOnSchemΓÇª
+    186|             const schema = JSON.parse(lastCall);
+    187|             expect(schema[0].key).toBeDefined();
+       |                              ^
+    188|             expect(schema[0].key).toMatch(/^[a-z0-9_]+$/);
+    189|         });
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/5]ΓÄ»
+
+ FAIL  test/actions/schema-version-actions.test.ts > Schema Version Actions > createSchemaVersion > should create a new schema version
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ Γ¥» test/actions/schema-version-actions.test.ts:135:36
+    133| 
+    134|             expect(result.success).toBe(true);
+    135|             expect(result.message).toContain('Created version 3');
+       |                                    ^
+    136|         });
+    137| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/5]ΓÄ»
+
+ FAIL  test/actions/schema-version-actions.test.ts > Schema Version Actions > compareSchemaVersions > should compare two schema versions and return differences
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ Γ¥» test/actions/schema-version-actions.test.ts:185:39
+    183|             expect(result.success).toBe(true);
+    184|             expect(result.diff).toBeDefined();
+    185|             expect(result.diff.added).toHaveLength(1); // expiry fieldΓÇª
+       |                                       ^
+    186|             expect(result.diff.removed).toHaveLength(0);
+    187|             expect(result.diff.added[0].key).toBe('expiry');
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/5]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (3)[39m
+[2m      Tests [22m [1m[31m5 failed[39m[22m[2m | [22m[1m[32m18 passed[39m[22m[90m (23)[39m
+[2m   Start at [22m 10:57:18
+[2m   Duration [22m 6.59s[2m (transform 149ms, setup 230ms, import 340ms, tests 3.12s, environment 1.65s)[22m
+

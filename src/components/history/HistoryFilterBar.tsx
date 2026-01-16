@@ -11,14 +11,14 @@ export default function HistoryFilterBar() {
   const searchParams = useSearchParams();
 
   // Initial State from URL
-  const initialSearch = searchParams.get('search') || '';
+  const initialSearch = searchParams.get('q') || '';
   const initialType = searchParams.get('type') || 'ALL';
   const initialMode = searchParams.get('mode') || 'simple';
   const initialStartDate = searchParams.get('startDate') || '';
   const initialEndDate = searchParams.get('endDate') || '';
 
   const [text, setText] = useState(initialSearch);
-  const [query] = useDebounce(text, 500);
+  const [query] = useDebounce(text, 400);
   const [type, setType] = useState(initialType);
   const [mode, setMode] = useState(initialMode);
   const [showDateFilter, setShowDateFilter] = useState(!!initialStartDate);
@@ -29,8 +29,8 @@ export default function HistoryFilterBar() {
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
 
-    if (query) params.set('search', query);
-    else params.delete('search');
+    if (query) params.set('q', query);
+    else params.delete('q');
 
     if (type && type !== 'ALL') params.set('type', type);
     else params.delete('type');

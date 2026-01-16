@@ -53,10 +53,10 @@ const AxisInput = ({ label, name, def, max, desc, color = 'slate', isHighlight }
       min="1"
       max={max}
       required
-      className={`w-full p-3 border rounded-xl text-center font-bold text-slate-700 focus:ring-2 outline-none ${
+      className={`w-full p-3 border rounded-xl text-center font-bold text-slate-700 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 ${
         isHighlight
-          ? 'border-2 border-indigo-100 bg-white shadow-sm ring-indigo-500/20'
-          : `ring-${color}-500/20`
+          ? 'border-2 border-indigo-100 bg-white shadow-sm focus-visible:ring-indigo-500/30'
+          : `focus-visible:ring-${color}-500/30 focus-visible:border-${color}-500`
       }`}
     />
     <p className="text-[10px] text-slate-400 text-center mt-1">{desc}</p>

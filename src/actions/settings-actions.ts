@@ -260,6 +260,66 @@ export async function deleteCategory(formData: FormData): Promise<ActionResponse
   }
 }
 
+export async function updateCategory(formData: FormData): Promise<ActionResponse> {
+  const rawData = extractFormFields(formData, ['id', 'name', 'schema', 'units']);
+
+  const validation = validateFormData(CreateCategorySchema, rawData);
+  if (!validation.success) return validation.response;
+
+  const { id, name, schema, units } = validation.data;
+  const supabase = await createClient();
+
+  try {
+    // Get current category data to detect schema changes
+    const { data: currentCategory, error: fetchError } = await supabase
+      .from('product_categories')
+      .select('form_schema, schema_version')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const newSchema = JSON.parse(schema);
+    const currentSchema = currentCategory?.form_schema || [];
+
+    // Check if schema has changed
+    const schemaChanged = JSON.stringify(currentSchema) !== JSON.stringify(newSchema);
+
+    // If schema changed, create version entry
+    if (schemaChanged) {
+      const { createSchemaVersion } = await import('./schema-version-actions');
+      const versionResult = await createSchemaVersion(
+        id,
+        newSchema,
+        formData.get('change_notes') as string | undefined,
+      );
+
+      if (!versionResult.success) {
+        return fail('Failed to create schema version: ' + versionResult.message);
+      }
+    }
+
+    // Update category
+    const { error } = await supabase
+      .from('product_categories')
+      .update({
+        name,
+        form_schema: newSchema,
+        units: JSON.parse(units),
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    revalidatePath('/dashboard/settings');
+    return ok(
+      schemaChanged ? 'อัปเดตหมวดหมู่สำเร็จ (สร้าง schema version ใหม่)' : 'อัปเดตหมวดหมู่สำเร็จ',
+    );
+  } catch (err: any) {
+    return fail('Error: ' + err.message);
+  }
+}
+
 // --- Category Units Management ---
 
 export async function updateCategoryUnits(formData: FormData): Promise<ActionResponse> {

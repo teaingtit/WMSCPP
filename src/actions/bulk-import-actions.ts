@@ -67,6 +67,7 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
 
     // --- Pre-fetch data for Product import ---
     let schemaKeys: string[] = [];
+    let categoryData: any = null;
     if (type === 'product' && categoryId) {
       const { data: cat } = await supabase
         .from('product_categories')
@@ -74,6 +75,7 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
         .eq('id', categoryId)
         .single();
       if (cat) {
+        categoryData = cat;
         schemaKeys = (cat.form_schema || [])
           .filter((f: any) => f.scope === 'PRODUCT')
           .map((f: any) => f.key);
@@ -135,8 +137,10 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
         // Product Logic
         const skuCol = headerMap.get('sku');
         const nameCol = headerMap.get('name');
+        const uomCol = headerMap.get('uom');
         const sku = skuCol ? row.getCell(skuCol).text?.trim().toUpperCase() : undefined;
         const name = nameCol ? row.getCell(nameCol).text?.trim() : undefined;
+        const uom = uomCol ? row.getCell(uomCol).text?.trim().toUpperCase() : undefined;
 
         if (!sku && !name) return; // Skip empty row
         if (!sku) {
@@ -148,6 +152,21 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
           return;
         }
 
+        // ✅ Validation 1: UOM Check
+        if (categoryData && categoryData.units && categoryData.units.length > 0) {
+          const categoryUnits = categoryData.units;
+          const productUom = uom || categoryUnits[0]; // Default to first unit if not specified
+
+          if (!categoryUnits.includes(productUom)) {
+            errors.push(
+              `Row ${n}: หน่วย "${productUom}" ไม่ได้กำหนดไว้ในหมวดหมู่นี้ (ใช้ได้: ${categoryUnits.join(
+                ', ',
+              )})`,
+            );
+            return;
+          }
+        }
+
         const attributes: any = {};
         schemaKeys.forEach((key) => {
           const colIdx = headerMap.get(key);
@@ -157,10 +176,39 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
           }
         });
 
+        // ✅ Validation 2: Required Attributes Check (PRODUCT Scope only)
+        if (categoryData && categoryData.form_schema) {
+          const productSchema = categoryData.form_schema.filter((f: any) => f.scope === 'PRODUCT');
+          for (const field of productSchema) {
+            if (field.required && !attributes[field.key]) {
+              errors.push(`Row ${n}: จำเป็นต้องกรอก "${field.label}" (${field.key})`);
+              return;
+            }
+          }
+        }
+
+        // ✅ NEW Validation 3: Data Type Validation (PRODUCT Scope)
+        if (categoryData && categoryData.form_schema) {
+          const productSchema = categoryData.form_schema.filter((f: any) => f.scope === 'PRODUCT');
+          for (const field of productSchema) {
+            const value = attributes[field.key];
+            if (value !== undefined && value !== null && value !== '') {
+              const typeError = _validateFieldType(value, field.type, field.label);
+              if (typeError) {
+                errors.push(`Row ${n}: ${typeError}`);
+                return;
+              }
+            }
+          }
+        }
+
         const imgCol = headerMap.get('image_url');
+        const finalUom = uom || categoryData?.units?.[0] || 'UNIT';
+
         dataMap.set(sku, {
           sku,
           name,
+          uom: finalUom,
           attributes,
           category_id: categoryId,
           is_active: true,
@@ -302,6 +350,85 @@ export async function importInboundStock(formData: FormData) {
 // HELPER FUNCTIONS (Not Exported)
 // =================================================================
 
+/**
+ * Validates that a value matches the expected field type.
+ * @returns Error message if validation fails, null if valid
+ */
+function _validateFieldType(
+  value: any,
+  expectedType: 'text' | 'number' | 'date',
+  fieldLabel: string,
+): string | null {
+  // Null/undefined values are handled by required field validation
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  switch (expectedType) {
+    case 'number': {
+      // Accept actual numbers or numeric strings
+      const num = typeof value === 'number' ? value : Number(value);
+      if (isNaN(num)) {
+        return `ช่อง "${fieldLabel}" ต้องเป็นตัวเลข (ได้รับ: "${value}")`;
+      }
+      return null;
+    }
+
+    case 'date': {
+      // Accept Date objects, ISO strings, DD/MM/YYYY, or Excel serial numbers
+      if (value instanceof Date) {
+        return isNaN(value.getTime()) ? `ช่อง "${fieldLabel}" เป็นวันที่ที่ไม่ถูกต้อง` : null;
+      }
+
+      // Excel serial number (e.g., 44927 for 2023-01-01)
+      if (typeof value === 'number' && value > 0 && value < 2958466) {
+        // Valid Excel date range (1900-01-01 to 9999-12-31)
+        return null;
+      }
+
+      // String date formats
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+
+        // ISO format (YYYY-MM-DD)
+        if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+          const date = new Date(trimmed);
+          return isNaN(date.getTime()) ? `ช่อง "${fieldLabel}" เป็นวันที่ที่ไม่ถูกต้อง` : null;
+        }
+
+        // DD/MM/YYYY format
+        if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmed)) {
+          const parts = trimmed.split('/').map(Number);
+          if (parts.length === 3 && parts.every((p) => !isNaN(p))) {
+            const day = parts[0]!;
+            const month = parts[1]!;
+            const year = parts[2]!;
+            const date = new Date(year, month - 1, day);
+            if (
+              isNaN(date.getTime()) ||
+              date.getDate() !== day ||
+              date.getMonth() !== month - 1 ||
+              date.getFullYear() !== year
+            ) {
+              return `ช่อง "${fieldLabel}" เป็นวันที่ที่ไม่ถูกต้อง (รูปแบบ: DD/MM/YYYY)`;
+            }
+            return null;
+          }
+        }
+
+        return `ช่อง "${fieldLabel}" ต้องเป็นวันที่ (รูปแบบ: YYYY-MM-DD หรือ DD/MM/YYYY, ได้รับ: "${value}")`;
+      }
+
+      return `ช่อง "${fieldLabel}" ต้องเป็นวันที่ (ได้รับประเภทข้อมูล: ${typeof value})`;
+    }
+
+    case 'text':
+    default:
+      // Text accepts anything - most permissive
+      return null;
+  }
+}
+
 /** Parses headers for Master Data import files (Product/Category). */
 function _parseMasterDataHeaders(worksheet: Worksheet, schemaKeys: string[]): Map<string, number> {
   const headerMap = new Map<string, number>();
@@ -316,6 +443,7 @@ function _parseMasterDataHeaders(worksheet: Worksheet, schemaKeys: string[]): Ma
     if (headerText.includes('name') || headerText.includes('ชื่อ'))
       headerMap.set('name', colNumber);
     if (headerText.includes('image')) headerMap.set('image_url', colNumber);
+    if (headerText.includes('uom') || headerText.includes('หน่วย')) headerMap.set('uom', colNumber);
 
     // Dynamic attribute columns for Category
     for (let i = 1; i <= 5; i++) {
@@ -381,7 +509,9 @@ async function _prefetchInboundData(
     ? catRes.data.form_schema.map((f: any) => f.key)
     : [];
 
-  return { productMap, locMap, locMapNumeric, schemaKeys };
+  const formSchema = Array.isArray(catRes.data?.form_schema) ? catRes.data.form_schema : [];
+
+  return { productMap, locMap, locMapNumeric, schemaKeys, formSchema };
 }
 
 /** Parses headers from the inbound Excel file to map column names to indices. */
@@ -505,6 +635,21 @@ function _processInboundRow(
       else if (val !== null && val !== undefined) attributes[key] = val;
     }
   });
+
+  // ✅ NEW Validation: Data Type Validation (LOT Scope)
+  const { formSchema } = context;
+  if (formSchema && formSchema.length > 0) {
+    const lotSchema = formSchema.filter((f: any) => f.scope === 'LOT');
+    for (const field of lotSchema) {
+      const value = attributes[field.key];
+      if (value !== undefined && value !== null && value !== '') {
+        const typeError = _validateFieldType(value, field.type, field.label);
+        if (typeError) {
+          return { error: `Row ${rowNum}: ${typeError}` };
+        }
+      }
+    }
+  }
 
   return {
     txData: {

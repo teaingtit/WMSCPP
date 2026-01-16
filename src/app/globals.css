@@ -648,6 +648,20 @@ html {
   }
 }
 
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(400%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 .flash-success {
   animation: flash-success 0.6s ease-out;
 }
@@ -666,15 +680,95 @@ html {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  /* Disable specific animations */
+  .animate-shimmer,
+  .animate-pulse,
+  .animate-pulse-once,
+  .animate-bounce-soft,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in {
+    animation: none !important;
+  }
+
+  /* Disable hover transforms */
+  .hover\:-translate-y-1:hover,
+  .hover\:scale-110:hover,
+  .active\:scale-95:active,
+  .active\:scale-\[0\.98\]:active {
+    transform: none !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: 0 0% 0%;
+    --ring: 0 0% 0%;
+    --input: 0 0% 0%;
+  }
+
+  .dark {
+    --border: 0 0% 100%;
+    --ring: 0 0% 100%;
+    --input: 0 0% 100%;
+  }
+
+  /* Ensure text is always readable */
+  body {
+    @apply text-foreground;
+  }
+
+  /* Stronger borders */
+  .border,
+  [class*='border'] {
+    border-width: 2px !important;
+  }
+
+  /* Remove transparency for better contrast */
+  .glass,
+  .glass-dark {
+    background: hsl(var(--card)) !important;
+    backdrop-filter: none !important;
+  }
 }
 
 /* Print Styles */
 @media print {
-  .no-print {
+  .no-print,
+  nav,
+  button:not(.print-keep),
+  .bottom-nav,
+  .top-nav,
+  .sidebar {
     display: none !important;
   }
 
   body {
     @apply bg-white text-black;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Ensure links are visible in print */
+  a {
+    color: #000 !important;
+    text-decoration: underline !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-after: always;
+  }
+
+  .no-break {
+    page-break-inside: avoid;
+  }
+
+  /* Optimize for printing */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 }

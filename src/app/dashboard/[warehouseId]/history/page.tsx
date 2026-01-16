@@ -18,7 +18,7 @@ export default async function HistoryPage({
   params: { warehouseId: string };
   searchParams: {
     mode?: string;
-    search?: string;
+    q?: string;
     type?: string;
     startDate?: string;
     endDate?: string;
@@ -27,7 +27,7 @@ export default async function HistoryPage({
   const mode = (searchParams.mode === 'detailed' ? 'detailed' : 'simple') as HistoryMode;
 
   const filter: HistoryFilter = {};
-  if (searchParams.search) filter.search = searchParams.search;
+  if (searchParams.q) filter.search = searchParams.q;
   if (searchParams.type) filter.type = searchParams.type;
   if (searchParams.startDate) filter.startDate = searchParams.startDate;
   if (searchParams.endDate) filter.endDate = searchParams.endDate;

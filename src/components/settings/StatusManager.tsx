@@ -146,7 +146,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
         </div>
         <Button
           onClick={handleCreateClick}
-          className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-sm"
+          className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
         >
           <Plus size={18} />
           สร้างสถานะใหม่
@@ -350,21 +350,21 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
             <div className="flex items-center gap-2">
               <h4 className="font-semibold text-slate-800 truncate">{status.name}</h4>
               {status.is_default && (
-                <span className="flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">
                   <Star size={10} fill="currentColor" />
                   Default
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+              <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
                 {status.code}
               </span>
               <span
                 className={`text-xs px-2 py-0.5 rounded border ${
                   status.status_type === 'LOCATION'
-                    ? 'bg-cyan-100 text-cyan-800 border-cyan-200'
-                    : 'bg-violet-100 text-violet-800 border-violet-200'
+                    ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                    : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                 }`}
               >
                 {statusTypeOption?.icon} {statusTypeOption?.label || 'Product'}
@@ -484,7 +484,7 @@ function StatusForm({
               onClick={() => setSelectedStatusType(option.value)}
               className={`text-left p-3 rounded-lg border-2 transition-all ${
                 selectedStatusType === option.value
-                  ? 'border-amber-500 bg-amber-50'
+                  ? 'border-indigo-500 bg-indigo-50'
                   : 'border-slate-200 hover:border-slate-300 bg-white'
               }`}
             >
@@ -516,7 +516,7 @@ function StatusForm({
             {!initialData && (
               <button
                 type="button"
-                className="ml-2 text-xs text-amber-600 hover:underline"
+                className="ml-2 text-xs text-indigo-600 hover:underline"
                 onClick={() => setAutoCode(!autoCode)}
               >
                 {autoCode ? 'แก้ไขเอง' : 'สร้างอัตโนมัติ'}
@@ -598,7 +598,7 @@ function StatusForm({
               type="checkbox"
               checked={isDefault}
               onChange={(e) => setIsDefault(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
             <div>
               <span className="text-sm font-medium text-slate-800 block">
@@ -616,7 +616,7 @@ function StatusForm({
 
       {/* Submit */}
       <div className="flex justify-end pt-4">
-        <SubmitButton className="bg-amber-600 hover:bg-amber-700 px-6">
+        <SubmitButton className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 shadow-sm">
           {initialData ? 'บันทึกแก้ไข' : 'สร้างสถานะ'}
         </SubmitButton>
       </div>

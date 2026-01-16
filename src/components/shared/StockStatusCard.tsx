@@ -229,7 +229,7 @@ export function StockItemCard({
       {/* Status Notes Preview */}
       {currentStatus?.notes && (
         <div className="px-4 py-2 bg-amber-50 border-t border-amber-100">
-          <p className="text-xs text-amber-700 italic line-clamp-2">📝 {currentStatus.notes}</p>
+          <p className="text-xs text-amber-800 italic line-clamp-2">📝 {currentStatus.notes}</p>
         </div>
       )}
 

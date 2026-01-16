@@ -32,7 +32,6 @@ export interface Category {
 interface DynamicInboundFormProps {
   warehouseId: string;
   category: Category;
-  products: Product[];
 }
 // ✅ Interface สำหรับ Queue Item
 interface InboundQueueItem {
@@ -43,11 +42,7 @@ interface InboundQueueItem {
   attributes: Record<string, any>;
 }
 
-export default function DynamicInboundForm({
-  warehouseId,
-  category,
-  products,
-}: DynamicInboundFormProps) {
+export default function DynamicInboundForm({ warehouseId, category }: DynamicInboundFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const { setIsLoading } = useGlobalLoading();
   const [formResetKey, setFormResetKey] = useState(Date.now());
@@ -197,7 +192,6 @@ export default function DynamicInboundForm({
               <Package className="text-indigo-600" /> ข้อมูลสินค้า
             </h3>
             <ProductAutocomplete
-              products={products}
               selectedProduct={selectedProduct}
               onSelect={setSelectedProduct}
               queuedProductIds={queuedProductIds}

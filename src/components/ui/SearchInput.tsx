@@ -69,17 +69,17 @@ export default function SearchInput({ className }: SearchInputProps) {
         className={cn(
           // Base styles
           'w-full h-12 pl-11 pr-10 rounded-xl',
-          'bg-white/5 border border-white/10',
-          'text-white placeholder:text-slate-500',
+          'bg-slate-50 border border-slate-200',
+          'text-slate-900 placeholder:text-slate-400',
           'text-sm font-medium',
 
           // Focus states
           'outline-none transition-all duration-200',
-          'focus:bg-white/10 focus:border-primary/50',
-          'focus:ring-2 focus:ring-primary/20',
+          'focus:bg-white focus:border-indigo-500',
+          'focus:ring-2 focus:ring-indigo-500/20',
 
           // Hover
-          'hover:bg-white/[0.07] hover:border-white/20',
+          'hover:bg-white hover:border-slate-300',
         )}
         placeholder="ค้นหา..."
         onChange={(e) => handleSearch(e.target.value)}
@@ -96,8 +96,8 @@ export default function SearchInput({ className }: SearchInputProps) {
           className={cn(
             'absolute right-3 top-1/2 -translate-y-1/2',
             'p-1 rounded-lg',
-            'text-slate-400 hover:text-white',
-            'hover:bg-white/10 transition-all duration-200',
+            'text-slate-400 hover:text-slate-700',
+            'hover:bg-slate-100 transition-all duration-200',
             'active:scale-95',
           )}
           aria-label="Clear search"

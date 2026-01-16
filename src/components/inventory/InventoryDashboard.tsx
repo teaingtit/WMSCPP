@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Package, Shield } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
 import ExportButton from './ExportButton';
-import { QuickActions } from './QuickActions';
+
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';
 import { StockLotSectionV2 } from './dashboard/StockLotSectionV2';
@@ -272,6 +272,7 @@ const InventoryDashboardContent = ({
     hierarchy,
     selectedIds,
     selectedItems,
+    categoryFormSchemas,
     toggleLot,
     togglePos,
     toggleItem,
@@ -364,9 +365,6 @@ const InventoryDashboardContent = ({
 
   return (
     <div className="space-y-6">
-      {/* Quick Actions */}
-      <QuickActions warehouseId={warehouseId} />
-
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
         <div>
@@ -479,6 +477,7 @@ const InventoryDashboardContent = ({
         onClose={() => setDetailModalItem(null)}
         item={detailModalItem}
         warehouseId={warehouseId}
+        categoryFormSchemas={categoryFormSchemas}
       />
 
       {/* Lot Status Modal - Admin only */}

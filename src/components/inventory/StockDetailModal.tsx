@@ -25,6 +25,7 @@ interface StockDetailModalProps {
   onClose: () => void;
   item: StockWithDetails | null;
   warehouseId?: string; // Kept for compatibility but no longer used
+  categoryFormSchemas?: Record<string, any[]>; // NEW: Map of category_id -> form_schema
 }
 
 export default function StockDetailModal({
@@ -32,11 +33,19 @@ export default function StockDetailModal({
   onClose,
   item,
   warehouseId: _warehouseId,
+  categoryFormSchemas,
 }: StockDetailModalProps) {
   const [status, setStatus] = useState<EntityStatus | null>(null);
   const [notes, setNotes] = useState<EntityNote[]>([]);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [_isLoading, setIsLoading] = useState(false);
+
+  // Helper: Get attribute label from schema
+  const getAttributeLabel = (key: string, categoryId: string, scope?: 'PRODUCT' | 'LOT') => {
+    const schema = categoryFormSchemas?.[categoryId] || [];
+    const field = schema.find((f) => f.key === key && (!scope || f.scope === scope));
+    return field?.label || key;
+  };
 
   useEffect(() => {
     if (isOpen && item) {
@@ -308,19 +317,43 @@ export default function StockDetailModal({
               </button>
             </div>
 
-            {/* Custom Attributes */}
+            {/* Product Specifications (PRODUCT Scope) */}
+            {item.product?.attributes && Object.keys(item.product.attributes).length > 0 && (
+              <div className="bg-indigo-50 rounded-xl border border-indigo-100 p-4">
+                <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Tag size={12} /> สเปคสินค้า (Product Spec)
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(item.product.attributes).map(([key, value]) => (
+                    <span
+                      key={key}
+                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200"
+                    >
+                      <span className="text-indigo-600 font-bold mr-1">
+                        {getAttributeLabel(key, item.product?.category_id || '', 'PRODUCT')}:
+                      </span>
+                      {String(value)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Lot Attributes (LOT Scope) */}
             {item.attributes && Object.keys(item.attributes).length > 0 && (
-              <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  คุณสมบัติเพิ่มเติม (Attributes)
+              <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-4">
+                <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Layers size={12} /> ข้อมูลล็อต (Lot Details)
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(item.attributes).map(([key, value]) => (
                     <span
                       key={key}
-                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-200"
+                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200"
                     >
-                      <span className="text-slate-400 mr-1">{key}:</span>
+                      <span className="text-emerald-700 font-bold mr-1">
+                        {getAttributeLabel(key, item.product?.category_id || '', 'LOT')}:
+                      </span>
                       {String(value)}
                     </span>
                   ))}

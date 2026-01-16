@@ -107,9 +107,9 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
           error
             ? 'border-red-300 bg-red-50'
             : isOpen
-            ? 'border-amber-500 bg-amber-50'
+            ? 'border-indigo-500 bg-indigo-50'
             : value
-            ? 'border-slate-300 bg-white hover:border-amber-400'
+            ? 'border-slate-300 bg-white hover:border-indigo-400'
             : 'border-slate-200 bg-slate-50 hover:border-slate-300'
         }`}
       >
@@ -119,7 +119,7 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
             <div>
               <span className="font-medium text-slate-800">{currentDisplay.label}</span>
               {!isPredefinedEffect(value) && (
-                <span className="ml-2 text-xs text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">
+                <span className="ml-2 text-xs text-indigo-600 bg-indigo-100 px-1.5 py-0.5 rounded">
                   Custom
                 </span>
               )}
@@ -153,7 +153,7 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search or type custom effect..."
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-amber-400"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -181,7 +181,7 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
                 onClick={() => handleSelect(opt.value)}
                 className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${
                   value === opt.value
-                    ? 'bg-amber-50 border-l-4 border-amber-500'
+                    ? 'bg-indigo-50 border-l-4 border-indigo-500'
                     : 'hover:bg-slate-50 border-l-4 border-transparent'
                 }`}
               >
@@ -190,7 +190,7 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
                   <div className="font-medium text-slate-800">{opt.label}</div>
                   <p className="text-xs text-slate-500 truncate">{opt.description}</p>
                 </div>
-                {value === opt.value && <Check size={16} className="text-amber-600 shrink-0" />}
+                {value === opt.value && <Check size={16} className="text-indigo-600 shrink-0" />}
               </button>
             ))}
 
@@ -201,11 +201,11 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
                 <button
                   type="button"
                   onClick={handleCreateCustom}
-                  className="w-full flex items-center gap-3 p-3 text-left hover:bg-amber-50 transition-colors border-l-4 border-transparent"
+                  className="w-full flex items-center gap-3 p-3 text-left hover:bg-indigo-50 transition-colors border-l-4 border-transparent"
                 >
-                  <Plus size={18} className="text-amber-600" />
+                  <Plus size={18} className="text-indigo-600" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-amber-700">
+                    <div className="font-medium text-indigo-700">
                       Create &quot;{formattedQuery}&quot;
                     </div>
                     <p className="text-xs text-slate-500">Add as custom effect</p>

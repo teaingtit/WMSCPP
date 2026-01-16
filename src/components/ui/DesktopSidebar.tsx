@@ -41,6 +41,8 @@ export default function DesktopSidebar() {
       <Link
         key={item.href}
         href={realHref}
+        aria-label={item.title}
+        aria-current={isActive ? 'page' : undefined}
         className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
           isActive
             ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
@@ -77,7 +79,11 @@ export default function DesktopSidebar() {
       </div>
 
       {/* Menu */}
-      <nav className="flex-1 py-6 space-y-2 overflow-y-auto custom-scrollbar">
+      <nav
+        role="navigation"
+        aria-label="เมนูนำทางด้านข้าง"
+        className="flex-1 py-6 space-y-2 overflow-y-auto custom-scrollbar"
+      >
         {/* Group 1: General */}
         <SidebarAccordion title="ทั่วไป" icon={LayoutGrid} defaultOpen={true}>
           {MENU_ITEMS.filter((m) => m.matchPath === '/dashboard').map(renderLink)}
@@ -93,6 +99,8 @@ export default function DesktopSidebar() {
             {/* Additional Inventory Link explicitly if not in MENU_ITEMS or hidden there */}
             <Link
               href={`/dashboard/${warehouseId}/inventory`}
+              aria-label="สินค้าคงคลัง"
+              aria-current={pathname.includes('/inventory') ? 'page' : undefined}
               className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
                 pathname.includes('/inventory')
                   ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'

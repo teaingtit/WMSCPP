@@ -2,7 +2,17 @@
 
 import { cn } from '@/lib/utils';
 
-type SkeletonVariant = 'text' | 'card' | 'avatar' | 'button' | 'input';
+type SkeletonVariant =
+  | 'text'
+  | 'card'
+  | 'avatar'
+  | 'button'
+  | 'input'
+  | 'table'
+  | 'form'
+  | 'list'
+  | 'badge'
+  | 'circle';
 
 interface SkeletonLoaderProps {
   variant?: SkeletonVariant;
@@ -10,6 +20,8 @@ interface SkeletonLoaderProps {
   height?: string;
   className?: string;
   count?: number;
+  'aria-label'?: string;
+  'aria-busy'?: boolean;
 }
 
 /**
@@ -33,6 +45,8 @@ export default function SkeletonLoader({
   height,
   className,
   count = 1,
+  'aria-label': ariaLabel,
+  'aria-busy': ariaBusy = true,
 }: SkeletonLoaderProps) {
   const getVariantStyles = () => {
     switch (variant) {
@@ -46,6 +60,16 @@ export default function SkeletonLoader({
         return 'h-10 w-24 rounded-xl';
       case 'input':
         return 'h-12 w-full rounded-lg';
+      case 'table':
+        return 'h-12 w-full rounded-lg';
+      case 'form':
+        return 'h-16 w-full rounded-xl';
+      case 'list':
+        return 'h-20 w-full rounded-lg';
+      case 'badge':
+        return 'h-6 w-16 rounded-full';
+      case 'circle':
+        return 'h-16 w-16 rounded-full';
       default:
         return 'h-4 w-full rounded';
     }
@@ -62,9 +86,13 @@ export default function SkeletonLoader({
         width: width || undefined,
         height: height || undefined,
       }}
+      aria-busy={ariaBusy}
+      aria-label={ariaLabel || 'กำลังโหลด'}
+      role="status"
     >
       {/* Shimmer effect */}
       <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <span className="sr-only">{ariaLabel || 'กำลังโหลด'}</span>
     </div>
   );
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getCategoryDetail, getInboundOptions } from '@/actions/inbound-actions';
+import { getCategoryDetail } from '@/actions/inbound-actions';
 import DynamicInboundForm from '@/components/inbound/DynamicInboundForm';
 import PageHeader from '@/components/ui/PageHeader';
 
@@ -10,11 +10,8 @@ export default async function DynamicInboundPage({
 }) {
   const { warehouseId, categoryId } = await params;
 
-  // Parallel Data Fetching
-  const [category, options] = await Promise.all([
-    getCategoryDetail(categoryId),
-    getInboundOptions(warehouseId, categoryId),
-  ]);
+  // Fetch category detail
+  const category = await getCategoryDetail(categoryId);
 
   if (!category) {
     return (
@@ -30,12 +27,8 @@ export default async function DynamicInboundPage({
         warehouseId={warehouseId}
       />
 
-      {/* ✅ FIX: ตัด locations props ออก เพราะ Form โหลดเองแบบ Dynamic แล้ว */}
-      <DynamicInboundForm
-        warehouseId={warehouseId}
-        category={category}
-        products={options.products}
-      />
+      {/* ✅ FIX: Removed products prop - ProductAutocomplete now uses server-side search */}
+      <DynamicInboundForm warehouseId={warehouseId} category={category} />
     </div>
   );
 }

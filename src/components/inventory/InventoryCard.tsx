@@ -3,19 +3,28 @@
 import React from 'react';
 import { MapPin, Calendar, Hash, Layers, Package, CheckCircle, Shield, Box } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
-import { formatAttributeKey, formatAttributeValue } from '@/lib/utils';
+import { formatAttributeValue } from '@/lib/utils';
 
 interface InventoryCardProps {
   item: StockWithDetails;
+  categoryFormSchemas?: Record<string, any[]>;
 }
 
-export default function InventoryCard({ item }: InventoryCardProps) {
+export default function InventoryCard({ item, categoryFormSchemas }: InventoryCardProps) {
   // Calculate quantity breakdown (basic card has no status context, so all is normal)
   const totalQuantity = item.quantity;
   const normalQuantity = totalQuantity;
   const affectedQuantity = 0;
 
   const hasAttributes = item.attributes && Object.keys(item.attributes).length > 0;
+
+  // Helper: Get attribute label from schema (LOT scope)
+  const getAttributeLabel = (key: string) => {
+    const categoryId = item.product?.category_id || '';
+    const schema = categoryFormSchemas?.[categoryId] || [];
+    const field = schema.find((f) => f.key === key && f.scope === 'LOT');
+    return field?.label || key;
+  };
 
   return (
     <div className="group bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 relative overflow-hidden flex flex-col h-full cursor-pointer touch-manipulation select-none">
@@ -73,7 +82,7 @@ export default function InventoryCard({ item }: InventoryCardProps) {
           <Hash size={12} /> {item.product?.sku || '-'}
         </div>
 
-        {/* Attributes */}
+        {/* LOT Attributes */}
         {hasAttributes && (
           <div className="flex flex-wrap gap-1 justify-center mt-2">
             {Object.entries(item.attributes || {})
@@ -81,12 +90,10 @@ export default function InventoryCard({ item }: InventoryCardProps) {
               .map(([key, value]) => (
                 <span
                   key={key}
-                  className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200"
+                  className="text-[10px] px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium"
                 >
-                  {formatAttributeKey(key)}:{' '}
-                  <span className="font-semibold text-slate-700">
-                    {formatAttributeValue(value)}
-                  </span>
+                  {getAttributeLabel(key)}:{' '}
+                  <span className="font-bold">{formatAttributeValue(value)}</span>
                 </span>
               ))}
             {Object.keys(item.attributes || {}).length > 3 && (

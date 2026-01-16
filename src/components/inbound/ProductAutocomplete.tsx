@@ -1,42 +1,64 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Search, X, Package, Barcode, ChevronRight, ScanBarcode } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Search, X, Package, Barcode, ChevronRight, ScanBarcode, Loader2 } from 'lucide-react';
 import { Product } from '@/types/inventory';
+import { searchProducts } from '@/actions/product-search-actions';
+import { useDebounce } from 'use-debounce';
 
 interface ProductAutocompleteProps {
-  products: Product[];
   selectedProduct: Product | null;
   onSelect: (product: Product | null) => void;
   queuedProductIds?: Set<string>; // IDs of products already in queue to filter out
 }
 
 export default function ProductAutocomplete({
-  products,
   selectedProduct,
   onSelect,
   queuedProductIds = new Set(),
 }: ProductAutocompleteProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch] = useDebounce(searchTerm, 400);
   const [showDropdown, setShowDropdown] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Suggestion 1: Memoize filtering logic for better performance.
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) return []; // Don't filter if search term is empty
-    return products
-      .filter(
-        (p) =>
-          // Filter by search term
-          ((p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-          // Filter out products already in queue (unless same one selected)
-          (!queuedProductIds.has(p.id) || selectedProduct?.id === p.id),
-      )
-      .slice(0, 10);
-  }, [products, searchTerm, queuedProductIds, selectedProduct]);
+  // Server-side search with debounce
+  useEffect(() => {
+    if (!debouncedSearch) {
+      setFilteredProducts([]);
+      return;
+    }
+
+    let active = true;
+    const performSearch = async () => {
+      setIsSearching(true);
+      try {
+        const result = await searchProducts(debouncedSearch, 10);
+        if (active && result.success && result.data) {
+          // Filter out products already in queue
+          const filtered = result.data.filter(
+            (p) => !queuedProductIds.has(p.id) || selectedProduct?.id === p.id,
+          );
+          setFilteredProducts(filtered as Product[]);
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        if (active) setFilteredProducts([]);
+      } finally {
+        if (active) setIsSearching(false);
+      }
+    };
+
+    performSearch();
+
+    return () => {
+      active = false;
+    };
+  }, [debouncedSearch, queuedProductIds, selectedProduct]);
 
   // Reset highlight when search changes
   useEffect(() => {
@@ -90,7 +112,7 @@ export default function ProductAutocomplete({
       {/* Search Input - Always visible */}
       <div className="relative transition-all duration-200 transform focus-within:scale-[1.01]">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-          <Search size={22} />
+          {isSearching ? <Loader2 size={22} className="animate-spin" /> : <Search size={22} />}
         </div>
         <input
           ref={inputRef}

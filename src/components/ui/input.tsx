@@ -3,13 +3,30 @@ import { cn } from '@/lib/utils';
 
 export interface InputProps extends React.ComponentProps<'input'> {
   error?: boolean;
+  'aria-invalid'?: boolean | 'false' | 'true' | 'grammar' | 'spelling';
+  'aria-describedby'?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, error, ...props }, ref) => {
+  (
+    {
+      className,
+      type,
+      error,
+      'aria-invalid': ariaInvalid,
+      'aria-describedby': ariaDescribedBy,
+      ...props
+    },
+    ref,
+  ) => {
+    // Determine aria-invalid value
+    const invalidValue = error ? true : ariaInvalid ?? false;
+
     return (
       <input
         type={type}
+        aria-invalid={invalidValue}
+        aria-describedby={ariaDescribedBy}
         className={cn(
           // Base styles - Touch-optimized
           'flex h-12 w-full rounded-xl border bg-background px-4 py-3',

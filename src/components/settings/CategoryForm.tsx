@@ -2,8 +2,9 @@
 
 import { useFormState } from 'react-dom';
 import { createCategory } from '@/actions/settings-actions';
-import { Plus, Info } from 'lucide-react';
+import { Plus, Info, Eye, Code } from 'lucide-react';
 import SchemaBuilder from './SchemaBuilder';
+import VisualSchemaDesigner from './VisualSchemaDesigner';
 import UnitsBuilder from './UnitsBuilder';
 import { SubmitButton } from '@/components/SubmitButton';
 import { useState, useRef, useEffect } from 'react';
@@ -16,6 +17,7 @@ export default function CategoryForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [schemaJson, setSchemaJson] = useState('[]');
   const [unitsJson, setUnitsJson] = useState('[]');
+  const [useVisualMode, setUseVisualMode] = useState(true);
 
   const [state, action] = useFormState(createCategoryWrapper, { success: false, message: '' });
 
@@ -68,15 +70,47 @@ export default function CategoryForm() {
       </div>
 
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <h4 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-          <Info size={16} className="text-indigo-500" /> More Detail (รายละเอียดเพิ่มเติม)
-        </h4>
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+            <Info size={16} className="text-indigo-500" /> More Detail (รายละเอียดเพิ่มเติม)
+          </h4>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setUseVisualMode(true)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                useVisualMode
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <Eye size={14} className="inline mr-1" />
+              Visual
+            </button>
+            <button
+              type="button"
+              onClick={() => setUseVisualMode(false)}
+              className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                !useVisualMode
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <Code size={14} className="inline mr-1" />
+              Advanced
+            </button>
+          </div>
+        </div>
         <div className="bg-slate-50 p-1 rounded-xl border border-slate-200">
-          <SchemaBuilder onSchemaChange={setSchemaJson} />
+          {useVisualMode ? (
+            <VisualSchemaDesigner onSchemaChange={setSchemaJson} />
+          ) : (
+            <SchemaBuilder onSchemaChange={setSchemaJson} />
+          )}
         </div>
       </div>
 
-      <SubmitButton className="w-full bg-slate-900 text-white p-4 rounded-xl font-bold flex justify-center gap-2 hover:bg-slate-800 shadow-lg transition-all">
+      <SubmitButton className="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold flex justify-center gap-2 hover:bg-indigo-700 shadow-lg transition-all">
         <Plus size={18} strokeWidth={3} /> สร้างหมวดหมู่สินค้า
       </SubmitButton>
     </form>

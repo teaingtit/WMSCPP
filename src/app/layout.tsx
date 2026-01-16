@@ -6,6 +6,7 @@ import GlobalLoadingProvider from '@/components/providers/GlobalLoadingProvider'
 import BottomNav from '@/components/ui/BottomNav';
 import { Toaster } from 'sonner';
 import TableStacker from '@/components/ui/TableStacker';
+import { SkipLink } from '@/components/ui/SkipLink';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const sarabun = Sarabun({
@@ -46,7 +47,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         {/* ✅ ห่อ GlobalLoadingProvider ไว้ชั้นนอกสุด (แต่ใน body) */}
         <GlobalLoadingProvider>
-          <div className="app-container">{children}</div>
+          <SkipLink />
+          {/* ARIA Live Region for Screen Readers */}
+          <div
+            id="aria-live-announcements"
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+          />
+          <div
+            id="aria-live-assertive"
+            aria-live="assertive"
+            aria-atomic="true"
+            className="sr-only"
+          />
+          <div className="app-container" id="main-content">
+            {children}
+          </div>
           <BottomNav />
           <TableStacker />
           <Toaster position="top-center" richColors />

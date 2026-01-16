@@ -54,7 +54,11 @@ export default function BottomNav() {
       ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 md:hidden safe-area-bottom">
+    <nav
+      role="navigation"
+      aria-label="เมนูนำทางหลัก"
+      className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 md:hidden safe-area-bottom"
+    >
       <div className="max-w-lg mx-auto px-1">
         <div className="flex items-center justify-around h-14">
           {items.map((item) => {
@@ -68,6 +72,8 @@ export default function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-label={item.title}
+                aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all duration-200',
                   'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-95',
