@@ -54,6 +54,8 @@ export default async function InventoryPage({
 
   // ✅ FIX 1: แก้ Query ให้ดึง lot, cart จากตาราง locations (Source of Truth)
   // ตัด lot, cart_id ที่ stocks ออก เพราะเราย้ายไป locations แล้ว
+  // Note: PostgREST has limitations with OR queries on foreign tables
+  // We'll fetch all data and filter client-side if there's a search query
   let dbQuery = supabase
     .from('stocks')
     .select(
@@ -65,22 +67,6 @@ export default async function InventoryPage({
     )
     .eq('locations.warehouse_id', wh.id)
     .gt('quantity', 0);
-
-  if (query) {
-    // ปรับการค้นหาให้รองรับ structure ใหม่
-    // Sanitize query to prevent PostgREST syntax errors (commas break OR filters)
-    const sanitizedQuery = query.replace(/,/g, '');
-    if (sanitizedQuery) {
-      const searchConditions = [
-        `products.name.ilike.%${sanitizedQuery}%`,
-        `products.sku.ilike.%${sanitizedQuery}%`,
-        `locations.lot.ilike.%${sanitizedQuery}%`,
-        `locations.cart.ilike.%${sanitizedQuery}%`,
-        `locations.level.ilike.%${sanitizedQuery}%`,
-      ];
-      dbQuery = dbQuery.or(searchConditions.join(','));
-    }
-  }
 
   // ✅ FIX 2: เรียงลำดับตาม Location จริง
   const { data: stocks, error } = await dbQuery
@@ -104,6 +90,21 @@ export default async function InventoryPage({
     );
   }
 
+  // Client-side filtering if search query exists
+  let filteredStocks = stocks || [];
+  if (query) {
+    const lowerQuery = query.toLowerCase();
+    filteredStocks = filteredStocks.filter((stock: any) => {
+      return (
+        stock.products?.name?.toLowerCase().includes(lowerQuery) ||
+        stock.products?.sku?.toLowerCase().includes(lowerQuery) ||
+        stock.locations?.lot?.toLowerCase().includes(lowerQuery) ||
+        stock.locations?.cart?.toLowerCase().includes(lowerQuery) ||
+        stock.locations?.level?.toLowerCase().includes(lowerQuery)
+      );
+    });
+  }
+
   // Build Attribute Label Map
   const attributeLabelMap: Record<string, string> = {};
   if (categories) {
@@ -121,7 +122,7 @@ export default async function InventoryPage({
   // The `StockWithDetails` type expects `id` as a string, but Supabase returns it as a number.
   // We also need to handle the Supabase client's incorrect type inference for nested relations (`!inner`).
   // This transformation ensures the data shape matches the component's props.
-  const formattedStocks: StockWithDetails[] = (stocks || []).map((stock: any) => {
+  const formattedStocks: StockWithDetails[] = (filteredStocks || []).map((stock: any) => {
     // Resolve Attributes
     const resolvedAttributes: Record<string, any> = {};
     if (stock.attributes) {
