@@ -105,20 +105,11 @@ export const ProgressBar = React.forwardRef<HTMLDivElement, ProgressBarProps>(
               variantClasses[variant],
               indeterminate && 'w-1/3',
             )}
-            style={
-              indeterminate
-                ? {
-                    animation: 'progress-indeterminate 1.5s ease-in-out infinite',
-                  }
-                : undefined
-            }
-            style={
-              indeterminate
-                ? undefined
-                : {
-                    width: `${percentage}%`,
-                  }
-            }
+            style={{
+              ...(indeterminate
+                ? { animation: 'progress-indeterminate 1.5s ease-in-out infinite' }
+                : { width: `${percentage}%` }),
+            }}
           />
         </div>
 

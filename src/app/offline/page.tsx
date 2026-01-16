@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { WifiOff, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
@@ -44,12 +46,13 @@ export default function OfflinePage() {
             <RefreshCw className="w-4 h-4" />
             ลองใหม่อีกครั้ง
           </Button>
-          <Button asChild variant="default" size="lg" className="gap-2">
-            <Link href="/dashboard">
-              <Home className="w-4 h-4" />
-              กลับหน้าหลัก
-            </Link>
-          </Button>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 ease-out bg-gradient-to-b from-primary to-primary/90 text-primary-foreground shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:from-primary/95 hover:to-primary/85 border border-primary/20 h-12 px-8 text-base active:scale-[0.98] select-none"
+          >
+            <Home className="w-4 h-4" />
+            กลับหน้าหลัก
+          </Link>
         </div>
 
         {/* Help Text */}

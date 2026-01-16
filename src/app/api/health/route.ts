@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// Force dynamic rendering เนื่องจากใช้ cookies ผ่าน Supabase
+export const dynamic = 'force-dynamic';
+
 /**
  * Health Check Endpoint
  * ใช้สำหรับตรวจสอบสถานะของแอปพลิเคชัน

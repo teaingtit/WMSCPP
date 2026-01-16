@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node .next/standalone/server.js",
+    "start:dev": "next start",
     "lint": "eslint \"src/app/**/*.{js,jsx,ts,tsx}\" \"src/components/**/*.{js,jsx,ts,tsx}\" \"src/lib/**/*.{js,jsx,ts,tsx}\" \"src/actions/**/*.{js,jsx,ts,tsx}\" \"src/types/**/*.{js,jsx,ts,tsx}\" --cache",
     "format": "prettier --write .",
     "prepare": "husky install",
