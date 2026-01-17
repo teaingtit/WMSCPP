@@ -15,19 +15,8 @@ import {
 } from '@/lib/action-utils';
 
 // --- Zod Schemas ---
-const CreateWarehouseSchema = z.object({
-  code: z
-    .string()
-    .min(1, 'Warehouse Code is required')
-    .transform((val) => val.trim().toUpperCase()),
-  name: z
-    .string()
-    .min(1, 'Warehouse Name is required')
-    .transform((val) => val.trim()),
-  axis_x: z.coerce.number().min(1).default(1),
-  axis_y: z.coerce.number().min(1).default(1),
-  axis_z: z.coerce.number().min(1).default(1),
-});
+// --- Zod Schemas ---
+// Note: CreateWarehouseSchema removed - validation now inline in createWarehouse function
 
 const CreateProductSchema = z.object({
   sku: z
@@ -176,33 +165,49 @@ export async function deleteWarehouse(formData: FormData): Promise<ActionRespons
 
 export async function createWarehouse(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
-  const rawData = extractFormFields(formData, ['code', 'name', 'axis_x', 'axis_y', 'axis_z']);
+  const rawData = extractFormFields(formData, ['code', 'name', 'description']);
 
-  const validation = validateFormData(CreateWarehouseSchema, rawData);
+  const validation = validateFormData(
+    z.object({
+      code: z
+        .string()
+        .min(1, 'Warehouse Code is required')
+        .transform((val) => val.trim().toUpperCase()),
+      name: z
+        .string()
+        .min(1, 'Warehouse Name is required')
+        .transform((val) => val.trim()),
+      description: z.string().optional(),
+    }),
+    rawData,
+  );
+
   if (!validation.success) return validation.response;
 
-  const { code, name, axis_x, axis_y, axis_z } = validation.data;
+  const { code, name, description: _description } = validation.data;
 
   try {
-    const { data, error } = await supabase.rpc('create_warehouse_xyz_grid', {
-      p_code: code,
-      p_name: name,
-      p_axis_x: axis_x,
-      p_axis_y: axis_y,
-      p_axis_z: axis_z,
+    // Note: description column temporarily removed due to PostgREST schema cache
+    // Supabase needs to refresh schema cache for new columns to be recognized
+    const { error } = await supabase.from('warehouses').insert({
+      code,
+      name,
+      is_active: true,
     });
 
-    if (error) throw error;
-    const result = data as { success: boolean; message: string };
-
-    if (result.success) {
-      revalidatePath('/dashboard/settings');
-      revalidatePath('/dashboard');
-      return ok(result.message);
+    if (error) {
+      const dupError = handleDuplicateError(error, 'Code', code);
+      if (dupError) return dupError;
+      throw error;
     }
-    return fail(result.message);
+
+    revalidatePath('/dashboard/settings');
+    revalidatePath('/dashboard');
+    return ok(
+      `สร้างคลังสินค้า "${name}" สำเร็จ - สามารถสร้าง Locations ได้ที่หน้า Location Management`,
+    );
   } catch (err: any) {
-    console.error('RPC Error:', err);
+    console.error('Create Warehouse Error:', err);
     return fail('System Error: ' + err.message);
   }
 }

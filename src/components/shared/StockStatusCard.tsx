@@ -254,9 +254,9 @@ interface LocationStatusCardProps {
   location: {
     id: string;
     code: string;
-    lot?: string | null;
-    cart?: string | null;
-    level?: string | null;
+    zone?: string | null;
+    aisle?: string | null;
+    bin_code?: string | null;
   };
   statuses: StatusDefinition[];
   currentStatus?: EntityStatus | null | undefined;
@@ -290,11 +290,11 @@ export function LocationStatusCard({
             <span className="font-bold text-slate-800">{location.code}</span>
             {currentStatus?.status && <StatusBadge status={currentStatus.status} size="sm" />}
           </div>
-          {(location.lot || location.cart || location.level) && (
+          {(location.zone || location.aisle || location.bin_code) && (
             <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-              {location.lot && <span>Lot: {location.lot}</span>}
-              {location.cart && <span>Cart: {location.cart}</span>}
-              {location.level && <span>Level: {location.level}</span>}
+              {location.zone && <span>Zone: {location.zone}</span>}
+              {location.aisle && <span>Aisle: {location.aisle}</span>}
+              {location.bin_code && <span>Bin: {location.bin_code}</span>}
             </div>
           )}
         </div>

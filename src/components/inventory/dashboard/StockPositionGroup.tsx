@@ -83,7 +83,7 @@ export const StockPositionGroup = ({
   const itemsByLevel = useMemo(() => {
     const groups: Record<string, StockWithDetails[]> = {};
     items.forEach((item) => {
-      const lvl = item.level || 'Unassigned';
+      const lvl = item.location?.bin_code || 'No Bin';
       const bucket = groups[lvl] || (groups[lvl] = []);
       bucket.push(item);
     });
@@ -149,7 +149,7 @@ export const StockPositionGroup = ({
 
                 <span className={`flex items-center gap-2 text-sm font-bold ${styles.text}`}>
                   <Layers size={16} className={styles.icon} />
-                  Level {lvl}
+                  Bin {lvl}
                 </span>
 
                 <div className="flex-1 h-px bg-slate-100 group-hover:bg-slate-200 transition-colors mx-2"></div>

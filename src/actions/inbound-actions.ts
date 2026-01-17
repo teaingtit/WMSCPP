@@ -49,7 +49,7 @@ export async function getInboundOptions(_warehouseId: string, categoryId: string
   return { products: products || [] };
 }
 
-// --- Location Selectors ---
+// --- Location Selectors (Updated for hierarchical structure) ---
 
 export async function getWarehouseLots(warehouseId: string) {
   const supabase = await createClient();
@@ -58,12 +58,13 @@ export async function getWarehouseLots(warehouseId: string) {
 
   const { data } = await supabase
     .from('locations')
-    .select('lot')
+    .select('zone')
     .eq('warehouse_id', whId)
+    .eq('depth', 0)
     .eq('is_active', true)
-    .order('lot');
+    .order('zone');
 
-  return data ? Array.from(new Set(data.map((l) => l.lot))).filter(Boolean) : [];
+  return data ? Array.from(new Set(data.map((l) => l.zone))).filter(Boolean) : [];
 }
 
 export async function getCartsByLot(warehouseId: string, lot: string) {
@@ -73,13 +74,14 @@ export async function getCartsByLot(warehouseId: string, lot: string) {
 
   const { data } = await supabase
     .from('locations')
-    .select('cart')
+    .select('aisle')
     .eq('warehouse_id', whId)
-    .eq('lot', lot)
+    .eq('zone', lot)
+    .eq('depth', 1)
     .eq('is_active', true)
-    .order('cart');
+    .order('aisle');
 
-  return data ? Array.from(new Set(data.map((l) => l.cart))).filter(Boolean) : [];
+  return data ? Array.from(new Set(data.map((l) => l.aisle))).filter(Boolean) : [];
 }
 
 export async function getLevelsByCart(warehouseId: string, lot: string, cart: string) {
@@ -89,15 +91,24 @@ export async function getLevelsByCart(warehouseId: string, lot: string, cart: st
 
   const { data } = await supabase
     .from('locations')
-    .select('id, level, code, type')
+    .select('id, bin_code, code, depth')
     .eq('warehouse_id', whId)
-    .eq('lot', lot)
-    .eq('cart', cart)
+    .eq('zone', lot)
+    .eq('aisle', cart)
+    .eq('depth', 2)
     .eq('is_active', true)
-    .not('level', 'is', null)
-    .order('level', { ascending: true });
+    .not('bin_code', 'is', null)
+    .order('bin_code', { ascending: true });
 
-  return data || [];
+  // Map to old structure for backward compatibility
+  return data
+    ? data.map((item) => ({
+        id: item.id,
+        level: item.bin_code,
+        code: item.code,
+        type: 'BIN',
+      }))
+    : [];
 }
 
 // --- Submit Action ---

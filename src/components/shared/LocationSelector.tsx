@@ -4,13 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { getWarehouseLots, getCartsByLot, getLevelsByCart } from '@/actions/inbound-actions';
 
-// Interface Data
+// Interface Data - Updated for hierarchical structure
 export interface LocationData {
   id: string;
-  level: string;
+  level: string; // Maps to bin_code for backward compatibility
   code: string;
-  lot: string;
-  cart: string;
+  lot: string; // Maps to zone for backward compatibility
+  cart: string; // Maps to aisle for backward compatibility
+  zone?: string;
+  aisle?: string;
+  bin_code?: string;
   type?: string;
 }
 
@@ -27,176 +30,178 @@ export default function LocationSelector({
   disabled = false,
   className = '',
 }: LocationSelectorProps) {
-  // Data States
-  const [lots, setLots] = useState<string[]>([]);
-  const [positions, setPositions] = useState<string[]>([]);
-  const [levels, setLevels] = useState<any[]>([]);
+  // Data States (using new terminology internally)
+  const [zones, setZones] = useState<string[]>([]);
+  const [aisles, setAisles] = useState<string[]>([]);
+  const [bins, setBins] = useState<any[]>([]);
 
   // Selection States
-  const [selectedLot, setSelectedLot] = useState('');
-  const [selectedPos, setSelectedPos] = useState('');
-  const [selectedLevelId, setSelectedLevelId] = useState('');
+  const [selectedZone, setSelectedZone] = useState('');
+  const [selectedAisle, setSelectedAisle] = useState('');
+  const [selectedBinId, setSelectedBinId] = useState('');
 
   // Loading States
-  const [loadingLots, setLoadingLots] = useState(false);
-  const [loadingPos, setLoadingPos] = useState(false);
-  const [loadingLevels, setLoadingLevels] = useState(false);
+  const [loadingZones, setLoadingZones] = useState(false);
+  const [loadingAisles, setLoadingAisles] = useState(false);
+  const [loadingBins, setLoadingBins] = useState(false);
 
-  // 1. Reset & Fetch Lots (เมื่อเปลี่ยนคลัง)
+  // 1. Reset & Fetch Zones (เมื่อเปลี่ยนคลัง)
   useEffect(() => {
     // Reset selection
-    setSelectedLot('');
-    setSelectedPos('');
-    setSelectedLevelId('');
-    setLots([]);
-    setPositions([]);
-    setLevels([]);
+    setSelectedZone('');
+    setSelectedAisle('');
+    setSelectedBinId('');
+    setZones([]);
+    setAisles([]);
+    setBins([]);
     onSelect(null);
 
     if (warehouseId) {
-      setLoadingLots(true);
-      getWarehouseLots(warehouseId)
-        .then(setLots)
-        .catch((err) => console.error('Error fetching lots:', err))
-        .finally(() => setLoadingLots(false));
+      setLoadingZones(true);
+      getWarehouseLots(warehouseId) // Backend function returns zones
+        .then(setZones)
+        .catch((err) => console.error('Error fetching zones:', err))
+        .finally(() => setLoadingZones(false));
     }
   }, [warehouseId]);
 
-  // 2. Fetch Positions (เมื่อเปลี่ยน Lot)
+  // 2. Fetch Aisles (เมื่อเปลี่ยน Zone)
   useEffect(() => {
-    setSelectedPos('');
-    setSelectedLevelId('');
-    setPositions([]);
-    setLevels([]);
+    setSelectedAisle('');
+    setSelectedBinId('');
+    setAisles([]);
+    setBins([]);
     onSelect(null);
 
-    if (warehouseId && selectedLot) {
-      setLoadingPos(true);
-      getCartsByLot(warehouseId, selectedLot)
-        .then(setPositions)
-        .catch((err) => console.error('Error fetching positions:', err))
-        .finally(() => setLoadingPos(false));
+    if (warehouseId && selectedZone) {
+      setLoadingAisles(true);
+      getCartsByLot(warehouseId, selectedZone) // Backend function returns aisles
+        .then(setAisles)
+        .catch((err) => console.error('Error fetching aisles:', err))
+        .finally(() => setLoadingAisles(false));
     }
-  }, [warehouseId, selectedLot]);
+  }, [warehouseId, selectedZone]);
 
-  // 3. Fetch Levels (เมื่อเปลี่ยน Position)
+  // 3. Fetch Bins (เมื่อเปลี่ยน Aisle)
   useEffect(() => {
-    setSelectedLevelId('');
-    setLevels([]);
+    setSelectedBinId('');
+    setBins([]);
     onSelect(null);
 
-    if (warehouseId && selectedLot && selectedPos) {
-      setLoadingLevels(true);
-      getLevelsByCart(warehouseId, selectedLot, selectedPos)
+    if (warehouseId && selectedZone && selectedAisle) {
+      setLoadingBins(true);
+      getLevelsByCart(warehouseId, selectedZone, selectedAisle) // Backend function returns bins
         .then((data) => {
           // ✅ ป้องกันกรณี data เป็น null หรือ undefined
           if (Array.isArray(data)) {
-            setLevels(data);
+            setBins(data);
           } else {
-            setLevels([]);
+            setBins([]);
           }
         })
-        .catch((err) => console.error('Error fetching levels:', err))
-        .finally(() => setLoadingLevels(false));
+        .catch((err) => console.error('Error fetching bins:', err))
+        .finally(() => setLoadingBins(false));
     }
-  }, [warehouseId, selectedLot, selectedPos]);
+  }, [warehouseId, selectedZone, selectedAisle]);
 
   // Handle Final Selection
-  const handleLevelChange = (levelId: string) => {
-    setSelectedLevelId(levelId);
-    if (!levelId) {
+  const handleBinChange = (binId: string) => {
+    setSelectedBinId(binId);
+    if (!binId) {
       onSelect(null);
       return;
     }
-    const levelObj = levels.find((l) => l.id === levelId);
-    if (levelObj) {
+    const binObj = bins.find((b) => b.id === binId);
+    if (binObj) {
+      // Return data with both new and old property names for compatibility
       onSelect({
-        ...levelObj,
-        lot: selectedLot,
-        cart: selectedPos,
+        ...binObj,
+        lot: selectedZone, // Backward compatibility
+        cart: selectedAisle, // Backward compatibility
+        zone: selectedZone,
+        aisle: selectedAisle,
+        bin_code: binObj.level,
       });
     }
   };
 
   return (
     <div className={`grid grid-cols-3 gap-3 ${className}`}>
-      {/* LOT */}
+      {/* ZONE */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ล็อต (LOT)</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">โซน (ZONE)</label>
         <div className="relative">
           <select
-            aria-label="เลือก Lot" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
+            aria-label="เลือก Zone"
             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-indigo-500 disabled:opacity-50"
-            value={selectedLot}
-            onChange={(e) => setSelectedLot(e.target.value)}
-            disabled={disabled || loadingLots || !warehouseId}
+            value={selectedZone}
+            onChange={(e) => setSelectedZone(e.target.value)}
+            disabled={disabled || loadingZones || !warehouseId}
           >
             <option value="">- เลือก -</option>
-            {lots.map((l) => (
-              <option key={l} value={l}>
-                {l}
+            {zones.map((z) => (
+              <option key={z} value={z}>
+                {z}
               </option>
             ))}
           </select>
-          {loadingLots && (
+          {loadingZones && (
             <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
           )}
         </div>
       </div>
 
-      {/* POSITION */}
+      {/* AISLE */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">
-          ตำแหน่ง (POSITION)
-        </label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ทางเดิน (AISLE)</label>
         <div className="relative">
           <select
-            aria-label="เลือก Position" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
+            aria-label="เลือก Aisle"
             className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-indigo-500 disabled:opacity-50"
-            value={selectedPos}
-            onChange={(e) => setSelectedPos(e.target.value)}
-            disabled={disabled || !selectedLot}
+            value={selectedAisle}
+            onChange={(e) => setSelectedAisle(e.target.value)}
+            disabled={disabled || !selectedZone}
           >
             <option value="">- เลือก -</option>
-            {positions.map((p) => (
-              <option key={p} value={p}>
-                {p}
+            {aisles.map((a) => (
+              <option key={a} value={a}>
+                {a}
               </option>
             ))}
           </select>
-          {loadingPos && (
+          {loadingAisles && (
             <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
           )}
         </div>
       </div>
 
-      {/* LEVEL */}
+      {/* BIN */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ชั้น (LEVEL)</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ช่อง (BIN)</label>
         <div className="relative">
           <select
-            aria-label="เลือก Level" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
+            aria-label="เลือก Bin"
             className={`w-full p-2.5 border-2 rounded-lg font-black text-sm outline-none transition-colors disabled:opacity-50
               ${
-                selectedLevelId
+                selectedBinId
                   ? 'bg-emerald-50 border-emerald-400 text-emerald-700'
                   : 'bg-slate-50 border-slate-200 text-slate-700'
               }`}
-            value={selectedLevelId}
-            onChange={(e) => handleLevelChange(e.target.value)}
-            disabled={disabled || !selectedPos}
+            value={selectedBinId}
+            onChange={(e) => handleBinChange(e.target.value)}
+            disabled={disabled || !selectedAisle}
           >
             <option value="">- เลือก -</option>
-            {levels.map((l: any) => (
-              <option key={l.id} value={l.id}>
-                {l.level}
+            {bins.map((b: any) => (
+              <option key={b.id} value={b.id}>
+                {b.level}
               </option>
             ))}
           </select>
-          {loadingLevels && (
+          {loadingBins && (
             <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
           )}
-          {selectedLevelId && !loadingLevels && (
+          {selectedBinId && !loadingBins && (
             <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none">
               <CheckCircle2 className="text-emerald-500" size={16} />
             </div>

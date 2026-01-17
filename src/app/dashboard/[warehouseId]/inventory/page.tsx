@@ -68,11 +68,11 @@ export default async function InventoryPage({
     .eq('locations.warehouse_id', wh.id)
     .gt('quantity', 0);
 
-  // ✅ FIX 2: เรียงลำดับตาม Location จริง
+  // ✅ UPDATED: Use new hierarchical columns (zone, aisle, bin_code)
   const { data: stocks, error } = await dbQuery
-    .order('lot', { foreignTable: 'locations', ascending: true })
-    .order('cart', { foreignTable: 'locations', ascending: true })
-    .order('level', { foreignTable: 'locations', ascending: true })
+    .order('zone', { foreignTable: 'locations', ascending: true })
+    .order('aisle', { foreignTable: 'locations', ascending: true })
+    .order('bin_code', { foreignTable: 'locations', ascending: true })
     .order('sku', { foreignTable: 'products', ascending: true });
 
   if (error) {
@@ -98,9 +98,10 @@ export default async function InventoryPage({
       return (
         stock.products?.name?.toLowerCase().includes(lowerQuery) ||
         stock.products?.sku?.toLowerCase().includes(lowerQuery) ||
-        stock.locations?.lot?.toLowerCase().includes(lowerQuery) ||
-        stock.locations?.cart?.toLowerCase().includes(lowerQuery) ||
-        stock.locations?.level?.toLowerCase().includes(lowerQuery)
+        stock.locations?.zone?.toLowerCase().includes(lowerQuery) ||
+        stock.locations?.aisle?.toLowerCase().includes(lowerQuery) ||
+        stock.locations?.bin_code?.toLowerCase().includes(lowerQuery) ||
+        stock.locations?.code?.toLowerCase().includes(lowerQuery)
       );
     });
   }
@@ -138,10 +139,10 @@ export default async function InventoryPage({
       // Fix: Map plural (DB) to singular (UI Component Expectation)
       product: stock.products,
       location: stock.locations,
-      // Map nested data to top-level properties for UI compatibility
-      lot: stock.locations?.lot,
-      cart: stock.locations?.cart,
-      level: stock.locations?.level,
+      // Map new hierarchical columns to old names for backward compatibility
+      lot: stock.locations?.zone,
+      cart: stock.locations?.aisle,
+      level: stock.locations?.bin_code,
       sku: stock.products?.sku,
       name: stock.products?.name,
       image_url: stock.products?.image_url,

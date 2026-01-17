@@ -200,19 +200,19 @@ export default function StockDetailModal({
                   <span className="font-bold text-slate-700">{item.location?.code || '-'}</span>
                 </div>
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">Lot</span>
-                  <span className="font-bold text-slate-700">{item.lot || '-'}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Zone</span>
+                  <span className="font-bold text-slate-700">{item.location?.zone || '-'}</span>
                 </div>
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">Position</span>
-                  <span className="font-bold text-slate-700">{item.cart || '-'}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase">Aisle</span>
+                  <span className="font-bold text-slate-700">{item.location?.aisle || '-'}</span>
                 </div>
-                {item.level && (
+                {item.location?.bin_code && (
                   <div className="px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-200 flex flex-col items-center min-w-[4rem]">
                     <span className="text-[9px] font-bold text-indigo-400 uppercase flex items-center gap-0.5">
-                      <Layers size={9} /> ชั้น
+                      <Layers size={9} /> Bin
                     </span>
-                    <span className="font-bold text-indigo-700">{item.level}</span>
+                    <span className="font-bold text-indigo-700">{item.location.bin_code}</span>
                   </div>
                 )}
               </div>

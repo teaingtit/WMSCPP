@@ -191,7 +191,7 @@ export default function CountingInterface({
 
   // ใช้ useMemo เพื่อไม่ให้คำนวณใหม่ทุกครั้งที่ Component Re-render
   const availableZones = useMemo(
-    () => Array.from(new Set(localItems.map((item) => item.location?.lot).filter(Boolean))),
+    () => Array.from(new Set(localItems.map((item) => item.location?.zone).filter(Boolean))),
     [localItems],
   );
 
@@ -204,7 +204,7 @@ export default function CountingInterface({
           (item.product?.sku ?? '').toLowerCase().includes(lowerFilter) ||
           (item.location?.code ?? '').toLowerCase().includes(lowerFilter);
 
-        const matchesZone = selectedZone === 'ALL' || item.location?.lot === selectedZone;
+        const matchesZone = selectedZone === 'ALL' || item.location?.zone === selectedZone;
 
         return matchesSearch && matchesZone;
       }),

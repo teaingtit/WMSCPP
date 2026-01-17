@@ -5,7 +5,6 @@ import { useFormState } from 'react-dom';
 import { createWarehouse, deleteWarehouse } from '@/actions/settings-actions';
 import { Save } from 'lucide-react';
 import { SubmitButton } from '@/components/SubmitButton';
-import { DimensionConfig } from './warehouse/DimensionConfig'; // Import ที่แยกมา
 import { WarehouseList } from './warehouse/WarehouseList'; // Import ที่แยกมา
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 
@@ -66,11 +65,21 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
           </div>
         </div>
 
-        {/* เรียกใช้ Component ที่แยกไป */}
-        <DimensionConfig />
+        <div>
+          <label htmlFor="wh-desc" className="block text-xs font-bold text-slate-500 mb-1">
+            คำอธิบาย (Optional)
+          </label>
+          <textarea
+            id="wh-desc"
+            name="description"
+            placeholder="รายละเอียดเพิ่มเติม..."
+            rows={2}
+            className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 ring-indigo-500/20 outline-none"
+          />
+        </div>
 
         <SubmitButton className="w-full bg-slate-900 text-white px-4 py-4 rounded-xl font-bold hover:bg-slate-800 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-          <Save size={18} /> สร้างคลังและ สร้าง Locations อัตโนมัติ
+          <Save size={18} /> สร้างคลังสินค้า
         </SubmitButton>
       </form>
 

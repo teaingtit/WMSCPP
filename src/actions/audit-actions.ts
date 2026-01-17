@@ -185,7 +185,7 @@ export async function getAuditItems(sessionId: string): Promise<AuditItem[]> {
       `
             *,
             product:products (sku, name, uom, image_url),
-            location:locations!audit_items_location_id_fkey (code, lot, cart, level)
+            location:locations!audit_items_location_id_fkey (code, zone, aisle, bin_code)
         `,
     )
     .eq('session_id', sessionId)

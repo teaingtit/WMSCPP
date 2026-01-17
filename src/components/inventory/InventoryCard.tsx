@@ -50,9 +50,12 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
           <span className="flex items-center gap-1 text-[10px] font-bold bg-slate-800 text-white px-2 py-1 rounded">
             <MapPin size={10} /> {item.location?.code || 'N/A'}
           </span>
-          {item.level && (
+          {(item.location?.bin_code || item.level) && (
             <span className="flex items-center gap-1 text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded border border-indigo-100">
-              <Layers size={10} /> Lv.{item.level}
+              <Layers size={10} />{' '}
+              {item.location?.zone && item.location?.aisle && item.location?.bin_code
+                ? `${item.location.zone}/${item.location.aisle}/${item.location.bin_code}`
+                : `Lv.${item.level}`}
             </span>
           )}
         </div>

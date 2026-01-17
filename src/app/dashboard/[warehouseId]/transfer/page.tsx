@@ -50,7 +50,7 @@ export default function TransferPage() {
         const { data: stocks, error } = await supabaseBrowser
           .from('stocks')
           .select(
-            `id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code)`,
+            `id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code, zone, aisle, bin_code)`,
           )
           .in('id', ids)
           .limit(50);
@@ -71,9 +71,13 @@ export default function TransferPage() {
               location,
               name: s.name || product?.name || product?.sku || '',
               sku: product?.sku,
-              lot: location?.lot ?? null,
-              cart: location?.cart ?? null,
-              level: location?.level ?? null,
+              // Map new hierarchy to both new and legacy properties for compatibility
+              zone: location?.zone ?? null,
+              aisle: location?.aisle ?? null,
+              bin_code: location?.bin_code ?? null,
+              lot: location?.zone ?? null,
+              cart: location?.aisle ?? null,
+              level: location?.bin_code ?? null,
             } as any;
           });
 

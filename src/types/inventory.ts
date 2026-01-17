@@ -25,22 +25,50 @@ export interface Product {
 }
 
 /**
- * Represents a storage location within a warehouse.
+ * Represents a storage location within a warehouse using hierarchical 3-level structure.
  * Corresponds to the 'locations' table in the database.
- * The combination of lot, cart, and level can define a more specific position.
+ *
+ * Hierarchy: Zone (depth 0) → Aisle (depth 1) → Bin (depth 2)
  */
 export interface Location {
   id: string;
-  code: string;
+  code: string; // Unique identifier (e.g., "A1-L1", "ZONE-A", "COLD-A2")
   warehouse_id: string;
-  lot: string | null;
-  cart: string | null; // Represents the cart or specific position within the location.
-  level: string | null;
+  parent_id?: string | null;
+  path: string; // Materialized path: "/A/A1/A1-L1/"
+  depth: number; // 0=Zone, 1=Aisle, 2=Bin
+
+  // Fixed 3-level hierarchy
+  zone?: string; // Zone code (only for depth 0,1,2)
+  aisle?: string; // Aisle code (only for depth 1,2)
+  bin_code?: string; // Bin code (only for depth 2)
+
+  attributes: Record<string, any>; // Custom metadata, lot-specific data
+  description?: string;
   is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+
+  // Relations (from joins)
+  parent?: Location;
+  children?: Location[];
   /** Status applied to this location */
   current_status?: EntityStatus;
   /** Notes attached to this location */
   notes?: EntityNote[];
+}
+
+/**
+ * Helper type for UI display with human-readable path
+ */
+export interface LocationDisplay {
+  id: string;
+  code: string;
+  fullPath: string; // Human-readable: "Zone A > Aisle 1 > Bin L1"
+  depth: number;
+  zone?: string | undefined;
+  aisle?: string | undefined;
+  bin_code?: string | undefined;
 }
 
 /**

@@ -34,19 +34,20 @@ interface InventoryDashboardProps {
   warehouses: Warehouse[];
 }
 
-// Helper: จัดกลุ่มสินค้าตาม Lot -> Position
+// Helper: จัดกลุ่มสินค้าตาม Zone -> Aisle
 const buildHierarchy = (stocks: StockWithDetails[]) => {
   // ... existing code ...
   const hierarchy: Record<string, Record<string, StockWithDetails[]>> = {};
 
   stocks.forEach((item) => {
-    // Use flattened properties from page.tsx mapping for consistency
-    const lotKey = item.lot || 'Unassigned';
-    const posKey = item.cart || 'No Position';
+    // Use hierarchy properties from location object
+    const zoneKey = item.location?.zone || 'Unassigned';
+    const aisleKey = item.location?.aisle || 'No Aisle';
 
-    const lot = hierarchy[lotKey] || (hierarchy[lotKey] = {} as Record<string, StockWithDetails[]>);
-    const pos = lot[posKey] || (lot[posKey] = []);
-    pos.push(item);
+    const zone =
+      hierarchy[zoneKey] || (hierarchy[zoneKey] = {} as Record<string, StockWithDetails[]>);
+    const aisle = zone[aisleKey] || (zone[aisleKey] = []);
+    aisle.push(item);
   });
 
   return hierarchy;
@@ -375,7 +376,7 @@ const InventoryDashboardContent = ({
             จัดการสินค้าคงคลัง (Inventory Management)
           </h1>
           <p className="text-slate-500 mt-1 text-sm">
-            มุมมองแบบ <span className="font-bold text-indigo-600">Lot, Position & Level</span>
+            มุมมองแบบ <span className="font-bold text-indigo-600">Zone, Aisle & Bin</span>
             {statusMap?.size > 0 && (
               <span className="ml-2 inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                 <Shield size={12} /> {statusMap.size} รายการที่มีสถานะ
@@ -386,7 +387,7 @@ const InventoryDashboardContent = ({
 
         <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
           <div className="w-full md:w-64">
-            <SearchInput placeholder="ค้นหา Lot, Position, Level, SKU..." />
+            <SearchInput placeholder="ค้นหา Zone, Aisle, Bin, SKU..." />
           </div>
           <ExportButton warehouseId={warehouseId} />
         </div>

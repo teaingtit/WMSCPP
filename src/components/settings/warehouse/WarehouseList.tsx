@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Building2, Trash2 } from 'lucide-react';
+import { Building2, Trash2, MapPin } from 'lucide-react';
 import { SubmitButton } from '@/components/SubmitButton';
+import Link from 'next/link';
 
 interface WarehouseListProps {
   warehouses: any[];
@@ -34,22 +35,29 @@ export const WarehouseList = ({ warehouses, deleteAction }: WarehouseListProps) 
                   <span className="text-xs text-slate-400 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
                     {wh.code}
                   </span>
-                  {wh.config && (
-                    <span className="text-[10px] text-slate-400 flex gap-1 bg-slate-50 px-1 rounded">
-                      <span>X:{wh.config.axis_x}</span>
-                      <span>Y:{wh.config.axis_y}</span>
-                      <span>Z:{wh.config.axis_z}</span>
+                  {wh.description && (
+                    <span className="text-[10px] text-slate-500 truncate max-w-[200px]">
+                      {wh.description}
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <form action={deleteAction}>
-              <input type="hidden" name="id" value={wh.id} />
-              <SubmitButton className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
-                <Trash2 size={18} />
-              </SubmitButton>
-            </form>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/dashboard/${wh.code}/locations`}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+              >
+                <MapPin size={14} />
+                <span>Manage Locations</span>
+              </Link>
+              <form action={deleteAction}>
+                <input type="hidden" name="id" value={wh.id} />
+                <SubmitButton className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+                  <Trash2 size={18} />
+                </SubmitButton>
+              </form>
+            </div>
           </div>
         ))}
         {warehouses.length === 0 && (

@@ -468,7 +468,10 @@ async function _prefetchInboundData(
 ) {
   const [productsRes, locsRes, , catRes] = await Promise.all([
     supabase.from('products').select('id, sku').eq('category_id', categoryId),
-    supabase.from('locations').select('id, code, lot, cart, level').eq('warehouse_id', warehouseId),
+    supabase
+      .from('locations')
+      .select('id, code, zone, aisle, bin_code')
+      .eq('warehouse_id', warehouseId),
     supabase.from('warehouses').select('config').eq('id', warehouseId).single(),
     supabase.from('product_categories').select('form_schema').eq('id', categoryId).single(),
   ]);
@@ -484,20 +487,20 @@ async function _prefetchInboundData(
     (l: {
       id: string;
       code: string;
-      lot: string | null;
-      cart: string | null;
-      level: string | null;
+      zone: string | null;
+      aisle: string | null;
+      bin_code: string | null;
     }) => {
-      const key = `${_normalizeLocPart(l.lot)}|${_normalizeLocPart(l.cart)}|${_normalizeLocPart(
-        l.level,
+      const key = `${_normalizeLocPart(l.zone)}|${_normalizeLocPart(l.aisle)}|${_normalizeLocPart(
+        l.bin_code,
       )}`;
       locMap.set(key, l.id);
 
       // ✅ NEW: สร้าง Key แบบตัวเลขล้วน (ตัด L, P, Zone ออก) เพื่อช่วยจับคู่
       // เช่น DB: L01|P01|1 -> Numeric Key: 1|1|1
-      const nLot = _extractNumber(l.lot);
-      const nCart = _extractNumber(l.cart);
-      const nLevel = _extractNumber(l.level);
+      const nLot = _extractNumber(l.zone);
+      const nCart = _extractNumber(l.aisle);
+      const nLevel = _extractNumber(l.bin_code);
       if (nLot && nCart) {
         const nKey = `${nLot}|${nCart}|${nLevel}`;
         if (!locMapNumeric.has(nKey)) locMapNumeric.set(nKey, l.id);
@@ -525,9 +528,12 @@ function _parseInboundHeaders(worksheet: Worksheet, schemaKeys: string[]): Map<s
     if (val.includes('sku') || val.includes('รหัสสินค้า')) headerMap.set('sku', colNumber);
     if (val.includes('qty') || val.includes('จำนวน')) headerMap.set('qty', colNumber);
 
-    if (val.includes('lot') || val.includes('โซน')) headerMap.set('lot', colNumber);
-    if (val.includes('cart') || val.includes('ตู้')) headerMap.set('cart', colNumber);
-    if (val.includes('level') || val.includes('ชั้น')) headerMap.set('level', colNumber);
+    if (val.includes('lot') || val.includes('โซน') || val.includes('zone'))
+      headerMap.set('lot', colNumber);
+    if (val.includes('cart') || val.includes('ตู้') || val.includes('aisle'))
+      headerMap.set('cart', colNumber);
+    if (val.includes('level') || val.includes('ชั้น') || val.includes('bin'))
+      headerMap.set('level', colNumber);
 
     // Attributes Mapping (หาจาก Key ในวงเล็บ หรือ ชื่อ Label)
     schemaKeys.forEach((key) => {
