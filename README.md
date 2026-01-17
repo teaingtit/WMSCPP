@@ -62,21 +62,75 @@ This project is configured with `output: 'standalone'` which provides:
 - 🐳 **Docker-friendly** - Perfect for containerization
 - 💾 **Less disk space** - Optimized for production environments
 
-### Deploy to Production Server
+### Quick Deploy with Automated Script
 
-Use the deployment workflow:
+**Prerequisites:** Configure SSH alias first (one-time setup)
+
+1. **Setup SSH config** (ครั้งแรกเท่านั้น):
+
+   ```powershell
+   # Create/edit SSH config
+   notepad ~/.ssh/config
+   ```
+
+   Add this configuration:
+
+   ```ssh-config
+   Host home-server
+       HostName 100.96.9.50
+       User teaingtit
+       Port 22
+       IdentityFile ~/.ssh/id_rsa
+   ```
+
+   Test connection: `ssh home-server`
+
+2. **Deploy with one command:**
+
+   ```powershell
+   .\deploy.ps1
+   ```
+
+   The script will automatically:
+
+   - ✅ Test SSH connection
+   - 📦 Create archive (excluding node_modules, .next, .git)
+   - 📤 Upload to server
+   - 🔧 Extract and build with Docker
+   - 🏥 Verify deployment health
+
+### Manual Deployment
+
+For detailed step-by-step instructions, see:
 
 ```bash
-# See .agent/workflows/deploy.md for details
+# Full deployment workflow
+.agent/workflows/deploy.md
 ```
 
-Or manually:
+Or deploy manually:
 
 1. Build the project: `npm run build`
 2. Copy `.next/standalone/` folder to your server
 3. Copy `public/` folder to server (if you have static assets)
 4. Copy `.next/static/` to server's `.next/static/`
 5. Run: `node server.js` on the server
+
+### Deployment Commands
+
+```powershell
+# Quick update (recommended)
+.\deploy.ps1
+
+# View logs
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
+
+# Check status
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml ps"
+
+# Restart application
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml restart"
+```
 
 ## CI/CD
 

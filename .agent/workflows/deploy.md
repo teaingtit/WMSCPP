@@ -7,9 +7,42 @@ description: Deploy app to private server with Supabase Cloud
 ## Prerequisites
 
 - Private server (VPS/Physical) with **Docker** and **Docker Compose** installed
-- SSH access to the server: `ssh teaingtit@100.96.9.50`
+- SSH config alias configured as `home-server` (see SSH Setup section below)
 - Supabase Cloud project already configured
 - Domain name (optional, but recommended for production)
+
+## SSH Setup (ตั้งค่าครั้งเดียว)
+
+สร้าง SSH config alias เพื่อความสะดวกและปลอดภัย:
+
+1. **สร้างหรือแก้ไข SSH config file:**
+
+   ```powershell
+   # บน Windows
+   notepad ~\.ssh\config
+   ```
+
+2. **เพิ่ม configuration:**
+
+   ```ssh-config
+   Host home-server
+       HostName 100.96.9.50
+       User teaingtit
+       Port 22
+       IdentityFile ~/.ssh/id_rsa
+       ServerAliveInterval 60
+       ServerAliveCountMax 3
+   ```
+
+3. **ทดสอบการเชื่อมต่อ:**
+
+   ```powershell
+   ssh home-server
+   ```
+
+   ✅ ถ้าเชื่อมต่อได้แสดงว่าตั้งค่าสำเร็จ!
+
+---
 
 ## Local Testing (ทดสอบก่อน Deploy)
 
@@ -44,6 +77,8 @@ curl http://localhost:3000
 docker compose down
 ```
 
+---
+
 ## Production Deployment (Deploy จริงไปที่ Server)
 
 ### Step 1: Prepare Server
@@ -51,7 +86,7 @@ docker compose down
 1. **SSH เข้าเครื่อง Server:**
 
    ```bash
-   ssh teaingtit@100.96.9.50
+   ssh home-server
    ```
 
 2. **จัดการโฟลเดอร์และสิทธิ์ (รันบน Server):**
@@ -85,22 +120,30 @@ docker compose down
 
 ### Step 2: Transfer Files to Server (จากเครื่อง Local)
 
-เนื่องจากบน Windows ไม่มี `rsync` เป็นค่าเริ่มต้น แนะนำให้ใช้ `tar` + `scp` ดังนี้:
+// turbo
 
-1. **บีบอัดไฟล์ (กดยกเลิกโฟลเดอร์ที่ไม่จำเป็น):**
+1. **บีบอัดไฟล์ (ยกเว้นโฟลเดอร์ที่ไม่จำเป็น):**
 
    ```powershell
    tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
    ```
 
-2. **ส่งไฟล์ไปที่ Server:**
+// turbo 2. **ส่งไฟล์ไปที่ Server:**
 
-   ```powershell
-   scp project.tar.gz teaingtit@100.96.9.50:/opt/wmscpp/
-   ```
+```powershell
+scp project.tar.gz home-server:/opt/wmscpp/
+```
 
 3. **แตกไฟล์บน Server (รันผ่าน SSH):**
+
    ```bash
+   ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz"
+   ```
+
+   หรือแบบแยกคำสั่ง:
+
+   ```bash
+   ssh home-server
    cd /opt/wmscpp
    tar -xvzf project.tar.gz
    rm project.tar.gz
@@ -109,6 +152,13 @@ docker compose down
 ### Step 3: Build and Start (รันบน Server)
 
 ```bash
+ssh home-server "cd /opt/wmscpp && docker compose up -d --build"
+```
+
+หรือแบบ interactive:
+
+```bash
+ssh home-server
 cd /opt/wmscpp
 
 # Build และ Start
@@ -121,40 +171,111 @@ docker compose ps
 docker compose logs -f wmscpp
 ```
 
-## Step 4: Verify Deployment
+### Step 4: Verify Deployment
 
 เปิด Browser ไปที่: `http://100.96.9.50:3000`
 
+หรือทดสอบด้วย curl:
+
+```bash
+curl http://100.96.9.50:3000/api/health
+```
+
 ---
 
-## Updating the Application
+## Updating the Application (อัปเดตแอป)
 
 เมื่อมีการแก้ไขโค้ดและต้องการอัปเดต:
 
-1. บีบอัดไฟล์ใหม่: `tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .`
-2. ส่งไฟล์ใหม่: `scp project.tar.gz teaingtit@100.96.9.50:/opt/wmscpp/`
-3. แตกไฟล์บน server
-   ```bash
-   cd /opt/wmscpp
-   tar -xvzf project.tar.gz
-   rm project.tar.gz
+// turbo
+
+1. **บีบอัดไฟล์ใหม่:**
+
+   ```powershell
+   tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
    ```
-4. รัน: `docker compose up -d --build`
+
+// turbo 2. **ส่งไฟล์ใหม่:**
+
+```powershell
+scp project.tar.gz home-server:/opt/wmscpp/
+```
+
+3. **แตกไฟล์และ Deploy:**
+
+   ```bash
+   ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz && docker compose up -d --build"
+   ```
+
+---
 
 ## Monitoring & Troubleshooting
 
-- **ดู Logs:** `docker compose logs -f`
-- **เช็ค Resource:** `docker stats`
-- **Restart App:** `docker compose restart`
-- **กรณีรันไม่ขึ้น:** เช็ค `.env` ว่าค่า Supabase ถูกต้องหรือไม่ และเช็ค firewall ของ server ปิดพอร์ต 3000 หรือไม่
+### ดู Logs แบบ Real-time
 
-##############################
-(บน Local):
+```bash
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
+```
+
+### เช็ค Resource Usage
+
+```bash
+ssh home-server "docker stats"
+```
+
+### Restart Application
+
+```bash
+ssh home-server "cd /opt/wmscpp && docker compose restart"
+```
+
+### Stop Application
+
+```bash
+ssh home-server "cd /opt/wmscpp && docker compose down"
+```
+
+### Common Issues
+
+- **กรณีรันไม่ขึ้น:** เช็ค `.env` ว่าค่า Supabase ถูกต้องหรือไม่
+- **Connection refused:** เช็ค firewall ของ server ว่าเปิดพอร์ต 3000 หรือไม่
+- **Container crash:** ดู logs ด้วย `docker compose logs`
+
+---
+
+## Quick Reference (คำสั่งด่วน)
+
+### 🚀 Deploy ครั้งแรก (Full Setup)
+
+```powershell
+# บน Local
 tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
-scp project.tar.gz teaingtit@100.96.9.50:/opt/wmscpp/
-###################
-บน Server (SSH):
+scp project.tar.gz home-server:/opt/wmscpp/
+
+# บน Server (SSH)
+ssh home-server
 cd /opt/wmscpp
 tar -xvzf project.tar.gz
 rm project.tar.gz
 docker compose up -d --build
+```
+
+### 🔄 Update แอป (Quick Update)
+
+```powershell
+# บน Local - One-liner
+tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz . && scp project.tar.gz home-server:/opt/wmscpp/ && ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz && docker compose up -d --build"
+```
+
+### 📊 ตรวจสอบสถานะ
+
+```bash
+# ดู logs
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f wmscpp"
+
+# เช็คสถานะ container
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml ps"
+
+# ทดสอบ health endpoint
+curl http://100.96.9.50:3000/api/health
+```

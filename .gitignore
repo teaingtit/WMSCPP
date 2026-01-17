@@ -16,3 +16,7 @@ tsconfig.strict.tsbuildinfo
 test-results/
 e2e-results/
 .venv/
+
+# Deployment artifacts
+project.tar.gz
+*.tar.gz

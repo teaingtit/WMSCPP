@@ -1,0 +1,27 @@
+# SSH Config Example for WMSCPP Deployment
+# Location: ~/.ssh/config (Windows: C:\Users\<username>\.ssh\config)
+
+# Home Server Configuration
+Host home-server
+    HostName 100.96.9.50
+    User teaingtit
+    Port 22
+    IdentityFile ~/.ssh/id_rsa
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    # Compression yes  # เปิดถ้าต้องการบีบอัดข้อมูล (ช้าลงนิดหน่อยแต่ประหยัด bandwidth)
+
+# ตัวอย่าง: ถ้ามี server อื่นๆ
+# Host production-server
+#     HostName 203.0.113.10
+#     User deploy
+#     Port 22
+#     IdentityFile ~/.ssh/id_ed25519
+#     ServerAliveInterval 60
+
+# ตัวอย่าง: ถ้าต้องการ jump host (bastion)
+# Host internal-server
+#     HostName 10.0.0.5
+#     User admin
+#     ProxyJump home-server
+#     IdentityFile ~/.ssh/id_rsa

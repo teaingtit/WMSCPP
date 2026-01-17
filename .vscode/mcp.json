@@ -1,8 +1,8 @@
 {
-  "servers": {
+  "mcpServers": {
     "supabase-mcp": {
       "command": "node",
-      "args": ["C:\\Users\\nteai\\Desktop\\project\\WMSCPP\\my-mcp-server\\dist\\index.js"],
+      "args": ["c:/Users/nteai/Desktop/project/my-mcp-server/dist/index.js"],
       "env": {
         "DATABASE_URL": "postgresql://postgres:Pj-468278963@db.pbqiaqrrtyjarrkbvmyz.supabase.co:5432/postgres?sslmode=require"
       }
