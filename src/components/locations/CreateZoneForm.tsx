@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useFormState } from 'react-dom';
-import { Plus, Grid3x3 } from 'lucide-react';
+import { Plus, Grid3x3, Sparkles } from 'lucide-react';
 import { createZone } from '@/actions/location-actions';
 import { SubmitButton } from '@/components/SubmitButton';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
@@ -40,7 +40,7 @@ export function CreateZoneForm({ warehouseId, onSuccess }: CreateZoneFormProps) 
         className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm"
       >
         <Plus size={16} />
-        สร้างโซน
+        สร้างโซนจัดเก็บ
       </button>
     );
   }
@@ -51,7 +51,7 @@ export function CreateZoneForm({ warehouseId, onSuccess }: CreateZoneFormProps) 
         <div className="p-2 bg-indigo-100 rounded-lg">
           <Grid3x3 size={20} className="text-indigo-600" />
         </div>
-        <h3 className="text-lg font-bold text-slate-800">สร้างโซนใหม่</h3>
+        <h3 className="text-lg font-bold text-slate-800">สร้างโซนจัดเก็บใหม่</h3>
       </div>
 
       <form action={formAction} className="space-y-4">
@@ -60,7 +60,7 @@ export function CreateZoneForm({ warehouseId, onSuccess }: CreateZoneFormProps) 
 
         <div>
           <label htmlFor="zone" className="block text-sm font-medium text-slate-700 mb-1">
-            ชื่อโซน <span className="text-red-500">*</span>
+            ชื่อโซนจัดเก็บ <span className="text-red-500">*</span>
           </label>
           <input
             id="zone"
@@ -72,13 +72,21 @@ export function CreateZoneForm({ warehouseId, onSuccess }: CreateZoneFormProps) 
             placeholder="เช่น A, B, COLD, DRY"
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
           />
-          <p className="text-xs text-slate-500 mt-1">ตัวระบุสั้นๆ สำหรับโซน (เช่น A, B, COLD)</p>
+          <p className="text-xs text-slate-500 mt-1">
+            ตัวระบุสั้นๆ สำหรับโซนจัดเก็บ (เช่น A, B, COLD)
+          </p>
         </div>
 
         {zoneName && (
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-            <p className="text-xs font-medium text-indigo-700 mb-1">รหัสที่จะถูกสร้างอัตโนมัติ:</p>
-            <p className="text-sm font-mono font-bold text-indigo-900">{autoCode}</p>
+          <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 border-2 border-indigo-300 rounded-xl p-4 shadow-inner">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={16} className="text-indigo-600" />
+              <p className="text-sm font-semibold text-indigo-800">รหัสที่สร้างอัตโนมัติ</p>
+            </div>
+            <p className="text-2xl font-mono font-bold text-indigo-900 tracking-wider">
+              {autoCode}
+            </p>
+            <p className="text-xs text-indigo-600 mt-1">✓ พร้อมสร้าง</p>
           </div>
         )}
 
@@ -100,7 +108,7 @@ export function CreateZoneForm({ warehouseId, onSuccess }: CreateZoneFormProps) 
             disabled={!zoneName}
             className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            สร้างโซน
+            สร้างโซนจัดเก็บ
           </SubmitButton>
           <button
             type="button"

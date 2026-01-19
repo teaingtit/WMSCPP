@@ -136,13 +136,13 @@ function TreeNodeComponent({
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm text-slate-800">{node.location.code}</span>
             {node.location.depth === 0 && node.location.zone && (
-              <span className="text-xs text-slate-500">Zone {node.location.zone}</span>
+              <span className="text-xs text-slate-500">โซนจัดเก็บ {node.location.zone}</span>
             )}
             {node.location.depth === 1 && node.location.aisle && (
-              <span className="text-xs text-slate-500">Aisle {node.location.aisle}</span>
+              <span className="text-xs text-slate-500">LOT {node.location.aisle}</span>
             )}
             {node.location.depth === 2 && node.location.bin_code && (
-              <span className="text-xs text-slate-500">Bin {node.location.bin_code}</span>
+              <span className="text-xs text-slate-500">พื้นที่เก็บ {node.location.bin_code}</span>
             )}
           </div>
           {node.location.description && (
@@ -188,10 +188,20 @@ export function LocationTreeView({
 
   if (locations.length === 0) {
     return (
-      <div className="text-center py-12 text-slate-500">
-        <MapPin size={48} className="mx-auto mb-4 opacity-20" />
-        <p className="text-sm font-medium">No locations found</p>
-        <p className="text-xs mt-1">Create zones, aisles, and bins to get started</p>
+      <div className="text-center py-12 px-4">
+        <div className="inline-block p-6 bg-indigo-50 rounded-full mb-4">
+          <MapPin size={64} className="text-indigo-300" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">ยังไม่มีโลเคชั่น</h3>
+        <p className="text-sm text-slate-600 mb-6 max-w-sm mx-auto">
+          เริ่มจัดระเบียบคลังสินค้าของคุณด้วยการสร้างโลเคชั่นแรก
+        </p>
+        <div className="text-xs text-slate-500 space-y-1 mb-4">
+          <p>💡 คุณสามารถสร้างได้:</p>
+          <p>• โซนจัดเก็บ - พื้นที่จัดเก็บหลัก</p>
+          <p>• LOT - ภายในพื้นที่</p>
+          <p>• พื้นที่เก็บ(มุมมองบน) - ภายใน LOT</p>
+        </div>
       </div>
     );
   }

@@ -184,14 +184,13 @@ export async function createWarehouse(formData: FormData): Promise<ActionRespons
 
   if (!validation.success) return validation.response;
 
-  const { code, name, description: _description } = validation.data;
+  const { code, name, description } = validation.data;
 
   try {
-    // Note: description column temporarily removed due to PostgREST schema cache
-    // Supabase needs to refresh schema cache for new columns to be recognized
     const { error } = await supabase.from('warehouses').insert({
       code,
       name,
+      description,
       is_active: true,
     });
 

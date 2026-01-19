@@ -21,6 +21,7 @@ const CreateAisleSchema = z.object({
   aisle: z.string().min(1, 'Aisle code required'),
   code: z.string().min(1, 'Code required'),
   description: z.string().optional(),
+  levels: z.coerce.number().min(1).max(20).default(1), // Level capacity
 });
 
 const CreateBinSchema = z.object({
@@ -54,22 +55,40 @@ export async function createZone(formData: FormData) {
   const { warehouse_id, zone, code, description } = parsed.data;
   const whId = await getWarehouseId(supabase, warehouse_id);
 
+  // Check for duplicate code
+  const { data: existingCode } = await supabase
+    .from('locations')
+    .select('id')
+    .eq('warehouse_id', whId)
+    .eq('code', code)
+    .single();
+
+  if (existingCode) {
+    return { success: false, message: `Code "${code}" already exists in this warehouse` };
+  }
+
+  // Calculate path
+  const path = zone;
+
   const { error } = await supabase.from('locations').insert({
     warehouse_id: whId,
     code,
     zone,
     depth: 0,
+    path,
     description,
     is_active: true,
   });
 
   if (error) return { success: false, message: error.message };
   revalidatePath(`/dashboard/${warehouse_id}`);
-  return { success: true, message: 'Zone created successfully' };
+  return { success: true, message: 'Lot created successfully' };
 }
 
+// ... (CreateZoneSchema remains the same)
+
 /**
- * Create Aisle (Depth 1)
+ * Create Aisle (Depth 1) - Now acts as "Create Cart" with auto-generated levels
  */
 export async function createAisle(formData: FormData) {
   const supabase = await createClient();
@@ -78,18 +97,19 @@ export async function createAisle(formData: FormData) {
     aisle: formData.get('aisle'),
     code: formData.get('code'),
     description: formData.get('description'),
+    levels: formData.get('levels'),
   });
 
   if (!parsed.success) {
     return { success: false, message: 'Invalid data', errors: parsed.error.flatten() };
   }
 
-  const { parent_id, aisle, code, description } = parsed.data;
+  const { parent_id, aisle, code, description, levels } = parsed.data;
 
   // Verify parent is a Zone
   const { data: parent } = await supabase
     .from('locations')
-    .select('warehouse_id, depth')
+    .select('warehouse_id, depth, zone')
     .eq('id', parent_id)
     .single();
 
@@ -97,19 +117,78 @@ export async function createAisle(formData: FormData) {
     return { success: false, message: 'Parent must be a Zone' };
   }
 
-  const { error } = await supabase.from('locations').insert({
-    warehouse_id: parent.warehouse_id,
-    parent_id,
-    code,
-    aisle,
-    depth: 1,
-    description,
-    is_active: true,
-  });
+  // Check for duplicate code
+  const { data: existingCode } = await supabase
+    .from('locations')
+    .select('id')
+    .eq('warehouse_id', parent.warehouse_id)
+    .eq('code', code)
+    .single();
+
+  if (existingCode) {
+    return { success: false, message: `Code "${code}" already exists in this warehouse` };
+  }
+
+  // Calculate path
+  const path = `${parent.zone}.${aisle}`;
+
+  // 1. Create the Aisle/Cart (Depth 1)
+  const { data: newAisle, error } = await supabase
+    .from('locations')
+    .insert({
+      warehouse_id: parent.warehouse_id,
+      parent_id,
+      code,
+      zone: parent.zone,
+      aisle,
+      depth: 1,
+      path,
+      description,
+      is_active: true,
+      attributes: { total_levels: levels }, // Store metadata
+    })
+    .select()
+    .single();
 
   if (error) return { success: false, message: error.message };
+
+  // 2. Automatically create Bins (Levels) (Depth 2)
+  const binInserts = [];
+  for (let i = 1; i <= levels; i++) {
+    const binCode = `L${i}`; // e.g., L1, L2
+    const fullBinCode = `${code}-${binCode}`; // e.g., A1-L1
+    const binPath = `${path}.${binCode}`;
+
+    binInserts.push({
+      warehouse_id: parent.warehouse_id,
+      parent_id: newAisle.id,
+      code: fullBinCode,
+      zone: parent.zone,
+      aisle: aisle,
+      bin_code: binCode,
+      depth: 2,
+      path: binPath,
+      description: `Level ${i} of ${aisle}`,
+      is_active: true,
+      attributes: { level_number: i },
+    });
+  }
+
+  if (binInserts.length > 0) {
+    const { error: binError } = await supabase.from('locations').insert(binInserts);
+    if (binError) {
+      // Rollback: Delete the aisle if bins fail
+      await supabase.from('locations').delete().eq('id', newAisle.id);
+      console.error('Failed to auto-create bins:', binError);
+      return {
+        success: false,
+        message: 'Failed to create storage slot and levels. Please try again.',
+      };
+    }
+  }
+
   revalidatePath(`/dashboard/${parent.warehouse_id}`);
-  return { success: true, message: 'Aisle created successfully' };
+  return { success: true, message: `Storage slot created with ${levels} levels successfully` };
 }
 
 /**
@@ -134,7 +213,7 @@ export async function createBin(formData: FormData) {
   // Verify parent is an Aisle
   const { data: parent } = await supabase
     .from('locations')
-    .select('warehouse_id, depth')
+    .select('warehouse_id, depth, zone, aisle')
     .eq('id', parent_id)
     .single();
 
@@ -142,12 +221,30 @@ export async function createBin(formData: FormData) {
     return { success: false, message: 'Parent must be an Aisle' };
   }
 
+  // Check for duplicate code
+  const { data: existingCode } = await supabase
+    .from('locations')
+    .select('id')
+    .eq('warehouse_id', parent.warehouse_id)
+    .eq('code', code)
+    .single();
+
+  if (existingCode) {
+    return { success: false, message: `Code "${code}" already exists in this warehouse` };
+  }
+
+  // Calculate path
+  const path = `${parent.zone}.${parent.aisle}.${bin_code}`;
+
   const { error } = await supabase.from('locations').insert({
     warehouse_id: parent.warehouse_id,
     parent_id,
     code,
+    zone: parent.zone,
+    aisle: parent.aisle,
     bin_code,
     depth: 2,
+    path,
     attributes,
     description,
     is_active: true,
@@ -155,7 +252,7 @@ export async function createBin(formData: FormData) {
 
   if (error) return { success: false, message: error.message };
   revalidatePath(`/dashboard/${parent.warehouse_id}`);
-  return { success: true, message: 'Bin created successfully' };
+  return { success: true, message: 'Level created successfully' };
 }
 
 // =====================================================

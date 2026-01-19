@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useFormState } from 'react-dom';
-import { Plus, Package } from 'lucide-react';
+import { Plus, Package, Sparkles } from 'lucide-react';
 import { createBin } from '@/actions/location-actions';
 import { SubmitButton } from '@/components/SubmitButton';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
@@ -41,7 +41,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
   }, [state, onSuccess]);
 
   if (aisles.length === 0) {
-    return <div className="text-sm text-slate-500 italic">กรุณาสร้างทางเดินก่อนเพิ่มช่องเก็บ</div>;
+    return <div className="text-sm text-slate-500 italic">กรุณาสร้าง LOT ก่อนเพิ่มพื้นที่เก็บ</div>;
   }
 
   if (!isOpen) {
@@ -51,7 +51,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
         className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm"
       >
         <Plus size={16} />
-        สร้างช่องเก็บ
+        สร้างพื้นที่เก็บ
       </button>
     );
   }
@@ -62,7 +62,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
         <div className="p-2 bg-amber-100 rounded-lg">
           <Package size={20} className="text-amber-600" />
         </div>
-        <h3 className="text-lg font-bold text-slate-800">สร้างช่องเก็บใหม่</h3>
+        <h3 className="text-lg font-bold text-slate-800">สร้างพื้นที่เก็บใหม่ (มุมมองบน)</h3>
       </div>
 
       <form action={formAction} className="space-y-4">
@@ -70,7 +70,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
 
         <div>
           <label htmlFor="parent_id" className="block text-sm font-medium text-slate-700 mb-1">
-            เลือกทางเดิน <span className="text-red-500">*</span>
+            เลือก LOT <span className="text-red-500">*</span>
           </label>
           <select
             id="parent_id"
@@ -80,7 +80,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
             onChange={(e) => setSelectedAisle(e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
           >
-            <option value="">-- เลือกทางเดิน --</option>
+            <option value="">-- เลือก LOT --</option>
             {aisles.map((aisle) => (
               <option key={aisle.id} value={aisle.id}>
                 {aisle.zone}/{aisle.aisle} ({aisle.code})
@@ -91,7 +91,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
 
         <div>
           <label htmlFor="bin_code" className="block text-sm font-medium text-slate-700 mb-1">
-            ชื่อช่องเก็บ <span className="text-red-500">*</span>
+            ชื่อพื้นที่เก็บ <span className="text-red-500">*</span>
           </label>
           <input
             id="bin_code"
@@ -103,13 +103,17 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
             placeholder="เช่น L1, L2, SHELF-01"
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
           />
-          <p className="text-xs text-slate-500 mt-1">ตัวระบุช่องเก็บภายในทางเดิน</p>
+          <p className="text-xs text-slate-500 mt-1">ตัวระบุพื้นที่เก็บภายใน LOT</p>
         </div>
 
         {autoCode && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-xs font-medium text-amber-700 mb-1">รหัสที่จะถูกสร้างอัตโนมัติ:</p>
-            <p className="text-sm font-mono font-bold text-amber-900">{autoCode}</p>
+          <div className="bg-gradient-to-r from-amber-50 to-amber-100 border-2 border-amber-300 rounded-xl p-4 shadow-inner">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={16} className="text-amber-600" />
+              <p className="text-sm font-semibold text-amber-800">รหัสที่สร้างอัตโนมัติ</p>
+            </div>
+            <p className="text-2xl font-mono font-bold text-amber-900 tracking-wider">{autoCode}</p>
+            <p className="text-xs text-amber-600 mt-1">✓ พร้อมสร้าง</p>
           </div>
         )}
 
@@ -121,7 +125,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
             id="description"
             name="description"
             rows={2}
-            placeholder="คำอธิบายช่องเก็บ..."
+            placeholder="คำอธิบายพื้นที่เก็บ..."
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none"
           />
         </div>
@@ -131,7 +135,7 @@ export function CreateBinForm({ aisles, onSuccess }: CreateBinFormProps) {
             disabled={!selectedAisle || !binName}
             className="flex-1 bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            สร้างช่องเก็บ
+            สร้างพื้นที่เก็บ
           </SubmitButton>
           <button
             type="button"

@@ -23,9 +23,9 @@ export function getLegacyLocationFields(location: Location) {
  */
 export function buildLocationDisplayPath(location: Location): string {
   const parts = [];
-  if (location.zone) parts.push(`Zone ${location.zone}`);
-  if (location.aisle) parts.push(`Aisle ${location.aisle}`);
-  if (location.bin_code) parts.push(`Bin ${location.bin_code}`);
+  if (location.zone) parts.push(`โซนจัดเก็บ ${location.zone}`);
+  if (location.aisle) parts.push(`LOT ${location.aisle}`);
+  if (location.bin_code) parts.push(`พื้นที่เก็บ ${location.bin_code}`);
   return parts.join(' > ') || location.code;
 }
 
@@ -50,11 +50,11 @@ export function toLocationDisplay(location: Location): LocationDisplay {
 export function getLocationTypeLabel(depth: number): string {
   switch (depth) {
     case 0:
-      return 'Zone';
+      return 'โซนจัดเก็บ';
     case 1:
-      return 'Aisle';
+      return 'LOT';
     case 2:
-      return 'Bin';
+      return 'พื้นที่เก็บ(มุมมองบน)';
     default:
       return 'Unknown';
   }

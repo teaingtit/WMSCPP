@@ -177,9 +177,21 @@
     text-size-adjust: 100%;
   }
 
-  /* Focus visible for accessibility */
-  :focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  /* Enhanced focus visible for keyboard navigation */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-indigo-500 ring-offset-2 ring-offset-background;
+    transition: box-shadow 0.2s ease-in-out;
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    @apply ring-2 ring-indigo-500 ring-offset-2;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply ring-2 ring-indigo-500 ring-offset-1;
   }
 
   /* Better link defaults */

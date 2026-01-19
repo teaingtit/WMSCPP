@@ -13,6 +13,8 @@ export interface LayoutComponent {
   height: number;
   color: string;
   parentId?: string;
+  levels?: number;
+  capacity?: number;
 }
 
 export interface WarehouseLayout {
@@ -148,21 +150,56 @@ export async function generateLocationsFromLayout(warehouseId: string) {
 
       if (!parentLoc) continue;
 
-      const { error } = await supabase.from('locations').insert({
-        warehouse_id: warehouseId,
-        code: `${parentZone.name}-${aisle.name}`,
-        zone: parentZone.name,
-        aisle: aisle.name,
-        depth: 1,
-        parent_id: parentLoc.id,
-        path: `${parentZone.name}.${aisle.name}`,
-        is_active: true,
-      });
+      // 1. Create Aisle/Cart (Depth 1)
+      const levels = aisle.levels || 1;
+      const { data: newAisle, error } = await supabase
+        .from('locations')
+        .insert({
+          warehouse_id: warehouseId,
+          code: `${parentZone.name}-${aisle.name}`,
+          zone: parentZone.name,
+          aisle: aisle.name,
+          depth: 1,
+          parent_id: parentLoc.id,
+          path: `${parentZone.name}.${aisle.name}`,
+          is_active: true,
+          attributes: { total_levels: levels },
+        })
+        .select()
+        .single();
 
-      if (!error) created.aisles++;
+      if (!error && newAisle) {
+        created.aisles++;
+
+        // 2. Auto-generate Bins/Levels (Depth 2)
+        const binInserts = [];
+        for (let i = 1; i <= levels; i++) {
+          binInserts.push({
+            warehouse_id: warehouseId,
+            parent_id: newAisle.id,
+            code: `${parentZone.name}-${aisle.name}-L${i}`,
+            zone: parentZone.name,
+            aisle: aisle.name,
+            bin_code: `L${i}`,
+            depth: 2,
+            path: `${parentZone.name}.${aisle.name}.L${i}`,
+            is_active: true,
+            attributes: { level_number: i },
+          });
+        }
+
+        if (binInserts.length > 0) {
+          const { data: insertedBins, error: binError } = await supabase
+            .from('locations')
+            .insert(binInserts)
+            .select('id');
+
+          if (!binError && insertedBins) created.bins += insertedBins.length;
+        }
+      }
     }
 
-    // Create bins (need to find parent aisle)
+    // Create manual bins (need to find parent aisle)
     for (const bin of bins) {
       // Find overlapping aisle
       const parentAisle = aisles.find(
@@ -207,6 +244,7 @@ export async function generateLocationsFromLayout(warehouseId: string) {
         parent_id: parentLoc.id,
         path: `${parentZone.name}.${parentAisle.name}.${bin.name}`,
         is_active: true,
+        attributes: { type: 'manual' },
       });
 
       if (!error) created.bins++;

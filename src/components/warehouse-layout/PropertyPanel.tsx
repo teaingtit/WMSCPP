@@ -1,17 +1,24 @@
 'use client';
 
 import React from 'react';
-import { Trash2, Copy } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { LayoutComponent } from './DraggableComponent';
 
 interface PropertyPanelProps {
   component: LayoutComponent | null;
   onUpdate: (updates: Partial<LayoutComponent>) => void;
   onDelete: () => void;
-  onDuplicate: () => void;
+  onAddChild?: (type: 'aisle') => void;
+  onRotate?: () => void;
 }
 
-export function PropertyPanel({ component, onUpdate, onDelete, onDuplicate }: PropertyPanelProps) {
+export function PropertyPanel({
+  component,
+  onUpdate,
+  onDelete,
+  onAddChild,
+  onRotate,
+}: PropertyPanelProps) {
   if (!component) {
     return (
       <div className="w-64 bg-white border-l border-slate-200 p-4">
@@ -34,7 +41,7 @@ export function PropertyPanel({ component, onUpdate, onDelete, onDuplicate }: Pr
         {/* Name */}
         <div>
           <label htmlFor="comp-name" className="block text-sm font-medium text-slate-700 mb-1">
-            ชื่อ
+            ชื่อ (Code)
           </label>
           <input
             id="comp-name"
@@ -42,74 +49,61 @@ export function PropertyPanel({ component, onUpdate, onDelete, onDuplicate }: Pr
             value={component.name}
             onChange={(e) => onUpdate({ name: e.target.value })}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm"
-            placeholder="ชื่อส่วนประกอบ"
-            title="ชื่อส่วนประกอบ"
+            placeholder="เช่น A1, Z1"
           />
         </div>
 
-        {/* Position */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Levels (Only for Cart/Aisle) */}
+        {component.type === 'aisle' && (
           <div>
-            <label htmlFor="comp-x" className="block text-sm font-medium text-slate-700 mb-1">
-              X
+            <label htmlFor="comp-levels" className="block text-sm font-medium text-slate-700 mb-1">
+              จำนวนชั้น (Levels)
             </label>
             <input
-              id="comp-x"
+              id="comp-levels"
               type="number"
-              value={Math.round(component.x)}
-              onChange={(e) => onUpdate({ x: Number(e.target.value) })}
+              min="1"
+              max="20"
+              value={component.levels || 1}
+              onChange={(e) => onUpdate({ levels: Math.max(1, Number(e.target.value)) })}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm"
-              placeholder="X"
-              title="พิกัด X"
             />
+            <p className="text-[10px] text-slate-400 mt-1">
+              ระบบจะสร้าง พื้นที่เก็บ(มุมมองบน) ตามจำนวนชั้น
+            </p>
           </div>
-          <div>
-            <label htmlFor="comp-y" className="block text-sm font-medium text-slate-700 mb-1">
-              Y
-            </label>
-            <input
-              id="comp-y"
-              type="number"
-              value={Math.round(component.y)}
-              onChange={(e) => onUpdate({ y: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm"
-              placeholder="Y"
-              title="พิกัด Y"
-            />
-          </div>
-        </div>
+        )}
 
-        {/* Size */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Capacity (Only for Zone/Lot) */}
+        {component.type === 'zone' && (
           <div>
-            <label htmlFor="comp-width" className="block text-sm font-medium text-slate-700 mb-1">
-              ความกว้าง
+            <label
+              htmlFor="comp-capacity"
+              className="block text-sm font-medium text-slate-700 mb-1"
+            >
+              ความจุ (Max Slots)
             </label>
             <input
-              id="comp-width"
+              id="comp-capacity"
               type="number"
-              value={Math.round(component.width)}
-              onChange={(e) => onUpdate({ width: Math.max(20, Number(e.target.value)) })}
+              min="1"
+              value={component.capacity || 10}
+              onChange={(e) => onUpdate({ capacity: Math.max(1, Number(e.target.value)) })}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm"
-              placeholder="กว้าง"
-              title="ความกว้าง"
+              placeholder="จำนวนช่องเก็บสูงสุด"
             />
+            <p className="text-[10px] text-slate-400 mt-1">จำนวน LOT สูงสุดในโซนนี้</p>
+
+            {onAddChild && (
+              <button
+                onClick={() => onAddChild('aisle')}
+                className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors text-xs font-medium"
+              >
+                + เพิ่ม LOT
+              </button>
+            )}
           </div>
-          <div>
-            <label htmlFor="comp-height" className="block text-sm font-medium text-slate-700 mb-1">
-              ความสูง
-            </label>
-            <input
-              id="comp-height"
-              type="number"
-              value={Math.round(component.height)}
-              onChange={(e) => onUpdate({ height: Math.max(20, Number(e.target.value)) })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-sm"
-              placeholder="สูง"
-              title="ความสูง"
-            />
-          </div>
-        </div>
+        )}
 
         {/* Color */}
         <div>
@@ -128,13 +122,15 @@ export function PropertyPanel({ component, onUpdate, onDelete, onDuplicate }: Pr
 
         {/* Actions */}
         <div className="pt-4 border-t border-slate-200 space-y-2">
-          <button
-            onClick={onDuplicate}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-          >
-            <Copy size={16} />
-            ทำซ้ำ
-          </button>
+          {onRotate && (
+            <button
+              onClick={onRotate}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+            >
+              🔄 หมุน (Rotate)
+            </button>
+          )}
+
           <button
             onClick={onDelete}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"

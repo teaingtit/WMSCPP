@@ -1,7 +1,7 @@
 'use client';
-
 import React, { useState, useRef } from 'react';
 import { ZoomIn, ZoomOut, Grid3x3, Maximize2 } from 'lucide-react';
+import { useDroppable } from '@dnd-kit/core';
 
 interface LayoutCanvasProps {
   children: React.ReactNode;
@@ -16,6 +16,10 @@ export function LayoutCanvas({ children, gridSize = 10, onCanvasClick }: LayoutC
   const [showGrid, setShowGrid] = useState(true);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const svgRef = useRef<SVGSVGElement>(null);
+
+  const { setNodeRef } = useDroppable({
+    id: 'canvas',
+  });
 
   const canvasWidth = 1200;
   const canvasHeight = 800;
@@ -63,13 +67,17 @@ export function LayoutCanvas({ children, gridSize = 10, onCanvasClick }: LayoutC
   };
 
   return (
-    <div className="relative w-full h-full bg-slate-100 rounded-lg overflow-hidden">
+    <div
+      ref={setNodeRef}
+      className="relative w-full h-full bg-slate-100 rounded-lg overflow-hidden"
+    >
       {/* Toolbar */}
       <div className="absolute top-4 right-4 z-10 flex gap-2 bg-white rounded-lg shadow-lg p-2">
         <button
           onClick={handleZoomIn}
           className="p-2 hover:bg-slate-100 rounded transition-colors"
           title="ขยาย"
+          aria-label="Zoom in"
         >
           <ZoomIn size={20} />
         </button>
@@ -77,6 +85,7 @@ export function LayoutCanvas({ children, gridSize = 10, onCanvasClick }: LayoutC
           onClick={handleZoomOut}
           className="p-2 hover:bg-slate-100 rounded transition-colors"
           title="ย่อ"
+          aria-label="Zoom out"
         >
           <ZoomOut size={20} />
         </button>
@@ -84,15 +93,18 @@ export function LayoutCanvas({ children, gridSize = 10, onCanvasClick }: LayoutC
           onClick={handleResetView}
           className="p-2 hover:bg-slate-100 rounded transition-colors"
           title="รีเซ็ตมุมมอง"
+          aria-label="Reset view"
         >
           <Maximize2 size={20} />
         </button>
+        <div className="w-px h-6 bg-slate-300 mx-1 self-center" />
         <button
           onClick={() => setShowGrid(!showGrid)}
           className={`p-2 rounded transition-colors ${
             showGrid ? 'bg-indigo-100 text-indigo-600' : 'hover:bg-slate-100'
           }`}
           title="แสดง/ซ่อนกริด"
+          aria-label={showGrid ? 'Hide grid' : 'Show grid'}
         >
           <Grid3x3 size={20} />
         </button>
@@ -115,7 +127,13 @@ export function LayoutCanvas({ children, gridSize = 10, onCanvasClick }: LayoutC
         onMouseLeave={handleMouseUp}
         onClick={handleCanvasClick}
       >
-        <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+        <g
+          transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}
+          style={{
+            transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+            transformOrigin: 'center center',
+          }}
+        >
           {/* Grid Pattern */}
           {showGrid && (
             <defs>

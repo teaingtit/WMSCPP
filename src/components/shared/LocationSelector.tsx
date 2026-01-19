@@ -129,7 +129,7 @@ export default function LocationSelector({
     <div className={`grid grid-cols-3 gap-3 ${className}`}>
       {/* ZONE */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">โซน (ZONE)</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">โซนจัดเก็บ</label>
         <div className="relative">
           <select
             aria-label="เลือก Zone"
@@ -153,7 +153,7 @@ export default function LocationSelector({
 
       {/* AISLE */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ทางเดิน (AISLE)</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">LOT</label>
         <div className="relative">
           <select
             aria-label="เลือก Aisle"
@@ -177,7 +177,7 @@ export default function LocationSelector({
 
       {/* BIN */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ช่อง (BIN)</label>
+        <label className="text-[10px] font-bold text-slate-400 mb-1 block">พื้นที่เก็บ</label>
         <div className="relative">
           <select
             aria-label="เลือก Bin"

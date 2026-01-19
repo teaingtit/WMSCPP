@@ -376,7 +376,8 @@ const InventoryDashboardContent = ({
             จัดการสินค้าคงคลัง (Inventory Management)
           </h1>
           <p className="text-slate-500 mt-1 text-sm">
-            มุมมองแบบ <span className="font-bold text-indigo-600">Zone, Aisle & Bin</span>
+            มุมมองแบบ{' '}
+            <span className="font-bold text-indigo-600">โซนจัดเก็บ, LOT & พื้นที่เก็บ</span>
             {statusMap?.size > 0 && (
               <span className="ml-2 inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                 <Shield size={12} /> {statusMap.size} รายการที่มีสถานะ
@@ -387,7 +388,7 @@ const InventoryDashboardContent = ({
 
         <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
           <div className="w-full md:w-64">
-            <SearchInput placeholder="ค้นหา Zone, Aisle, Bin, SKU..." />
+            <SearchInput placeholder="ค้นหา โซนจัดเก็บ, LOT, พื้นที่เก็บ, SKU..." />
           </div>
           <ExportButton warehouseId={warehouseId} />
         </div>
