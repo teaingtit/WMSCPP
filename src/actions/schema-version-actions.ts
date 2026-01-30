@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { RPC, TABLES } from '@/lib/constants';
+import { RPC } from '@/lib/constants';
 
 /**
  * Schema Version History Entry

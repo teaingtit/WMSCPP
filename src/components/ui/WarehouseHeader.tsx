@@ -1,7 +1,6 @@
 // components/ui/WarehouseHeader.tsx
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowLeft, UserCircle, Shield } from 'lucide-react';

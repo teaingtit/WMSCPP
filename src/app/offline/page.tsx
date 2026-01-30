@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { WifiOff, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';

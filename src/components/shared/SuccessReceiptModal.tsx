@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { CheckCircle2, X, ArrowRight, MapPin } from 'lucide-react';
 
 export interface SuccessData {

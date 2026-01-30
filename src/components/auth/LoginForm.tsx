@@ -1,7 +1,7 @@
 // components/auth/LoginForm.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { login } from '@/actions/auth-actions';
 import { KeyRound, Loader2 } from 'lucide-react';

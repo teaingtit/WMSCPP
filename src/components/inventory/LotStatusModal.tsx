@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { X, MapPin, Shield, Loader2, Check, AlertTriangle } from 'lucide-react';
 import { StatusDefinition, STATUS_EFFECT_OPTIONS, createStatusStyle } from '@/types/status';
 import { getLocationStatusDefinitions, setLotStatus, LotStatus } from '@/actions/status-actions';

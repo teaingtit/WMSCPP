@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { getWarehouseLots, getCartsByLot, getLevelsByCart } from '@/actions/inbound-actions';
 

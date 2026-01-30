@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, Layers, Tag, Info } from 'lucide-react';
 
 interface SchemaField {

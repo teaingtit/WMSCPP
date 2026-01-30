@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { X, Trash2, ArrowRightLeft, Truck, Package } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { Button } from '@/components/ui/button';

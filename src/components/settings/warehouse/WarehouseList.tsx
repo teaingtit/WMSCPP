@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { Building2, Trash2 } from 'lucide-react';
 import { SubmitButton } from '@/components/SubmitButton';
 

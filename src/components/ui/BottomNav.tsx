@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import React from 'react';
 import { Package, LayoutGrid, ClipboardCheck, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

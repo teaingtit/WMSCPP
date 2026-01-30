@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Loader2, Box, PackageSearch } from 'lucide-react';
 import { searchStockForTransfer } from '@/actions/transfer-actions';
 import { useDebounce } from 'use-debounce';

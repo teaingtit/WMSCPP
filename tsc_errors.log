@@ -1,0 +1,53 @@
+.next/dev/types/validator.ts(202,31): error TS2344: Type 'typeof import("C:/Users/nteai/Desktop/project/WMSCPP/src/app/dashboard/[warehouseId]/layout")' does not satisfy the constraint 'LayoutConfig<"/dashboard/[warehouseId]">'.
+  Types of property 'default' are incompatible.
+    Type '({ children, params, }: { children: ReactNode; params: { warehouseId: string; }; }) => Promise<Element>' is not assignable to type 'ComponentType<LayoutProps<"/dashboard/[warehouseId]">> | ((props: LayoutProps<"/dashboard/[warehouseId]">) => void | Promise<void> | ReactNode | Promise<...>)'.
+      Type '({ children, params, }: { children: ReactNode; params: { warehouseId: string; }; }) => Promise<Element>' is not assignable to type 'FunctionComponent<LayoutProps<"/dashboard/[warehouseId]">>'.
+        Types of parameters '__0' and 'props' are incompatible.
+          Type 'LayoutProps<"/dashboard/[warehouseId]">' is not assignable to type '{ children: ReactNode; params: { warehouseId: string; }; }'.
+            Types of property 'params' are incompatible.
+              Property 'warehouseId' is missing in type 'Promise<{ warehouseId: string; }>' but required in type '{ warehouseId: string; }'.
+src/actions/audit-actions.ts(10,15): error TS6133: 'TABLES' is declared but its value is never read.
+src/actions/bulk-import-actions.ts(11,15): error TS6133: 'TABLES' is declared but its value is never read.
+src/actions/inbound-actions.ts(8,10): error TS6133: 'TABLES' is declared but its value is never read.
+src/actions/schema-version-actions.ts(5,15): error TS6133: 'TABLES' is declared but its value is never read.
+src/app/(auth)/login/page.tsx(2,1): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/[warehouseId]/audit/[sessionId]/page.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/[warehouseId]/history/page.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/[warehouseId]/inbound/[categoryId]/page.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/[warehouseId]/inbound/page.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/[warehouseId]/inventory/page.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/[warehouseId]/transfer/page.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/page.tsx(2,1): error TS6133: 'React' is declared but its value is never read.
+src/app/dashboard/settings/page.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/app/offline/page.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/audit/AuditLoadingSkeleton.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/auth/LoginForm.tsx(4,8): error TS6133: 'React' is declared but its value is never read.
+src/components/dashboard/StatsWidgets.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/history/HistoryFilterBar.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/history/TerminalLogView.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/CartDrawer.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/dashboard/BulkActionBar.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/dashboard/StockItemCard.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/dashboard/StockLotSection.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/InventoryCard.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/LotStatusModal.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/modals/BulkOutboundModal.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/modals/BulkTransferModal.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/status/StatusAndNotesModal.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/inventory/StockDetailModal.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/settings/SchemaBuilder.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/settings/SettingsTabs.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/settings/warehouse/DimensionConfig.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/settings/warehouse/WarehouseList.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/settings/WarehouseManager.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/shared/CartFloatingButton.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/shared/LocationSelector.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/shared/SuccessReceiptModal.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/transfer/TransferSourceSelector.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/transfer/TransferTargetForm.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/AsyncSelect.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/BottomNav.tsx(5,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/DesktopSidebar.tsx(3,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/LoadingOverlay.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/MobileNav.tsx(3,8): error TS6133: 'React' is declared but its value is never read.
+src/components/ui/WarehouseHeader.tsx(4,1): error TS6133: 'React' is declared but its value is never read.

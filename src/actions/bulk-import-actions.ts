@@ -8,7 +8,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Worksheet, Row, Cell } from 'exceljs';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { checkManagerRole } from '@/lib/auth-service';
-import { RPC, TABLES } from '@/lib/constants';
+import { RPC } from '@/lib/constants';
 
 // ImportResult intentionally removed (unused) — keep helpers minimal
 

@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { withAuth, processBulkAction } from '@/lib/action-utils';
-import { TABLES, RPC } from '@/lib/constants';
+import { RPC } from '@/lib/constants';
 
 // --- Validation Schema ---
 const InboundSchema = z.object({

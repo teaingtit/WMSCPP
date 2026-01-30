@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Loader2, ArrowRight, Trash2, X, ListChecks, Eye, Box, MapPin } from 'lucide-react';
 import { notify } from '@/lib/ui-helpers';
 import { submitBulkTransfer, preflightBulkTransfer } from '@/actions/transfer-actions';

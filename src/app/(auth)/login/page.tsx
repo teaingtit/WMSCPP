@@ -1,5 +1,4 @@
 // app/(auth)/login/page.tsx
-import React from 'react';
 import LoginForm from '@/components/auth/LoginForm';
 import { Box } from 'lucide-react';
 import type { Metadata } from 'next';

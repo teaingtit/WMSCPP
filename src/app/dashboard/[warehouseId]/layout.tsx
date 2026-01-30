@@ -11,13 +11,13 @@ export default async function WarehouseLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { warehouseId: string };
+  params: Promise<{ warehouseId: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
 
   const supabase = await createClient();
-  const { warehouseId } = params;
+  const { warehouseId } = await params;
   const decodedId = decodeURIComponent(warehouseId);
 
   // ✅ FIX: Handle both UUID and code identifiers, use maybeSingle() to avoid PGRST116 error

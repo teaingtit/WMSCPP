@@ -1,4 +1,3 @@
-import React from 'react';
 import { getHistory } from '@/actions/history-actions';
 import { HistoryMode, HistoryFilter, TransactionEntry } from '@/types/history';
 import { History, ArrowRight, ArrowLeft, RefreshCw, User, GitCommit } from 'lucide-react';

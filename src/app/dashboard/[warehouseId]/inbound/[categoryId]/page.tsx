@@ -1,4 +1,3 @@
-import React from 'react';
 import { getCategoryDetail } from '@/actions/inbound-actions';
 import DynamicInboundForm from '@/components/inbound/DynamicInboundForm';
 import PageHeader from '@/components/ui/PageHeader';

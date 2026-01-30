@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function AuditLoadingSkeleton() {
   return (
     <div className="max-w-7xl mx-auto pb-20 p-4 sm:p-6 animate-in fade-in duration-500">

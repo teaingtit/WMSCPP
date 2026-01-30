@@ -1,4 +1,3 @@
-import React from 'react';
 import { requireAdmin } from '@/lib/auth-service';
 import { getAllWarehousesForAdmin, getCategories, getProducts } from '@/actions/settings-actions';
 import { getAllStatusDefinitions } from '@/actions/status-actions';

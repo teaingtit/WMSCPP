@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useFormState } from 'react-dom';
 import { createWarehouse, deleteWarehouse } from '@/actions/settings-actions';
 import { Save } from 'lucide-react';

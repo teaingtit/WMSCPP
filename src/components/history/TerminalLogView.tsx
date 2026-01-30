@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { HistoryEntry, TransactionEntry, SystemLogEntry } from '@/types/history';
 import { format } from 'date-fns';
 import {

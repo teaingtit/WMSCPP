@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Layers, Package, Shield, StickyNote, AlertTriangle, Lock } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';

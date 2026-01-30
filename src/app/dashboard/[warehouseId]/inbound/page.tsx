@@ -1,4 +1,3 @@
-import React from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getProductCategories } from '@/actions/inbound-actions';

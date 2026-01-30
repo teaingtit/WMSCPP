@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { X, Shield, StickyNote, Loader2, History } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { StatusDefinition, EntityStatus, EntityNote, StatusEntityType } from '@/types/status';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import InventoryDashboard from '@/components/inventory/InventoryDashboard';
 import InventoryFAB from '@/components/inventory/InventoryFAB';

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { MapPin, Calendar, Hash, Layers, Package, CheckCircle, Shield, Box } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { formatAttributeValue } from '@/lib/utils';

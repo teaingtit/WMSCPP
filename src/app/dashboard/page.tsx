@@ -1,5 +1,4 @@
 // app/dashboard/page.tsx
-import React from 'react';
 import Link from 'next/link';
 import { getDashboardWarehouses } from '@/actions/dashboard-actions';
 import { Building2, ArrowRight, ShieldCheck, Sparkles, Boxes } from 'lucide-react';

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { checkManagerRole } from '@/lib/auth-service';
 import { withAuth } from '@/lib/action-utils';
-import { RPC, TABLES } from '@/lib/constants';
+import { RPC } from '@/lib/constants';
 
 // --- Create Session ---
 const CreateAuditSchema = z.object({

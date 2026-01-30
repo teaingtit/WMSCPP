@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronDown, AlertTriangle, MapPin, Settings2 } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus, createStatusStyle } from '@/types/status';

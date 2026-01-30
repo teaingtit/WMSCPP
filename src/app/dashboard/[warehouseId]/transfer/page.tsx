@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { ArrowRightLeft, Building2 } from 'lucide-react';
 import { getWarehouses } from '@/actions/warehouse-actions';
