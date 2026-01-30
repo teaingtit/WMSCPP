@@ -365,8 +365,8 @@ export async function updateCategoryUnits(formData: FormData): Promise<ActionRes
 }
 
 // Unified unit operations using shared helper
-export const addUnitToCategory = (categoryId: string, unit: string) =>
-  modifyCategoryUnits(categoryId, unit, 'add');
+export const addUnitToCategory = async (categoryId: string, unit: string) =>
+  await modifyCategoryUnits(categoryId, unit, 'add');
 
-export const removeUnitFromCategory = (categoryId: string, unit: string) =>
-  modifyCategoryUnits(categoryId, unit, 'remove');
+export const removeUnitFromCategory = async (categoryId: string, unit: string) =>
+  await modifyCategoryUnits(categoryId, unit, 'remove');
