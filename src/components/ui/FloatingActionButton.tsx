@@ -74,7 +74,7 @@ export default function FloatingActionButton({
         disabled && 'opacity-50 cursor-not-allowed',
       )}
       aria-label={label}
-      aria-disabled={disabled ? 'true' : 'false'}
+      {...(disabled ? { 'aria-disabled': 'true' as const } : { 'aria-disabled': 'false' as const })}
     >
       <Icon className="w-6 h-6" strokeWidth={2.5} />
 

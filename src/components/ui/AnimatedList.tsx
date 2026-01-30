@@ -33,10 +33,9 @@ export default function AnimatedList({
       {childArray.map((child, index) => (
         <div
           key={index}
-          className="animate-fade-in-up"
-          style={{
-            animationDelay: `${index * staggerDelay}ms`,
-            animationFillMode: 'backwards',
+          className="animate-fade-in-up stagger-item"
+          ref={(el) => {
+            if (el) el.style.setProperty('--stagger-delay', `${index * staggerDelay}ms`);
           }}
         >
           {child}

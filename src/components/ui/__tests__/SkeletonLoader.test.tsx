@@ -54,16 +54,20 @@ describe('SkeletonLoader', () => {
 
   it('should apply custom width', () => {
     const { container } = render(<SkeletonLoader width="200px" />);
+    const wrapper = container.firstChild as HTMLElement;
     const skeleton = container.querySelector('.animate-pulse');
 
-    expect(skeleton).toHaveStyle({ width: '200px' });
+    expect(wrapper?.style.getPropertyValue('--skeleton-width')).toBe('200px');
+    expect(skeleton).toHaveClass('skeleton-size-dynamic');
   });
 
   it('should apply custom height', () => {
     const { container } = render(<SkeletonLoader height="50px" />);
+    const wrapper = container.firstChild as HTMLElement;
     const skeleton = container.querySelector('.animate-pulse');
 
-    expect(skeleton).toHaveStyle({ height: '50px' });
+    expect(wrapper?.style.getPropertyValue('--skeleton-height')).toBe('50px');
+    expect(skeleton).toHaveClass('skeleton-size-dynamic');
   });
 
   it('should apply custom className', () => {

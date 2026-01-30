@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getCurrentUser, requireUser, requireAdmin, checkManagerRole } from '@/lib/auth-service';
-import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { ROLES, TABLES } from '@/lib/constants';
 
@@ -8,6 +6,20 @@ import { ROLES, TABLES } from '@/lib/constants';
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
+
+// Mock supabaseAdmin with a factory function
+vi.mock('@/lib/supabase/admin', () => {
+  const mockMaybeSingle = vi.fn();
+  const mockEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
+  const mockSelect = vi.fn(() => ({ eq: mockEq }));
+  const mockFrom = vi.fn(() => ({ select: mockSelect }));
+  return {
+    supabaseAdmin: {
+      from: mockFrom,
+      __mockMaybeSingle: mockMaybeSingle,
+    },
+  };
+});
 
 // Access the mocked redirect from setup.ts (or re-mock if needed)
 vi.mock('next/navigation', async (importOriginal) => {
@@ -18,12 +30,18 @@ vi.mock('next/navigation', async (importOriginal) => {
   };
 });
 
+// Import after mocks are set up
+import { getCurrentUser, requireUser, requireAdmin, checkManagerRole } from '@/lib/auth-service';
+import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
+
 describe('auth-service', () => {
   let mockSupabase: any;
   let mockSingle: any;
   let mockEq: any;
   let mockSelect: any;
   let mockFrom: any;
+  let adminMaybeSingle: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,6 +60,9 @@ describe('auth-service', () => {
     };
 
     (createClient as any).mockResolvedValue(mockSupabase);
+
+    // Get access to the admin mock's maybeSingle
+    adminMaybeSingle = (supabaseAdmin as any).__mockMaybeSingle;
   });
 
   describe('checkManagerRole', () => {
@@ -93,8 +114,8 @@ describe('auth-service', () => {
         error: null,
       });
 
-      // Mock role query to return null
-      mockSingle.mockResolvedValue({
+      // Mock admin role query to return null (using maybeSingle)
+      adminMaybeSingle.mockResolvedValue({
         data: null,
         error: new Error('No role'),
       });
@@ -114,7 +135,7 @@ describe('auth-service', () => {
         error: null,
       });
 
-      mockSingle.mockResolvedValue({
+      adminMaybeSingle.mockResolvedValue({
         data: { role: 'staff', is_active: true },
         error: null,
       });
@@ -134,7 +155,7 @@ describe('auth-service', () => {
         error: null,
       });
 
-      mockSingle.mockResolvedValue({
+      adminMaybeSingle.mockResolvedValue({
         data: { role: 'staff', is_active: false },
         error: null,
       });
@@ -156,7 +177,7 @@ describe('auth-service', () => {
         error: null,
       });
 
-      mockSingle.mockResolvedValue({
+      adminMaybeSingle.mockResolvedValue({
         data: { role: 'staff', is_active: true, allowed_warehouses: ['wh1'] },
         error: null,
       });
@@ -171,6 +192,23 @@ describe('auth-service', () => {
         is_active: true,
         is_banned: false,
       });
+    });
+
+    it('should return empty array for allowed_warehouses when roleData has null', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: {
+          user: { id: '123', email: 'a@b.com', created_at: '2023-01-01', banned_until: null },
+        },
+        error: null,
+      });
+
+      adminMaybeSingle.mockResolvedValue({
+        data: { role: 'staff', is_active: true, allowed_warehouses: null },
+        error: null,
+      });
+
+      const result = await getCurrentUser();
+      expect(result?.allowed_warehouses).toEqual([]);
     });
   });
 
@@ -187,10 +225,16 @@ describe('auth-service', () => {
     });
 
     it('should return user if exists', async () => {
-      const mockUser = { id: '123', email: 'test@example.com' };
+      const mockUser = {
+        id: '123',
+        email: 'test@example.com',
+        created_at: '2023-01-01',
+        banned_until: null,
+      };
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
-      mockSingle.mockResolvedValue({
-        data: { role: 'staff', is_active: true },
+      adminMaybeSingle.mockResolvedValue({
+        data: { role: 'staff', is_active: true, allowed_warehouses: [] },
+        error: null,
       });
 
       const result = await requireUser();
@@ -202,9 +246,16 @@ describe('auth-service', () => {
   describe('requireAdmin', () => {
     it('should redirect if not admin', async () => {
       // Staff user
-      mockSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: '123' } }, error: null });
-      mockSingle.mockResolvedValue({
-        data: { role: ROLES.STAFF, is_active: true },
+      const mockUser = {
+        id: '123',
+        email: 'test@example.com',
+        created_at: '2023-01-01',
+        banned_until: null,
+      };
+      mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
+      adminMaybeSingle.mockResolvedValue({
+        data: { role: ROLES.STAFF, is_active: true, allowed_warehouses: [] },
+        error: null,
       });
 
       await requireAdmin();
@@ -213,9 +264,16 @@ describe('auth-service', () => {
 
     it('should return user if admin', async () => {
       // Admin user
-      mockSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: '123' } }, error: null });
-      mockSingle.mockResolvedValue({
-        data: { role: ROLES.ADMIN, is_active: true },
+      const mockUser = {
+        id: '123',
+        email: 'test@example.com',
+        created_at: '2023-01-01',
+        banned_until: null,
+      };
+      mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
+      adminMaybeSingle.mockResolvedValue({
+        data: { role: ROLES.ADMIN, is_active: true, allowed_warehouses: [] },
+        error: null,
       });
 
       const result = await requireAdmin();

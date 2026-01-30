@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, createContext, useContext, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Package, Shield } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
@@ -13,13 +14,21 @@ import { BulkActionBar } from './dashboard/BulkActionBar';
 import AnimatedList from '@/components/ui/AnimatedList';
 import { Category } from '@/components/inbound/DynamicInboundForm';
 import { CartDrawer } from './CartDrawer';
-import { BulkTransferModal } from './modals/BulkTransferModal';
-import { BulkOutboundModal } from './modals/BulkOutboundModal';
-import StockDetailModal from './StockDetailModal';
-import StatusAndNotesModal from './status/StatusAndNotesModal';
-import LotStatusModal from './LotStatusModal';
 import { getInventoryStatusData, getLotStatuses, LotStatus } from '@/actions/status-actions';
 import { useUser } from '@/components/providers/UserProvider';
+
+// Dynamic imports for modal components (loaded on demand)
+const BulkTransferModal = dynamic(
+  () => import('./modals/BulkTransferModal').then((m) => m.BulkTransferModal),
+  { ssr: false },
+);
+const BulkOutboundModal = dynamic(
+  () => import('./modals/BulkOutboundModal').then((m) => m.BulkOutboundModal),
+  { ssr: false },
+);
+const StockDetailModal = dynamic(() => import('./StockDetailModal'), { ssr: false });
+const StatusAndNotesModal = dynamic(() => import('./status/StatusAndNotesModal'), { ssr: false });
+const LotStatusModal = dynamic(() => import('./LotStatusModal'), { ssr: false });
 
 interface Warehouse {
   id: string;
@@ -27,11 +36,21 @@ interface Warehouse {
   name: string;
 }
 
+interface InitialStatusData {
+  statuses: Record<string, EntityStatus>;
+  noteCounts: Record<string, number>;
+  lotStatuses: Record<string, LotStatus>;
+}
+
 interface InventoryDashboardProps {
   stocks: StockWithDetails[];
   warehouseId: string;
   categories: Category[];
   warehouses: Warehouse[];
+  totalCount?: number;
+  currentPage?: number;
+  pageSize?: number;
+  initialStatusData?: InitialStatusData;
 }
 
 // Helper: จัดกลุ่มสินค้าตาม Lot -> Position
@@ -243,10 +262,12 @@ const InventoryDashboardContent = ({
   warehouseId,
   warehouses,
   stocks,
+  initialStatusData,
 }: {
   warehouseId: string;
   warehouses: Warehouse[];
   stocks: StockWithDetails[];
+  initialStatusData: InitialStatusData | undefined;
 }) => {
   const router = useRouter();
   const user = useUser();
@@ -258,14 +279,24 @@ const InventoryDashboardContent = ({
   // Detail modal state for viewing/editing individual items
   const [detailModalItem, setDetailModalItem] = useState<StockWithDetails | null>(null);
 
-  // Status management state
+  // Status management state - initialize from server-side data if available
   const [statusModalItem, setStatusModalItem] = useState<StockWithDetails | null>(null);
-  const [statusMap, setStatusMap] = useState<Map<string, EntityStatus>>(new Map());
-  const [noteCountMap, setNoteCountMap] = useState<Map<string, number>>(new Map());
+  const [statusMap, setStatusMap] = useState<Map<string, EntityStatus>>(() =>
+    initialStatusData?.statuses ? new Map(Object.entries(initialStatusData.statuses)) : new Map(),
+  );
+  const [noteCountMap, setNoteCountMap] = useState<Map<string, number>>(() =>
+    initialStatusData?.noteCounts
+      ? new Map(Object.entries(initialStatusData.noteCounts).map(([k, v]) => [k, Number(v)]))
+      : new Map(),
+  );
   const [_isLoadingStatus, setIsLoadingStatus] = useState(false);
 
-  // Lot status state
-  const [lotStatusMap, setLotStatusMap] = useState<Map<string, LotStatus>>(new Map());
+  // Lot status state - initialize from server-side data if available
+  const [lotStatusMap, setLotStatusMap] = useState<Map<string, LotStatus>>(() =>
+    initialStatusData?.lotStatuses
+      ? new Map(Object.entries(initialStatusData.lotStatuses))
+      : new Map(),
+  );
   const [lotStatusModalLot, setLotStatusModalLot] = useState<string | null>(null);
 
   const {
@@ -286,8 +317,11 @@ const InventoryDashboardContent = ({
     [hierarchy],
   );
 
-  // Load status data for all stocks
+  // Load status data for all stocks (skip if already loaded from server)
   useEffect(() => {
+    // Skip if we have initial data from server-side render
+    if (initialStatusData && statusMap.size > 0) return;
+
     const loadStatusData = async () => {
       const stockIds = stocks.map((s) => s.id);
       if (stockIds.length === 0) return;
@@ -309,7 +343,7 @@ const InventoryDashboardContent = ({
     };
 
     loadStatusData();
-  }, [stocks, warehouseId]);
+  }, [stocks, warehouseId, initialStatusData, statusMap.size]);
 
   // Reload status data after changes
   const handleStatusChange = async () => {
@@ -500,6 +534,7 @@ export default function InventoryDashboard({
   warehouseId,
   categories,
   warehouses,
+  initialStatusData,
 }: InventoryDashboardProps) {
   return (
     <InventorySelectionProvider stocks={stocks} categories={categories}>
@@ -507,6 +542,7 @@ export default function InventoryDashboard({
         warehouseId={warehouseId}
         warehouses={warehouses}
         stocks={stocks}
+        initialStatusData={initialStatusData}
       />
     </InventorySelectionProvider>
   );

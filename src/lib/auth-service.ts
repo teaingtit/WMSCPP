@@ -1,5 +1,6 @@
 // lib/auth-service.ts
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { AppUser } from '@/types/auth';
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -28,12 +29,12 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     return null;
   }
 
-  // ดึง Role และสถานะ
-  const { data: roleData, error: roleError } = await supabase
+  // ดึง Role และสถานะ — use admin client so we always see user_roles (same as login; avoids RLS/session)
+  const { data: roleData, error: roleError } = await supabaseAdmin
     .from(TABLES.USER_ROLES)
     .select('role, allowed_warehouses, is_active')
     .eq('user_id', user.id)
-    .single();
+    .maybeSingle();
 
   // 🚨 SECURITY FIX: ถ้าหา Role ไม่เจอ ให้ Return null (ไม่ assume ว่าเป็น staff)
   // เพื่อป้องกันคนนอกที่หลุดเข้ามาใช้งานระบบโดยไม่ได้รับอนุญาต

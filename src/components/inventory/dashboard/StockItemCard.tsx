@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Layers, Package, Shield, StickyNote, AlertTriangle, Lock } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';
@@ -43,6 +43,23 @@ export const StockItemCard = ({
     }
   };
 
+  const statusDotRef = useRef<HTMLDivElement>(null);
+  const statusBadgeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (restricted && statusDotRef.current) {
+      statusDotRef.current.style.setProperty('--status-color', status?.status?.color || '#ef4444');
+    }
+  }, [restricted, status?.status?.color]);
+
+  useEffect(() => {
+    if (status?.status && statusBadgeRef.current) {
+      statusBadgeRef.current.style.setProperty('--status-bg', status.status.bg_color);
+      statusBadgeRef.current.style.setProperty('--status-text', status.status.text_color);
+      statusBadgeRef.current.style.setProperty('--status-border', status.status.color + '40');
+    }
+  }, [status?.status]);
+
   return (
     <div
       onClick={handleCardClick}
@@ -59,15 +76,9 @@ export const StockItemCard = ({
     >
       {/* Restriction Indicator */}
       {restricted && (
-        <div className="absolute -top-1 -right-1 z-10">
+        <div ref={statusDotRef} className="absolute -top-1 -right-1 z-10">
           <span
-            className="flex items-center justify-center w-5 h-5 rounded-full text-white animate-pulse"
-            style={
-              {
-                ['--status-color' as string]: status?.status?.color || '#ef4444',
-                backgroundColor: 'var(--status-color)',
-              } as React.CSSProperties
-            }
+            className="flex items-center justify-center w-5 h-5 rounded-full text-white animate-pulse status-dot-dynamic"
             title={status?.status?.name}
           >
             <Lock size={10} />
@@ -118,21 +129,12 @@ export const StockItemCard = ({
           <div className="mt-1 flex items-center gap-1.5 flex-wrap">
             {status?.status && (
               <button
+                ref={statusBadgeRef}
                 onClick={(e) => {
                   e.stopPropagation();
                   onStatusClick?.(item);
                 }}
-                className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border transition-all hover:opacity-80 active:scale-95"
-                style={
-                  {
-                    ['--status-bg' as string]: status.status.bg_color,
-                    ['--status-text' as string]: status.status.text_color,
-                    ['--status-border' as string]: status.status.color + '40',
-                    backgroundColor: 'var(--status-bg)',
-                    color: 'var(--status-text)',
-                    borderColor: 'var(--status-border)',
-                  } as React.CSSProperties
-                }
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border transition-all hover:opacity-80 active:scale-95 status-badge-dynamic"
               >
                 {restricted ? (
                   <Lock size={10} />

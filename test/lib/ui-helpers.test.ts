@@ -79,6 +79,13 @@ describe('ui-helpers', () => {
 
       expect(toast.success).toHaveBeenCalledWith('Success', { id: 'toast-123' });
     });
+
+    it('should pass id option for error toast when provided', () => {
+      const res = { success: false, message: 'Failed' };
+      notify.ok(res, { id: 'error-toast-456' });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed', { id: 'error-toast-456' });
+    });
   });
 
   describe('notify.success', () => {

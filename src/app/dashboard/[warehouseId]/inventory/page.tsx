@@ -2,9 +2,13 @@ import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import InventoryDashboard from '@/components/inventory/InventoryDashboard';
 import InventoryFAB from '@/components/inventory/InventoryFAB';
+import PaginationControls from '@/components/ui/PaginationControls';
 import { StockWithDetails } from '@/types/inventory';
-import { getProductCategories } from '@/actions/inbound-actions'; // Import getProductCategories
+import { getProductCategories } from '@/actions/inbound-actions';
+import { getInventoryStatusData, getLotStatuses } from '@/actions/status-actions';
 import { isValidUUID } from '@/lib/utils';
+
+const PAGE_SIZE = 50;
 
 export default async function InventoryPage({
   params,
@@ -15,6 +19,7 @@ export default async function InventoryPage({
 }) {
   const { warehouseId } = params;
   const query = searchParams?.q || '';
+  const currentPage = Math.max(1, Number(searchParams?.page) || 1);
 
   const supabase = await createClient();
 
@@ -52,11 +57,8 @@ export default async function InventoryPage({
 
   const warehouses = warehousesRes.data || [];
 
-  // ✅ FIX 1: แก้ Query ให้ดึง lot, cart จากตาราง locations (Source of Truth)
-  // ตัด lot, cart_id ที่ stocks ออก เพราะเราย้ายไป locations แล้ว
-  // Note: PostgREST has limitations with OR queries on foreign tables
-  // We'll fetch all data and filter client-side if there's a search query
-  let dbQuery = supabase
+  // Build base query for stocks
+  let baseQuery = supabase
     .from('stocks')
     .select(
       `
@@ -64,16 +66,36 @@ export default async function InventoryPage({
       products!inner(*),
       locations!inner(*)
     `,
+      { count: 'exact' },
     )
     .eq('locations.warehouse_id', wh.id)
     .gt('quantity', 0);
 
-  // ✅ FIX 2: เรียงลำดับตาม Location จริง
-  const { data: stocks, error } = await dbQuery
+  // Apply server-side search filter if query exists
+  if (query) {
+    const searchPattern = `%${query}%`;
+    baseQuery = baseQuery.or(
+      `products.name.ilike.${searchPattern},products.sku.ilike.${searchPattern}`,
+    );
+  }
+
+  // Calculate pagination offset
+  const offset = (currentPage - 1) * PAGE_SIZE;
+
+  // Execute query with pagination and ordering
+  const {
+    data: stocks,
+    error,
+    count,
+  } = await baseQuery
     .order('lot', { foreignTable: 'locations', ascending: true })
     .order('cart', { foreignTable: 'locations', ascending: true })
     .order('level', { foreignTable: 'locations', ascending: true })
-    .order('sku', { foreignTable: 'products', ascending: true });
+    .order('sku', { foreignTable: 'products', ascending: true })
+    .range(offset, offset + PAGE_SIZE - 1);
+
+  const totalCount = count || 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   if (error) {
     console.error(error);
@@ -90,21 +112,6 @@ export default async function InventoryPage({
     );
   }
 
-  // Client-side filtering if search query exists
-  let filteredStocks = stocks || [];
-  if (query) {
-    const lowerQuery = query.toLowerCase();
-    filteredStocks = filteredStocks.filter((stock: any) => {
-      return (
-        stock.products?.name?.toLowerCase().includes(lowerQuery) ||
-        stock.products?.sku?.toLowerCase().includes(lowerQuery) ||
-        stock.locations?.lot?.toLowerCase().includes(lowerQuery) ||
-        stock.locations?.cart?.toLowerCase().includes(lowerQuery) ||
-        stock.locations?.level?.toLowerCase().includes(lowerQuery)
-      );
-    });
-  }
-
   // Build Attribute Label Map
   const attributeLabelMap: Record<string, string> = {};
   if (categories) {
@@ -119,10 +126,8 @@ export default async function InventoryPage({
     });
   }
 
-  // The `StockWithDetails` type expects `id` as a string, but Supabase returns it as a number.
-  // We also need to handle the Supabase client's incorrect type inference for nested relations (`!inner`).
-  // This transformation ensures the data shape matches the component's props.
-  const formattedStocks: StockWithDetails[] = (filteredStocks || []).map((stock: any) => {
+  // Transform stock data to match UI component expectations
+  const formattedStocks: StockWithDetails[] = (stocks || []).map((stock: any) => {
     // Resolve Attributes
     const resolvedAttributes: Record<string, any> = {};
     if (stock.attributes) {
@@ -149,15 +154,38 @@ export default async function InventoryPage({
     };
   });
 
+  // Fetch status data server-side (eliminates N+1 client-side fetch)
+  const stockIds = formattedStocks.map((s) => s.id);
+  const [statusData, lotStatusMap] = await Promise.all([
+    stockIds.length > 0
+      ? getInventoryStatusData(stockIds)
+      : { statuses: new Map(), noteCounts: new Map() },
+    getLotStatuses(wh.id),
+  ]);
+
+  // Convert Maps to serializable objects for client component
+  const initialStatusData = {
+    statuses: Object.fromEntries(statusData.statuses),
+    noteCounts: Object.fromEntries(statusData.noteCounts),
+    lotStatuses: Object.fromEntries(lotStatusMap),
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/30 pb-32 p-3 md:p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="mx-auto max-w-7xl">
         <InventoryDashboard
           stocks={formattedStocks}
           warehouseId={wh.id}
-          categories={categories} // Pass categories to InventoryDashboard
-          warehouses={warehouses} // Pass warehouses list
+          categories={categories}
+          warehouses={warehouses}
+          totalCount={totalCount}
+          currentPage={currentPage}
+          pageSize={PAGE_SIZE}
+          initialStatusData={initialStatusData}
         />
+
+        {/* Pagination */}
+        {totalPages > 1 && <PaginationControls totalPages={totalPages} />}
       </div>
 
       {/* Floating Action Button - Quick Add Stock */}

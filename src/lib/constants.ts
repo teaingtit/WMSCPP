@@ -64,16 +64,37 @@ export const ROLES = {
   STAFF: 'staff',
 } as const;
 
+/** Single source of truth for public table names. Use these instead of string literals. */
 export const TABLES = {
   USER_ROLES: 'user_roles',
+  PROFILES: 'profiles',
   WAREHOUSES: 'warehouses',
-  PRODUCTS: 'products',
-  PRODUCT_CATEGORIES: 'product_categories',
-  STOCKS: 'stocks',
   LOCATIONS: 'locations',
+  PRODUCT_CATEGORIES: 'product_categories',
+  CATEGORY_SCHEMA_VERSIONS: 'category_schema_versions',
+  PRODUCTS: 'products',
+  STOCKS: 'stocks',
   TRANSACTIONS: 'transactions',
   AUDIT_SESSIONS: 'audit_sessions',
   AUDIT_ITEMS: 'audit_items',
+  STATUS_DEFINITIONS: 'status_definitions',
+  ENTITY_STATUSES: 'entity_statuses',
+  LOT_STATUSES: 'lot_statuses',
+  STATUS_CHANGE_LOGS: 'status_change_logs',
+  PARTIAL_STATUS_REMOVALS: 'partial_status_removals',
+  ENTITY_NOTES: 'entity_notes',
+} as const;
+
+/** RPC function names (Supabase). Use with supabase.rpc(RPC.XYZ, { ... }). */
+export const RPC = {
+  PROCESS_INBOUND_TRANSACTION: 'process_inbound_transaction',
+  PROCESS_INBOUND_BATCH: 'process_inbound_batch',
+  DEDUCT_STOCK: 'deduct_stock',
+  TRANSFER_STOCK: 'transfer_stock',
+  TRANSFER_CROSS_STOCK: 'transfer_cross_stock',
+  CREATE_WAREHOUSE_XYZ_GRID: 'create_warehouse_xyz_grid',
+  GET_NEXT_SCHEMA_VERSION: 'get_next_schema_version',
+  PROCESS_AUDIT_ADJUSTMENT: 'process_audit_adjustment',
 } as const;
 
 export const AUDIT_STATUS = {

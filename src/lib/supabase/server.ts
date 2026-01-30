@@ -2,9 +2,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// Next.js 14: cookies() is synchronous
+// Next.js 15+: cookies() is asynchronous
 export async function createClient() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env['NEXT_PUBLIC_SUPABASE_URL']!,

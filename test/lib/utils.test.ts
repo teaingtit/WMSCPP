@@ -70,5 +70,11 @@ describe('utils', () => {
       expect(formatAttributeValue(123)).toBe('123');
       expect(formatAttributeValue('some string')).toBe('some string');
     });
+
+    it('should return string as-is when date regex matches but date is invalid', () => {
+      // Matches YYYY-MM-DD but invalid month/day - isValid(date) is false, fall through
+      expect(formatAttributeValue('2023-13-01')).toBe('2023-13-01');
+      expect(formatAttributeValue('2023-02-30')).toBe('2023-02-30');
+    });
   });
 });

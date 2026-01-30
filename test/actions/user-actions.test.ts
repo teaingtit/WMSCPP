@@ -45,6 +45,27 @@ describe('User Actions', () => {
   });
 
   describe('getUsers', () => {
+    it('should return empty array when listUsers fails', async () => {
+      const mockUser = createMockUser();
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'admin' } }),
+      };
+      mockSupabase.from = vi.fn(() => mockRoleQuery);
+      mockSupabaseAdmin.auth.admin.listUsers = vi.fn().mockResolvedValue({
+        data: { users: null },
+        error: new Error('Auth error'),
+      });
+
+      const result = await getUsers();
+
+      expect(result).toEqual([]);
+    });
+
     it('should return empty array for unauthenticated user', async () => {
       mockSupabase.auth = {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -136,6 +157,27 @@ describe('User Actions', () => {
   });
 
   describe('createUser', () => {
+    it('should reject when email already registered', async () => {
+      mockSupabaseAdmin.auth.admin.createUser = vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'User has already been registered' },
+      });
+
+      const formData = createMockFormData({
+        email: 'existing@example.com',
+        password: 'password123',
+        role: 'staff',
+        first_name: 'John',
+        last_name: 'Doe',
+        verify_email: 'off',
+      });
+
+      const result = await createUser({ success: false } as any, formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('อีเมลนี้ถูกใช้งานแล้ว');
+    });
+
     it('should create user with password successfully', async () => {
       const mockNewUser = {
         id: 'user1',
@@ -329,6 +371,36 @@ describe('User Actions', () => {
     });
   });
 
+  describe('deleteUser error handling', () => {
+    it('should return fail on delete error', async () => {
+      const mockUser = createMockUser();
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+      const mockCheckQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ count: 0 }),
+      };
+      const mockDeleteQuery = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      };
+      mockSupabaseAdmin.from = vi.fn((table) => {
+        if (table === 'transactions') return mockCheckQuery;
+        if (table === 'user_roles') return mockDeleteQuery;
+        return mockCheckQuery;
+      });
+      mockSupabaseAdmin.auth.admin.deleteUser = vi.fn().mockResolvedValue({
+        error: new Error('Delete failed'),
+      });
+
+      const result = await deleteUser('user1');
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Delete failed');
+    });
+  });
+
   describe('reactivateUser', () => {
     it('should reactivate user successfully', async () => {
       mockSupabaseAdmin.auth.admin.updateUserById = vi.fn().mockResolvedValue({
@@ -345,6 +417,75 @@ describe('User Actions', () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('เปิดใช้งาน');
+    });
+
+    it('should return error on reactivation failure', async () => {
+      mockSupabaseAdmin.auth.admin.updateUserById = vi
+        .fn()
+        .mockRejectedValue(new Error('Update failed'));
+
+      const result = await reactivateUser('user1');
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Update failed');
+    });
+  });
+
+  describe('createUser role insert error', () => {
+    it('should rollback user when role insert fails', async () => {
+      const mockNewUser = {
+        id: 'user1',
+        email: 'newuser@example.com',
+        created_at: '2024-01-01',
+      };
+
+      mockSupabaseAdmin.auth.admin.createUser = vi.fn().mockResolvedValue({
+        data: { user: mockNewUser },
+        error: null,
+      });
+
+      mockSupabaseAdmin.auth.admin.deleteUser = vi.fn().mockResolvedValue({
+        error: null,
+      });
+
+      mockSupabaseAdmin.from = vi.fn(() => ({
+        insert: vi.fn().mockResolvedValue({ error: { message: 'Role insert failed' } }),
+      }));
+
+      const formData = createMockFormData({
+        email: 'newuser@example.com',
+        password: 'password123',
+        role: 'staff',
+        first_name: 'John',
+        last_name: 'Doe',
+        verify_email: 'off',
+      });
+
+      const result = await createUser({ success: false } as any, formData);
+
+      expect(result.success).toBe(false);
+      expect(mockSupabaseAdmin.auth.admin.deleteUser).toHaveBeenCalledWith('user1');
+    });
+
+    it('should return generic error message for non-duplicate errors', async () => {
+      mockSupabaseAdmin.auth.admin.createUser = vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Some server error' },
+      });
+
+      const formData = createMockFormData({
+        email: 'newuser@example.com',
+        password: 'password123',
+        role: 'staff',
+        first_name: 'John',
+        last_name: 'Doe',
+        verify_email: 'off',
+      });
+
+      const result = await createUser({ success: false } as any, formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Some server error');
     });
   });
 });

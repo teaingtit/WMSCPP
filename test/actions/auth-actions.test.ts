@@ -8,9 +8,27 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
 
+// Mock supabaseAdmin
+const mockAdminMaybeSingle = vi.fn();
+vi.mock('@/lib/supabase/admin', () => {
+  const mockMaybeSingle = vi.fn();
+  const mockEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }));
+  const mockSelect = vi.fn(() => ({ eq: mockEq }));
+  const mockFrom = vi.fn(() => ({ select: mockSelect }));
+  return {
+    supabaseAdmin: {
+      from: mockFrom,
+      __mockMaybeSingle: mockMaybeSingle,
+    },
+  };
+});
+
+import { supabaseAdmin } from '@/lib/supabase/admin';
+
 describe('Auth Actions', () => {
   let mockSupabase: any;
   let mockAuth: any;
+  let adminMaybeSingle: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -23,11 +41,22 @@ describe('Auth Actions', () => {
 
     const { createClient } = await import('@/lib/supabase/server');
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
+
+    // Get access to the admin mock's maybeSingle
+    adminMaybeSingle = (supabaseAdmin as any).__mockMaybeSingle;
   });
 
   describe('login', () => {
     it('should successfully login with valid credentials', async () => {
-      mockAuth.signInWithPassword.mockResolvedValue({ error: null });
+      mockAuth.signInWithPassword.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      adminMaybeSingle.mockResolvedValue({
+        data: { role: 'admin' },
+        error: null,
+      });
 
       const formData = createMockFormData({
         email: 'test@example.com',
@@ -101,6 +130,66 @@ describe('Auth Actions', () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('เชื่อมต่อ');
+    });
+
+    it('should handle role check error', async () => {
+      mockAuth.signInWithPassword.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      adminMaybeSingle.mockResolvedValue({
+        data: null,
+        error: { message: 'Role check failed' },
+      });
+
+      const formData = createMockFormData({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+
+      const result = await login({ success: false } as any, formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('ยังไม่ได้เปิดใช้งาน');
+    });
+
+    it('should handle user without role', async () => {
+      mockAuth.signInWithPassword.mockResolvedValue({
+        data: { user: { id: 'user-123' } },
+        error: null,
+      });
+
+      adminMaybeSingle.mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const formData = createMockFormData({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+
+      const result = await login({ success: false } as any, formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('ยังไม่ได้เปิดใช้งาน');
+    });
+
+    it('should handle general auth error', async () => {
+      mockAuth.signInWithPassword.mockResolvedValue({
+        error: { message: 'Some other error' },
+      });
+
+      const formData = createMockFormData({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+
+      const result = await login({ success: false } as any, formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Some other error');
     });
   });
 

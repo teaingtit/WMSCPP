@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { createProduct, deleteProduct } from '@/actions/settings-actions';
 import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-actions';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,17 @@ export default function ProductManager({ products, category }: ProductManagerPro
   const productSchema = (category.form_schema || []).filter(
     (f: any) => !f.scope || f.scope === 'PRODUCT',
   );
+
+  // Virtualization setup
+  const parentRef = useRef<HTMLDivElement>(null);
+  const ROW_HEIGHT = 60; // Approximate row height in pixels
+
+  const rowVirtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 5,
+  });
 
   // ✅ NEW LOGIC: ฟังก์ชันแปลง Key (field_xxx) -> Label (ทะเบียน)
   const getAttrLabel = (key: string) => {
@@ -257,7 +269,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
         </form>
       </div>
 
-      {/* Product Table */}
+      {/* Product Table - Virtualized for performance */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="p-4 border-b bg-slate-50 flex items-center gap-2">
           <Search size={18} className="text-slate-400" />
@@ -267,60 +279,78 @@ export default function ProductManager({ products, category }: ProductManagerPro
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="max-h-[500px] overflow-y-auto">
-          <table data-stack="true" className="w-full text-sm text-left">
-            <thead className="bg-slate-50 sticky top-0 shadow-sm text-slate-500 font-semibold z-10">
-              <tr>
-                <th className="p-4 w-32">SKU</th>
-                <th className="p-4">สินค้า</th>
-                <th className="p-4">สเปค (Spec)</th>
-                <th className="p-4 text-right w-20">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="p-4 font-mono font-bold text-indigo-700">{p.sku}</td>
-                  <td className="p-4 font-medium text-slate-800">{p.name}</td>
-                  <td className="p-4">
-                    {p.attributes && Object.keys(p.attributes).length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {/* ✅ UPDATE: ใช้ฟังก์ชัน getAttrLabel เพื่อแสดงชื่อไทย แทน field_xxx */}
-                        {Object.entries(p.attributes).map(([key, val]) => (
-                          <span
-                            key={key}
-                            className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium"
-                          >
-                            {getAttrLabel(key)}:{' '}
-                            <span className="text-slate-600 font-normal">{String(val)}</span>
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-slate-300">-</span>
-                    )}
-                  </td>
-                  <td className="p-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(p.id)}
-                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                      aria-label="Delete product"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-400">
-                    ยังไม่มีสินค้าในหมวดนี้
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+
+        {/* Table Header (fixed) */}
+        <div className="bg-slate-50 border-b shadow-sm text-slate-500 font-semibold text-sm">
+          <div className="flex">
+            <div className="p-4 w-32 flex-shrink-0">SKU</div>
+            <div className="p-4 flex-1">สินค้า</div>
+            <div className="p-4 flex-[2]">สเปค (Spec)</div>
+            <div className="p-4 w-20 text-right flex-shrink-0">จัดการ</div>
+          </div>
+        </div>
+
+        {/* Virtualized Table Body */}
+        <div ref={parentRef} className="h-[500px] overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="p-8 text-center text-slate-400">ยังไม่มีสินค้าในหมวดนี้</div>
+          ) : (
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const p = filtered[virtualRow.index];
+                return (
+                  <div
+                    key={p.id}
+                    className="absolute top-0 left-0 w-full flex items-center border-b border-slate-100 hover:bg-slate-50 transition-colors group"
+                    style={{
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    <div className="p-4 w-32 flex-shrink-0 font-mono font-bold text-indigo-700 text-sm">
+                      {p.sku}
+                    </div>
+                    <div className="p-4 flex-1 font-medium text-slate-800 text-sm truncate">
+                      {p.name}
+                    </div>
+                    <div className="p-4 flex-[2]">
+                      {p.attributes && Object.keys(p.attributes).length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {Object.entries(p.attributes).map(([key, val]) => (
+                            <span
+                              key={key}
+                              className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium"
+                            >
+                              {getAttrLabel(key)}:{' '}
+                              <span className="text-slate-600 font-normal">{String(val)}</span>
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-slate-300">-</span>
+                      )}
+                    </div>
+                    <div className="p-4 w-20 text-right flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(p.id)}
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                        aria-label="Delete product"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

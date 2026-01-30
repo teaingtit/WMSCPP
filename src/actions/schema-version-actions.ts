@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { RPC, TABLES } from '@/lib/constants';
 
 /**
  * Schema Version History Entry
@@ -51,7 +52,7 @@ export async function createSchemaVersion(categoryId: string, schema: any[], cha
     if (!user) return { success: false, message: 'Unauthenticated' };
 
     // Get next version number
-    const { data: nextVersionData } = await supabase.rpc('get_next_schema_version', {
+    const { data: nextVersionData } = await supabase.rpc(RPC.GET_NEXT_SCHEMA_VERSION, {
       p_category_id: categoryId,
     });
 

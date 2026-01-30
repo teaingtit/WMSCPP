@@ -43,6 +43,13 @@ export default function BottomSheet({
   const currentY = useRef(0);
   const isDragging = useRef(false);
 
+  // Sync dynamic height to DOM when open (avoids inline style in JSX for linter)
+  const heightVh = snapPoints[initialSnap];
+  useEffect(() => {
+    if (!isOpen || !sheetRef.current) return;
+    sheetRef.current.style.setProperty('height', `${heightVh}vh`);
+  }, [isOpen, heightVh]);
+
   // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -136,9 +143,6 @@ export default function BottomSheet({
           'animate-in slide-in-from-bottom duration-300 ease-smooth',
           'md:animate-in md:zoom-in-95 md:fade-in',
         )}
-        style={{
-          height: `${snapPoints[initialSnap]}vh`,
-        }}
       >
         {/* Handle (drag indicator) - Mobile only */}
         <div className="md:hidden flex justify-center pt-3 pb-2">

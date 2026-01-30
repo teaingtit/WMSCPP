@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx supabase:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(node execute-sql.mjs:*)",
+      "Bash(nslookup:*)",
+      "Bash(copy \"C:\\\\Users\\\\nteai\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-nteai-Desktop-project-WMSCPP\\\\e082bf59-7f43-4ce5-9c5e-2a80357b0d37\\\\scratchpad\\\\schema.sql\" \"c:\\\\Users\\\\nteai\\\\Desktop\\\\project\\\\WMSCPP\\\\database\\\\schema.sql\")",
+      "Bash(npm run check:*)"
+    ]
+  }
+}

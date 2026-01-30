@@ -39,6 +39,9 @@ export default function PullToRefresh({
 
   const startY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLDivElement>(null);
+  const chevronRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
@@ -117,18 +120,28 @@ export default function PullToRefresh({
   const rotation = Math.min((pullDistance / threshold) * 180, 180);
   const opacity = Math.min(pullDistance / threshold, 1);
 
+  useEffect(() => {
+    if (indicatorRef.current) {
+      indicatorRef.current.style.height = `${pullDistance}px`;
+      indicatorRef.current.style.opacity = String(opacity);
+    }
+    if (chevronRef.current) {
+      chevronRef.current.style.transform = `rotate(${rotation}deg)`;
+    }
+    if (contentRef.current) {
+      contentRef.current.style.transform = `translateY(${pullDistance}px)`;
+    }
+  }, [pullDistance, rotation, opacity]);
+
   return (
     <div ref={containerRef} className="relative overflow-auto h-full">
       {/* Pull Indicator */}
       <div
+        ref={indicatorRef}
         className={cn(
           'absolute top-0 left-0 right-0 z-50 flex items-center justify-center transition-all duration-200',
           'pointer-events-none',
         )}
-        style={{
-          height: `${pullDistance}px`,
-          opacity: opacity,
-        }}
       >
         <div
           className={cn(
@@ -137,15 +150,14 @@ export default function PullToRefresh({
             'shadow-lg border border-neutral-200 dark:border-white/10',
           )}
         >
-          <ChevronDown
-            className={cn(
-              'w-6 h-6 transition-transform duration-200',
-              isRefreshing ? 'animate-spin' : '',
-            )}
-            style={{
-              transform: `rotate(${rotation}deg)`,
-            }}
-          />
+          <div ref={chevronRef} className="transition-transform duration-200">
+            <ChevronDown
+              className={cn(
+                'w-6 h-6 transition-transform duration-200',
+                isRefreshing ? 'animate-spin' : '',
+              )}
+            />
+          </div>
           <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
             {isRefreshing
               ? 'กำลังรีเฟรช...'
@@ -157,12 +169,7 @@ export default function PullToRefresh({
       </div>
 
       {/* Content */}
-      <div
-        className="transition-transform duration-200"
-        style={{
-          transform: `translateY(${pullDistance}px)`,
-        }}
-      >
+      <div ref={contentRef} className="transition-transform duration-200">
         {children}
       </div>
     </div>

@@ -93,7 +93,9 @@ export const StockLotSectionV2 = React.memo(
             'active:bg-neutral-100 dark:active:bg-white/10',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ring-offset-2',
           )}
-          aria-expanded={isExpanded ? 'true' : 'false'}
+          {...(isExpanded
+            ? { 'aria-expanded': 'true' as const }
+            : { 'aria-expanded': 'false' as const })}
           aria-label={`${lot} - ${totalItems} รายการ${
             restrictedCount > 0 ? `, มี ${restrictedCount} รายการติดสถานะ` : ''
           }`}

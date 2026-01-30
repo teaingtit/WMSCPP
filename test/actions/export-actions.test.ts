@@ -238,5 +238,102 @@ describe('Export Actions', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
     });
+
+    it('should use warehouse identifier as ID when it is a valid UUID (skip code lookup)', async () => {
+      const uuid = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+      const mockStocks = [
+        {
+          quantity: 5,
+          attributes: {},
+          updated_at: '2024-01-01T00:00:00Z',
+          products: { sku: 'SKU1', name: 'P1', uom: 'PCS', category_id: null, attributes: null },
+          locations: null,
+        },
+      ];
+      const mockStocksQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockStocks, error: null }),
+      };
+      const mockCategoriesQuery = {
+        select: vi.fn().mockResolvedValue({ data: null }),
+      };
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'stocks') return mockStocksQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        return mockStocksQuery;
+      });
+
+      const result = await exportInventoryToExcel(uuid);
+
+      expect(result.success).toBe(true);
+      expect(mockSupabase.from).not.toHaveBeenCalledWith('warehouses');
+    });
+
+    it('should handle categories with non-array form_schema', async () => {
+      const mockWarehouse = { id: 'wh1' };
+      const mockStocks = [
+        {
+          quantity: 1,
+          attributes: {},
+          updated_at: '2024-01-01T00:00:00Z',
+          products: { sku: 'S', name: 'N', uom: 'PCS', category_id: null, attributes: {} },
+          locations: { code: 'A-B' },
+        },
+      ];
+      const mockCategories = [{ form_schema: { notArray: true } }];
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+      };
+      const mockStocksQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockStocks, error: null }),
+      };
+      const mockCategoriesQuery = {
+        select: vi.fn().mockResolvedValue({ data: mockCategories }),
+      };
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'stocks') return mockStocksQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        return mockWarehouseQuery;
+      });
+
+      const result = await exportInventoryToExcel('WH01');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should return error when stocks is empty array', async () => {
+      const mockWarehouse = { id: 'wh1' };
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+      };
+      const mockStocksQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: [], error: null }),
+      };
+      const mockCategoriesQuery = { select: vi.fn().mockResolvedValue({ data: [] }) };
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'stocks') return mockStocksQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        return mockWarehouseQuery;
+      });
+
+      const result = await exportInventoryToExcel('WH01');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('ไม่พบสินค้า');
+    });
   });
 });

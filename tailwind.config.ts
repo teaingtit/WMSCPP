@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import tailwindcssContainerQueries from '@tailwindcss/container-queries';
 
 const config: Config = {
   darkMode: ['class'],
@@ -10,6 +11,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        tablet: '900px', // Better tablet optimization
+      },
       fontFamily: {
         sans: ['var(--font-inter)', 'var(--font-sarabun)', 'sans-serif'],
         sarabun: ['var(--font-sarabun)', 'sans-serif'],
@@ -166,6 +170,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssContainerQueries, require('tailwindcss-animate')],
 };
 export default config;

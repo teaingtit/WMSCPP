@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { checkManagerRole } from '@/lib/auth-service';
 import { withAuth } from '@/lib/action-utils';
+import { RPC, TABLES } from '@/lib/constants';
 
 // --- Create Session ---
 const CreateAuditSchema = z.object({
@@ -268,7 +269,7 @@ export async function finalizeAuditSession(sessionId: string, warehouseId: strin
   }
 
   try {
-    const { error } = await supabase.rpc('process_audit_adjustment', {
+    const { error } = await supabase.rpc(RPC.PROCESS_AUDIT_ADJUSTMENT, {
       p_session_id: sessionId,
       p_user_id: user.id,
       p_user_email: user.email,

@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
+import { TABLES } from '@/lib/constants';
 
 // --- Function 1: สำหรับหน้า Dashboard รวม ---
 export async function getDashboardWarehouses() {
@@ -13,7 +14,7 @@ export async function getDashboardWarehouses() {
   if (!user) return [];
 
   const { data: roleData } = await supabase
-    .from('user_roles')
+    .from(TABLES.USER_ROLES)
     .select('role, allowed_warehouses')
     .eq('user_id', user.id)
     .single();
@@ -22,7 +23,7 @@ export async function getDashboardWarehouses() {
   const allowedWarehouses = roleData?.allowed_warehouses || [];
 
   let query = supabase
-    .from('warehouses')
+    .from(TABLES.WAREHOUSES)
     .select('*')
     .eq('is_active', true)
     .order('created_at', { ascending: true });
@@ -46,7 +47,7 @@ export async function getDashboardStats(warehouseCode: string) {
     if (!whId) throw new Error('Warehouse not found');
 
     const { data: stocks } = await supabase
-      .from('stocks')
+      .from(TABLES.STOCKS)
       .select('quantity, locations!inner(warehouse_id)')
       .eq('locations.warehouse_id', whId);
 
@@ -56,13 +57,13 @@ export async function getDashboardStats(warehouseCode: string) {
     const [{ data: activeAudits }, { data: recentLogs }, { count: todayTransactionCount }] =
       await Promise.all([
         supabase
-          .from('audit_sessions')
+          .from(TABLES.AUDIT_SESSIONS)
           .select('id, name, created_at, status')
           .eq('warehouse_id', whId)
           .eq('status', 'OPEN')
           .order('created_at', { ascending: false }),
         supabase
-          .from('transactions')
+          .from(TABLES.TRANSACTIONS)
           .select(
             `
             id, type, quantity, created_at,
@@ -75,7 +76,7 @@ export async function getDashboardStats(warehouseCode: string) {
           .order('created_at', { ascending: false })
           .limit(20),
         supabase
-          .from('transactions')
+          .from(TABLES.TRANSACTIONS)
           .select('*', { count: 'exact', head: true })
           .eq('warehouse_id', whId)
           .gte('created_at', new Date().setHours(0, 0, 0, 0)),

@@ -13,6 +13,7 @@ import {
   softDelete,
   modifyCategoryUnits,
 } from '@/lib/action-utils';
+import { RPC, TABLES } from '@/lib/constants';
 
 // --- Zod Schemas ---
 const CreateWarehouseSchema = z.object({
@@ -63,7 +64,7 @@ const UpdateCategoryUnitsSchema = z.object({
 export async function getAllWarehousesForAdmin() {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('warehouses')
+    .from(TABLES.WAREHOUSES)
     .select('*')
     .eq('is_active', true)
     .order('is_active', { ascending: false })
@@ -74,7 +75,7 @@ export async function getAllWarehousesForAdmin() {
 export async function getCategories() {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('product_categories')
+    .from(TABLES.PRODUCT_CATEGORIES)
     .select('*')
     .order('id', { ascending: true });
   return data || [];
@@ -83,7 +84,7 @@ export async function getCategories() {
 export async function getProducts() {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('products')
+    .from(TABLES.PRODUCTS)
     .select('*, category:product_categories(name)')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
@@ -102,7 +103,7 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
 
   const { sku, name, category_id, uom, image_url } = validation.data;
   const { data: category } = await supabase
-    .from('product_categories')
+    .from(TABLES.PRODUCT_CATEGORIES)
     .select('form_schema, units')
     .eq('id', category_id)
     .single();
@@ -119,7 +120,7 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
   const finalUom = uom || category?.units?.[0] || 'UNIT';
 
   try {
-    const { error } = await supabase.from('products').insert({
+    const { error } = await supabase.from(TABLES.PRODUCTS).insert({
       sku,
       name,
       category_id: category_id || 'GENERAL',
@@ -147,7 +148,11 @@ export async function deleteProduct(formData: FormData): Promise<ActionResponse>
   const id = formData.get('id') as string;
 
   // Get current SKU for rename
-  const { data: product } = await supabase.from('products').select('sku').eq('id', id).single();
+  const { data: product } = await supabase
+    .from(TABLES.PRODUCTS)
+    .select('sku')
+    .eq('id', id)
+    .single();
   if (!product) return fail('ไม่พบสินค้า');
 
   return softDelete({
@@ -184,23 +189,37 @@ export async function createWarehouse(formData: FormData): Promise<ActionRespons
   const { code, name, axis_x, axis_y, axis_z } = validation.data;
 
   try {
-    const { data, error } = await supabase.rpc('create_warehouse_xyz_grid', {
-      p_code: code,
-      p_name: name,
+    const { data: warehouse, error: insertError } = await supabase
+      .from(TABLES.WAREHOUSES)
+      .insert({ code, name, axis_x, axis_y, axis_z })
+      .select('id')
+      .single();
+
+    if (insertError) {
+      const dupResponse = handleDuplicateError(insertError, 'รหัสคลัง', code);
+      if (dupResponse) return dupResponse;
+      return fail(insertError.message ?? 'สร้างคลังสินค้าไม่สำเร็จ');
+    }
+    if (!warehouse?.id) {
+      return fail('สร้างคลังสินค้าไม่สำเร็จ');
+    }
+
+    const { data: rpcData, error: rpcError } = await supabase.rpc(RPC.CREATE_WAREHOUSE_XYZ_GRID, {
+      p_warehouse_id: warehouse.id,
       p_axis_x: axis_x,
       p_axis_y: axis_y,
       p_axis_z: axis_z,
     });
 
-    if (error) throw error;
-    const result = data as { success: boolean; message: string };
+    if (rpcError) throw rpcError;
+    const result = rpcData as { success: boolean; message: string; error?: string };
 
-    if (result.success) {
+    if (result?.success) {
       revalidatePath('/dashboard/settings');
       revalidatePath('/dashboard');
-      return ok(result.message);
+      return ok(result.message ?? 'สร้างคลังและตำแหน่งเก็บเรียบร้อย');
     }
-    return fail(result.message);
+    return fail(result?.error ?? result?.message ?? 'สร้างตำแหน่งเก็บไม่สำเร็จ');
   } catch (err: any) {
     console.error('RPC Error:', err);
     return fail('System Error: ' + err.message);
@@ -217,7 +236,7 @@ export async function createCategory(formData: FormData): Promise<ActionResponse
   const supabase = await createClient();
 
   try {
-    const { error } = await supabase.from('product_categories').insert([
+    const { error } = await supabase.from(TABLES.PRODUCT_CATEGORIES).insert([
       {
         id,
         name,
@@ -244,13 +263,13 @@ export async function deleteCategory(formData: FormData): Promise<ActionResponse
 
   try {
     const { count } = await supabase
-      .from('products')
+      .from(TABLES.PRODUCTS)
       .select('*', { count: 'exact', head: true })
       .eq('category_id', id);
 
     if (count && count > 0) return fail('❌ มีสินค้าใช้ประเภทนี้อยู่');
 
-    const { error } = await supabase.from('product_categories').delete().eq('id', id);
+    const { error } = await supabase.from(TABLES.PRODUCT_CATEGORIES).delete().eq('id', id);
     if (error) throw error;
 
     revalidatePath('/dashboard/settings');
@@ -272,7 +291,7 @@ export async function updateCategory(formData: FormData): Promise<ActionResponse
   try {
     // Get current category data to detect schema changes
     const { data: currentCategory, error: fetchError } = await supabase
-      .from('product_categories')
+      .from(TABLES.PRODUCT_CATEGORIES)
       .select('form_schema, schema_version')
       .eq('id', id)
       .single();
@@ -301,7 +320,7 @@ export async function updateCategory(formData: FormData): Promise<ActionResponse
 
     // Update category
     const { error } = await supabase
-      .from('product_categories')
+      .from(TABLES.PRODUCT_CATEGORIES)
       .update({
         name,
         form_schema: newSchema,
@@ -333,7 +352,7 @@ export async function updateCategoryUnits(formData: FormData): Promise<ActionRes
 
   try {
     const { error } = await supabase
-      .from('product_categories')
+      .from(TABLES.PRODUCT_CATEGORIES)
       .update({ units: JSON.parse(units) })
       .eq('id', id);
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 type SkeletonVariant =
@@ -48,6 +49,17 @@ export default function SkeletonLoader({
   'aria-label': ariaLabel,
   'aria-busy': ariaBusy = true,
 }: SkeletonLoaderProps) {
+  const sizeRef = useRef<HTMLDivElement>(null);
+  const ariaBusyProps = ariaBusy
+    ? ({ 'aria-busy': 'true' as const } as const)
+    : ({ 'aria-busy': 'false' as const } as const);
+
+  useEffect(() => {
+    if (!sizeRef.current) return;
+    if (width) sizeRef.current.style.setProperty('--skeleton-width', width);
+    if (height) sizeRef.current.style.setProperty('--skeleton-height', height);
+  }, [width, height]);
+
   const getVariantStyles = () => {
     switch (variant) {
       case 'text':
@@ -79,14 +91,11 @@ export default function SkeletonLoader({
     <div
       className={cn(
         'bg-neutral-200 dark:bg-neutral-800 animate-pulse relative overflow-hidden',
+        (width || height) && 'skeleton-size-dynamic',
         getVariantStyles(),
         className,
       )}
-      style={{
-        width: width || undefined,
-        height: height || undefined,
-      }}
-      aria-busy={ariaBusy}
+      {...ariaBusyProps}
       aria-label={ariaLabel || 'กำลังโหลด'}
       role="status"
     >
@@ -96,15 +105,12 @@ export default function SkeletonLoader({
     </div>
   );
 
-  if (count === 1) {
-    return skeletonElement;
-  }
-
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: count }).map((_, index) => (
-        <div key={index}>{skeletonElement}</div>
-      ))}
+  const wrapper = (
+    <div ref={sizeRef} className={count > 1 ? 'space-y-3' : undefined}>
+      {count === 1
+        ? skeletonElement
+        : Array.from({ length: count }).map((_, index) => <div key={index}>{skeletonElement}</div>)}
     </div>
   );
+  return wrapper;
 }

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { withAuth, processBulkAction } from '@/lib/action-utils';
+import { RPC } from '@/lib/constants';
 
 interface OutboundFormData {
   warehouseId: string;
@@ -79,7 +80,7 @@ const submitOutboundHandler = async (formData: OutboundFormData, { user, supabas
   }
 
   // 2. เรียก RPC ตัดของ
-  const { data: result, error } = await supabase.rpc('deduct_stock', {
+  const { data: result, error } = await supabase.rpc(RPC.DEDUCT_STOCK, {
     p_stock_id: stockId,
     p_deduct_qty: deductQty,
     p_note: note || '',

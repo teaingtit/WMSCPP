@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { withAuth } from '@/lib/action-utils';
+import { RPC, TABLES } from '@/lib/constants';
 
 // Helper: สร้างรหัส Lxx-Pxx-Zxx (ใช้เป็น Fallback เท่านั้น)
 const pad2 = (n: string | number) => String(n).padStart(2, '0');
@@ -138,7 +139,7 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
   }
 
   // RPC Transfer
-  const { data: result, error: rpcError } = await supabase.rpc('transfer_stock', {
+  const { data: result, error: rpcError } = await supabase.rpc(RPC.TRANSFER_STOCK, {
     p_source_stock_id: stockId,
     p_target_location_id: targetLocId,
     p_qty: qty,
@@ -148,7 +149,7 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
   if (!result.success) return { success: false, message: result.message };
 
   // Log Transaction
-  await supabase.from('transactions').insert({
+  await supabase.from(TABLES.TRANSACTIONS).insert({
     type: 'TRANSFER',
     warehouse_id: whId,
     product_id: sourceStock.product_id,
@@ -247,7 +248,7 @@ const submitCrossTransferHandler = async (formData: any, { user, supabase }: any
   }
 
   // RPC Cross Transfer
-  const { data: result, error: rpcError } = await supabaseAdmin.rpc('transfer_cross_stock', {
+  const { data: result, error: rpcError } = await supabaseAdmin.rpc(RPC.TRANSFER_CROSS_STOCK, {
     p_stock_id: stockId,
     p_target_warehouse_id: targetWarehouseId,
     p_target_code: targetCode,
@@ -260,7 +261,7 @@ const submitCrossTransferHandler = async (formData: any, { user, supabase }: any
   if (!result.success) return { success: false, message: result.message };
 
   // Log Transaction
-  await supabase.from('transactions').insert({
+  await supabase.from(TABLES.TRANSACTIONS).insert({
     type: 'TRANSFER_OUT',
     warehouse_id: sourceWhId,
     product_id: sourceStock.product_id,

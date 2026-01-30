@@ -31,8 +31,8 @@ const { mockChain, mockCategories } = vi.hoisted(() => {
 
   chain.select.mockImplementation(() => chain);
   chain.eq.mockImplementation(() => chain);
-  chain.in.mockImplementation(() => {
-    chain.data = mockCategories;
+  chain.in.mockImplementation((_col: string, ids: string[]) => {
+    chain.data = mockCategories.filter((c) => ids.includes(c.id));
     return chain;
   });
   chain.update.mockImplementation(() => {
@@ -119,7 +119,27 @@ describe('Bulk Schema Actions', () => {
       const result = await previewBulkEdit(['FOOD'], 'remove', fieldsToRemove);
 
       expect(result.success).toBe(true);
+      expect(result.success).toBe(true);
       expect(result.preview[0].newFieldCount).toBe(0);
+    });
+
+    it('should handle merge with existing field', async () => {
+      const existingField = [
+        { key: 'name', label: 'ชื่อใหม่', type: 'text', required: true, scope: 'PRODUCT' },
+      ];
+      const result = await previewBulkEdit(['FOOD'], 'merge', existingField);
+      expect(result.success).toBe(true);
+      expect(result.preview[0].newSchema.find((f) => f.key === 'name')?.label).toBe('ชื่อใหม่');
+    });
+
+    it('should return error on database failure', async () => {
+      mockChain.in.mockImplementationOnce(() => {
+        mockChain.error = { message: 'Database failure' };
+        return mockChain;
+      });
+      const result = await previewBulkEdit(['FOOD'], 'merge', []);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Database failure');
     });
   });
 
@@ -172,6 +192,45 @@ describe('Bulk Schema Actions', () => {
       expect(result.success).toBe(true);
       expect(result.updated).toBe(0);
       expect(result.skipped).toBe(1);
+    });
+
+    it('should return error when no categories selected', async () => {
+      const result = await bulkEditSchemas([], 'replace', []);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('No categories selected');
+    });
+
+    it('should handle partial failures during update', async () => {
+      const { createSchemaVersion } = await import('@/actions/schema-version-actions');
+      // Forcing success to false globally for this test
+      vi.mocked(createSchemaVersion).mockResolvedValue({
+        success: false,
+        message: 'Version error',
+      });
+
+      const result = await bulkEditSchemas(['FOOD'], 'replace', []);
+      expect(result.success).toBe(false);
+      expect(result.failed).toBe(1);
+
+      // Reset mock
+      vi.mocked(createSchemaVersion).mockResolvedValue({ success: true, version: 2 });
+    });
+
+    it('should handle database errors during update', async () => {
+      mockChain.update.mockResolvedValueOnce({ error: { message: 'Update failed' } });
+      const result = await bulkEditSchemas(['FOOD'], 'replace', []);
+      expect(result.success).toBe(false);
+      expect(result.failed).toBe(1);
+    });
+
+    it('should return system error on unexpected exception', async () => {
+      const { createClient } = await import('@/lib/supabase/server');
+      vi.mocked(createClient).mockImplementationOnce(() => {
+        throw new Error('System crash');
+      });
+      const result = await bulkEditSchemas(['FOOD'], 'replace', []);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('System crash');
     });
   });
 });

@@ -2,10 +2,12 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { loginSchema } from '@/lib/validations/auth-schemas';
 import { ActionResponse } from '@/types/action-response';
+import { TABLES } from '@/lib/constants';
 
 export async function login(
   _prevState: ActionResponse,
@@ -32,7 +34,7 @@ export async function login(
   const supabase = await createClient();
 
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -43,6 +45,32 @@ export async function login(
         return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
       }
       return { success: false, message: error.message };
+    }
+
+    // Ensure user has a role — use admin client so we always see user_roles (avoids RLS/session timing)
+    const userId = signInData.user?.id;
+    if (userId) {
+      const { data: roleRow, error: roleError } = await supabaseAdmin
+        .from(TABLES.USER_ROLES)
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('Login role check error:', roleError.message);
+        return {
+          success: false,
+          message:
+            'บัญชีของคุณยังไม่ได้เปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ (Your account is not activated. Please contact an administrator.)',
+        };
+      }
+      if (!roleRow) {
+        return {
+          success: false,
+          message:
+            'บัญชีของคุณยังไม่ได้เปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ (Your account is not activated. Please contact an administrator.)',
+        };
+      }
     }
   } catch (err) {
     return { success: false, message: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' };

@@ -127,6 +127,64 @@ describe('Dashboard Actions', () => {
 
       expect(result.length).toBe(1);
     });
+
+    it('should return empty array when staff has no allowed_warehouses', async () => {
+      const mockUser = createMockUser();
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { role: 'staff', allowed_warehouses: [] },
+        }),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { role: 'staff', allowed_warehouses: [] },
+        }),
+      };
+
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'user_roles') return mockRoleQuery;
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [] }),
+        };
+      });
+
+      const result = await getDashboardWarehouses();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should use staff and empty list when roleData is null', async () => {
+      const mockUser = createMockUser();
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'user_roles') return mockRoleQuery;
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: [] }),
+        };
+      });
+
+      const result = await getDashboardWarehouses();
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('getDashboardStats', () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Layers, Package, Shield, StickyNote, AlertTriangle, Lock } from 'lucide-react';
 import { StockWithDetails } from '@/types/inventory';
 import { EntityStatus } from '@/types/status';
@@ -52,6 +52,26 @@ export const StockItemCardV2 = React.memo(
       }
     };
 
+    const statusDotRef = useRef<HTMLDivElement>(null);
+    const statusBadgeRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+      if (restricted && statusDotRef.current) {
+        statusDotRef.current.style.setProperty(
+          '--status-color',
+          status?.status?.color || '#ef4444',
+        );
+      }
+    }, [restricted, status?.status?.color]);
+
+    useEffect(() => {
+      if (status?.status && statusBadgeRef.current) {
+        statusBadgeRef.current.style.setProperty('--status-bg', status.status.bg_color);
+        statusBadgeRef.current.style.setProperty('--status-text', status.status.text_color);
+        statusBadgeRef.current.style.setProperty('--status-border', status.status.color + '40');
+      }
+    }, [status?.status]);
+
     return (
       <div
         onClick={handleCardClick}
@@ -72,15 +92,9 @@ export const StockItemCardV2 = React.memo(
       >
         {/* Restriction Indicator */}
         {restricted && (
-          <div className="absolute -top-1.5 -right-1.5 z-10">
+          <div ref={statusDotRef} className="absolute -top-1.5 -right-1.5 z-10">
             <span
-              className="flex items-center justify-center w-6 h-6 rounded-full text-white animate-pulse-soft shadow-lg"
-              style={
-                {
-                  ['--status-color' as string]: status?.status?.color || '#ef4444',
-                  backgroundColor: 'var(--status-color)',
-                } as React.CSSProperties
-              }
+              className="flex items-center justify-center w-6 h-6 rounded-full text-white animate-pulse-soft shadow-lg status-dot-dynamic"
               title={status?.status?.name}
             >
               <Lock size={12} strokeWidth={2.5} />
@@ -135,6 +149,7 @@ export const StockItemCardV2 = React.memo(
             <div className="flex items-center gap-2 flex-wrap">
               {status?.status && (
                 <button
+                  ref={statusBadgeRef}
                   onClick={(e) => {
                     e.stopPropagation();
                     onStatusClick?.(item);
@@ -143,17 +158,8 @@ export const StockItemCardV2 = React.memo(
                     'inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1',
                     'rounded-lg border transition-all duration-150',
                     'hover:opacity-90 active:scale-95 touch-48',
+                    'status-badge-dynamic',
                   )}
-                  style={
-                    {
-                      ['--status-bg' as string]: status.status.bg_color,
-                      ['--status-text' as string]: status.status.text_color,
-                      ['--status-border' as string]: status.status.color + '40',
-                      backgroundColor: 'var(--status-bg)',
-                      color: 'var(--status-text)',
-                      borderColor: 'var(--status-border)',
-                    } as React.CSSProperties
-                  }
                 >
                   {restricted ? (
                     <Lock size={12} />

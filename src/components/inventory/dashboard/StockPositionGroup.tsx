@@ -63,7 +63,7 @@ const getLevelStyles = (level: string) => {
   };
 };
 
-export const StockPositionGroup = ({
+export const StockPositionGroup = React.memo(function StockPositionGroup({
   lot,
   pos,
   items,
@@ -75,7 +75,7 @@ export const StockPositionGroup = ({
   statusMap,
   noteCountMap,
   onStatusClick,
-}: StockPositionGroupProps) => {
+}: StockPositionGroupProps) {
   // Logic: ตรวจสอบว่าเลือกสินค้าครบทุกชิ้นใน Position นี้หรือไม่
   const isPosSelected = items.length > 0 && items.every((item) => selectedIds.has(item.id));
 
@@ -184,4 +184,4 @@ export const StockPositionGroup = ({
       </div>
     </div>
   );
-};
+});

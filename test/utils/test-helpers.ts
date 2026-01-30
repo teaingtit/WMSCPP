@@ -1,8 +1,38 @@
 import { vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+// Re-export from the new mocks module for advanced usage
+export {
+  MockDatabase,
+  createMockQueryBuilder,
+  createConfigurableQueryBuilder,
+  mockFactories,
+  mockErrors,
+  successResult,
+  errorResult,
+  createTableMock,
+} from '../mocks/database';
+
 /**
- * Creates a mock Supabase client for testing
+ * Creates a mock Supabase client for testing.
+ *
+ * For more advanced mocking with table-specific responses and RPC mocks,
+ * use the createMockSupabaseClient from '../mocks/database' with config options.
+ *
+ * @example Basic usage
+ * ```ts
+ * const mockSupabase = createMockSupabaseClient();
+ * ```
+ *
+ * @example With custom query builder
+ * ```ts
+ * const mockSupabase = createMockSupabaseClient();
+ * const customQuery = {
+ *   select: vi.fn().mockReturnThis(),
+ *   eq: vi.fn().mockResolvedValue({ data: [...], error: null })
+ * };
+ * mockSupabase.from = vi.fn(() => customQuery);
+ * ```
  */
 export function createMockSupabaseClient(): Partial<SupabaseClient> {
   // Create a chainable query builder that supports multiple method calls
@@ -21,11 +51,20 @@ export function createMockSupabaseClient(): Partial<SupabaseClient> {
       'in',
       'gt',
       'gte',
+      'lt',
       'lte',
       'or',
       'not',
       'order',
       'limit',
+      'offset',
+      'range',
+      'filter',
+      'match',
+      'like',
+      'ilike',
+      'is',
+      'contains',
     ];
     chainableMethods.forEach((method) => {
       builder[method] = vi.fn(function (..._args: any[]) {
@@ -56,9 +95,21 @@ export function createMockSupabaseClient(): Partial<SupabaseClient> {
     auth: {
       getUser: vi.fn(),
       signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
       signOut: vi.fn(),
+      resetPasswordForEmail: vi.fn(),
+      updateUser: vi.fn(),
+      getSession: vi.fn(),
     } as any,
     rpc: vi.fn(),
+    storage: {
+      from: vi.fn(() => ({
+        upload: vi.fn(),
+        download: vi.fn(),
+        remove: vi.fn(),
+        getPublicUrl: vi.fn(() => ({ data: { publicUrl: 'https://example.com/file.png' } })),
+      })),
+    } as any,
   } as any;
 }
 
@@ -75,9 +126,9 @@ export function createMockUser(overrides = {}) {
 }
 
 /**
- * Creates a mock FormData object
+ * Creates a mock FormData object. Values can be string or File (for file uploads).
  */
-export function createMockFormData(data: Record<string, string>): FormData {
+export function createMockFormData(data: Record<string, string | File | Blob>): FormData {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     formData.append(key, value);

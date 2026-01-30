@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { TABLES } from '@/lib/constants';
 
 // --- 1. Schema Validation ---
 const baseUserSchema = z.object({
@@ -26,7 +27,7 @@ export async function getUsers() {
   if (!user) return [];
 
   const { data: myRole } = await supabase
-    .from('user_roles')
+    .from(TABLES.USER_ROLES)
     .select('role')
     .eq('user_id', user.id)
     .single();
@@ -43,12 +44,12 @@ export async function getUsers() {
 
   // Fetch Roles
   const { data: roles } = await supabaseAdmin
-    .from('user_roles')
+    .from(TABLES.USER_ROLES)
     .select('user_id, role, allowed_warehouses, is_active');
 
   // Fetch Profiles (Names) - Fallback to metadata if profile missing
   const { data: profiles } = await supabaseAdmin
-    .from('profiles')
+    .from(TABLES.PROFILES)
     .select('id, first_name, last_name, full_name');
 
   const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
@@ -157,7 +158,7 @@ export async function createUser(_prevState: any, formData: FormData) {
     if (!userData) throw new Error('User creation failed');
 
     // 3. Create Role
-    const { error: roleError } = await supabaseAdmin.from('user_roles').insert({
+    const { error: roleError } = await supabaseAdmin.from(TABLES.USER_ROLES).insert({
       user_id: userData.id,
       role,
       allowed_warehouses: role === 'admin' ? [] : warehouses,
@@ -200,7 +201,7 @@ export async function deleteUser(userId: string) {
 
     // เช็คประวัติการใช้งาน
     const { count } = await supabaseAdmin
-      .from('transactions')
+      .from(TABLES.TRANSACTIONS)
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
@@ -208,7 +209,10 @@ export async function deleteUser(userId: string) {
 
     if (hasHistory) {
       // Soft Delete (Ban + Inactive)
-      await supabaseAdmin.from('user_roles').update({ is_active: false }).eq('user_id', userId);
+      await supabaseAdmin
+        .from(TABLES.USER_ROLES)
+        .update({ is_active: false })
+        .eq('user_id', userId);
 
       const banDuration = 100 * 365 * 24 * 60 * 60 + 's'; // ~100 years
       const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -221,7 +225,7 @@ export async function deleteUser(userId: string) {
       return { success: true, message: 'ระงับการใช้งานผู้ใช้เรียบร้อย (มีประวัติในระบบ)' };
     } else {
       // Hard Delete
-      await supabaseAdmin.from('user_roles').delete().eq('user_id', userId);
+      await supabaseAdmin.from(TABLES.USER_ROLES).delete().eq('user_id', userId);
       const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
       if (error) throw error;
 
@@ -236,7 +240,7 @@ export async function deleteUser(userId: string) {
 export async function reactivateUser(userId: string) {
   try {
     await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: '0s' });
-    await supabaseAdmin.from('user_roles').update({ is_active: true }).eq('user_id', userId);
+    await supabaseAdmin.from(TABLES.USER_ROLES).update({ is_active: true }).eq('user_id', userId);
 
     revalidatePath('/dashboard/settings');
     return { success: true, message: 'เปิดใช้งานผู้ใช้ใหม่อีกครั้งสำเร็จ' };

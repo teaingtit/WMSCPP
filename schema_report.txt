@@ -1,0 +1,16 @@
+Connecting to postgresql://teaingtit:Pj-468278963@localhost:5432/main_app_db...
+Connected.
+
+--- Checking Schema Integrity ---
+[PASS] Table 'warehouses' has all expected columns.
+[PASS] Table 'product_categories' has all expected columns.
+[PASS] Table 'products' has all expected columns.
+[PASS] Table 'locations' has all expected columns.
+[PASS] Table 'stocks' has all expected columns.
+[FAIL] Table 'transactions' is missing columns: updated_at
+[PASS] Table 'audit_sessions' has all expected columns.
+[PASS] Table 'audit_items' has all expected columns.
+[PASS] Table 'user_roles' has all expected columns.
+[FAIL] Table 'status_definitions' is missing columns: updated_at
+[FAIL] Table 'entity_statuses' is missing columns: updated_at
+[FAIL] Table 'category_schema_versions' is missing columns: updated_at

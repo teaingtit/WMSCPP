@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { withAuth, processBulkAction } from '@/lib/action-utils';
+import { TABLES, RPC } from '@/lib/constants';
 
 // --- Validation Schema ---
 const InboundSchema = z.object({
@@ -146,7 +147,7 @@ const submitInboundHandler = async (rawData: unknown, { user, supabase }: any) =
     return { success: false, message: 'สินค้านี้ถูกปิดใช้งานแล้ว กรุณาเลือกสินค้าอื่น' };
   }
 
-  const { data: rpcResult, error: rpcError } = await supabase.rpc('process_inbound_transaction', {
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(RPC.PROCESS_INBOUND_TRANSACTION, {
     p_warehouse_id: whId,
     p_location_id: locationId,
     p_product_id: productId,

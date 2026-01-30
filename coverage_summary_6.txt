@@ -1,0 +1,343 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.17 [39m[90mC:/Users/nteai/Desktop/project/WMSCPP[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+stderr | test/actions/schema-version-actions.test.ts > Schema Version Actions > createSchemaVersion > should return error when inserting fails
+Create Schema Version Error: Error: Insert failed
+    at Object.<anonymous> (C:/Users/nteai/Desktop/project/WMSCPP/test/actions/schema-version-actions.test.ts:174:27)
+    at Object.Mock [as insert] (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/spy/dist/index.js:285:34)
+    at Module.createSchemaVersion (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/schema-version-actions.ts:65:8)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/schema-version-actions.test.ts:178:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/schema-version-actions.test.ts > Schema Version Actions > compareSchemaVersions > should return error on database exception
+Compare Schema Versions Error: Error: Query error
+    at Object.<anonymous> (C:/Users/nteai/Desktop/project/WMSCPP/test/actions/schema-version-actions.test.ts:259:57)
+    at Object.Mock [as in] (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/spy/dist/index.js:285:34)
+    at Module.compareSchemaVersions (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/schema-version-actions.ts:162:8)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/schema-version-actions.test.ts:261:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/schema-version-actions.test.ts > Schema Version Actions > getSchemaHistory > should return error and empty data on DB error
+Get Schema History Error: Error: DB error
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/schema-version-actions.test.ts:271:25
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | test/actions/schema-version-actions.test.ts > Schema Version Actions > getProductsBySchemaVersion > should return error and empty data on failure
+Get Products By Schema Version Error: Error: DB error
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/schema-version-actions.test.ts:338:25
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/actions/schema-version-actions.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 52[2mms[22m[39m
+stderr | test/actions/audit-actions.test.ts > Audit Actions > createAuditSession > should reject when warehouse not found
+Create Audit Error: Error: α╣äα╕íα╣êα╕₧α╕Üα╕äα╕Ñα╕▒α╕çα╕¬α╕┤α╕Öα╕äα╣ëα╕▓: invalid
+    at createAuditSession.requiredRole (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/audit-actions.ts:35:15)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/audit-actions.test.ts:163:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/audit-actions.test.ts > Audit Actions > createAuditSession > should return error when inserting audit items fails
+Create Audit Error: { message: 'Insert items failed' }
+
+stderr | test/actions/audit-actions.test.ts > Audit Actions > getInventoryItems > should return empty array on error
+getInventoryItems Error: DB error
+
+stderr | test/actions/audit-actions.test.ts > Audit Actions > getAuditItems > should return empty array on error
+Error fetching audit items: DB error
+
+stderr | test/actions/bulk-import-actions.test.ts > Bulk Import Actions > importMasterData > should handle upsert error and return system error
+Master Data Import Error: Error: DB error
+    at Object.<anonymous> (C:/Users/nteai/Desktop/project/WMSCPP/test/actions/bulk-import-actions.test.ts:429:52)
+    at Object.Mock (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/spy/dist/index.js:285:34)
+    at Module.importMasterData (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/bulk-import-actions.ts:230:38)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/bulk-import-actions.test.ts:437:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/bulk-import-actions.test.ts > Bulk Import Actions > downloadInboundTemplate > should throw when warehouse or category not found
+Download Template Error: Error: α╣äα╕íα╣êα╕₧α╕Üα╕éα╣ëα╕¡α╕íα╕╣α╕Ñα╕äα╕Ñα╕▒α╕çα╕¬α╕┤α╕Öα╕äα╣ëα╕▓α╕½α╕úα╕╖α╕¡α╕½α╕íα╕ºα╕öα╕½α╕íα╕╣α╣êα╕¬α╕┤α╕Öα╕äα╣ëα╕▓
+    at Module.downloadInboundTemplate (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/bulk-import-actions.ts:262:13)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/bulk-import-actions.test.ts:918:7
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/bulk-import-actions.test.ts > Bulk Import Actions > importInboundStock > should return system error when rpc fails
+Error: RPC failed
+    at Module.importInboundStock (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/bulk-import-actions.ts:337:22)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/bulk-import-actions.test.ts:1237:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/actions/audit-actions.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/bulk-import-actions.test.ts [2m([22m[2m32 tests[22m[2m)[22m[32m 83[2mms[22m[39m
+stderr | test/actions/settings-actions.test.ts > Settings Actions > createWarehouse error handling > should handle RPC errors
+RPC Error: Error: RPC Error
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/settings-actions.test.ts:782:16
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | test/actions/history-actions.test.ts > History Actions > getHistory > should handle errors gracefully
+Fetch History Error: Error: Database error
+    at createTransactionsQuery (C:/Users/nteai/Desktop/project/WMSCPP/test/actions/history-actions.test.ts:244:25)
+    at Object.<anonymous> (C:/Users/nteai/Desktop/project/WMSCPP/test/actions/history-actions.test.ts:265:18)
+    at Object.Mock (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/spy/dist/index.js:285:34)
+    at Module.getHistory (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/history-actions.ts:48:6)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/history-actions.test.ts:270:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/actions/settings-actions.test.ts [2m([22m[2m27 tests[22m[2m)[22m[33m 1699[2mms[22m[39m
+       [33m[2mΓ£ô[22m[39m should create schema version when schema changes [33m 1651[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/history-actions.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32mΓ£ô[39m test/components/VisualSchemaDesigner.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 316[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/TouchTarget.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[33m 325[2mms[22m[39m
+stderr | test/actions/status-actions.test.ts > Status Actions > getInventoryStatusData > should handle errors gracefully
+Error fetching inventory status data: Error: DB Error
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/status-actions.test.ts:560:60
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32mΓ£ô[39m src/components/ui/__tests__/SkeletonList.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 340[2mms[22m[39m
+stderr | test/actions/status-actions.test.ts > Status Actions > toggleNotePin > should handle toggle pin error
+Error toggling note pin: { message: 'DB error' }
+
+stderr | test/actions/status-actions.test.ts > Status Actions > removePartialStatus > should handle error when removing partial status
+Error removing partial status: { message: 'Insert failed' }
+
+stderr | test/actions/status-actions.test.ts > Status Actions > addEntityNote error handling > should handle error when adding note
+Error adding entity note: { message: 'Insert failed' }
+
+stderr | test/actions/status-actions.test.ts > Status Actions > updateEntityNote error handling > should handle error when updating note
+Error updating entity note: { message: 'Update failed' }
+
+stderr | test/actions/status-actions.test.ts > Status Actions > deleteEntityNote error handling > should handle error when deleting note
+Error deleting entity note: { message: 'Delete failed' }
+
+ [32mΓ£ô[39m src/components/transfer/__tests__/TransferTargetForm.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 612[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m preview-fail -> edit -> preview-pass -> submit succeeds [33m 488[2mms[22m[39m
+stderr | test/actions/status-actions.test.ts > Status Actions > deleteStatusDefinition error handling > should handle delete error
+Error deleting status: { message: 'Update failed' }
+
+ [32mΓ£ô[39m test/actions/status-actions.test.ts [2m([22m[2m41 tests[22m[2m)[22m[32m 76[2mms[22m[39m
+ [32mΓ£ô[39m test/lib/excel-utils.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 88[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/BottomSheet.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[32m 268[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/FloatingActionButton.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[32m 300[2mms[22m[39m
+stderr | test/lib/action-utils.test.ts > action-utils > withAuth > should catch and handle handler errors
+Action Error: Error: Handler failed
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/lib/action-utils.test.ts:552:49
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | test/lib/action-utils.test.ts > action-utils > withAuth > should return Internal Server Error when handler throws error without message
+Action Error: Error: 
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/lib/action-utils.test.ts:561:49
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | test/actions/export-actions.test.ts > Export Actions > exportInventoryToExcel > should return error when warehouse not found
+Export Error: Error: α╣äα╕íα╣êα╕₧α╕Üα╕äα╕Ñα╕▒α╕çα╕¬α╕┤α╕Öα╕äα╣ëα╕▓α╕úα╕½α╕▒α╕¬: INVALID
+    at Module.exportInventoryToExcel (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/export-actions.ts:30:22)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/export-actions.test.ts:160:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+stderr | test/actions/export-actions.test.ts > Export Actions > exportInventoryToExcel > should handle errors gracefully
+Export Error: Error: Database error
+    at Module.exportInventoryToExcel (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/export-actions.ts:58:22)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/export-actions.test.ts:236:22
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/lib/action-utils.test.ts [2m([22m[2m36 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/export-actions.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/PullToRefresh.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 142[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/SkeletonLoader.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[32m 107[2mms[22m[39m
+stderr | test/actions/transfer-actions.test.ts > Transfer Actions > searchStockForTransfer > should return empty array on search error
+Search Error: Error: DB error
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/transfer-actions.test.ts:134:63
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32mΓ£ô[39m test/actions/transfer-actions.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 49[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/useTransactionFlow.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+ [32mΓ£ô[39m test/lib/haptics.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 49[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/useSwipeGesture.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[32m 55[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/useFormAction.test.tsx [2m([22m[2m10 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/AnimatedList.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+stderr | test/actions/bulk-schema-actions.test.ts > Bulk Schema Actions > previewBulkEdit > should return error on database failure
+Preview Bulk Edit Error: { message: 'Database failure' }
+
+stderr | test/actions/bulk-schema-actions.test.ts > Bulk Schema Actions > bulkEditSchemas > should return system error on unexpected exception
+Bulk Edit Schemas Error: Error: System crash
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/bulk-schema-actions.test.ts:225:68
+    at Mock (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/spy/dist/index.js:285:34)
+    at Module.bulkEditSchemas (C:/Users/nteai/Desktop/project/WMSCPP/src/actions/bulk-schema-actions.ts:27:28)
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/bulk-schema-actions.test.ts:226:28
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/actions/bulk-schema-actions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/useSetSelection.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/user-actions.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32mΓ£ô[39m test/mocks/database.example.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/useAriaAnnounce.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/useTransitionRouter.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/use-media-query.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32mΓ£ô[39m test/hooks/useSuccessReceipt.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+ [32mΓ£ô[39m src/components/ui/__tests__/button.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 47[2mms[22m[39m
+stderr | test/actions/outbound-actions.test.ts > Outbound Actions > searchStockForOutbound > should return empty array on error
+Search Error: Error: DB Error
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/outbound-actions.test.ts:79:63
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32mΓ£ô[39m test/actions/outbound-actions.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32mΓ£ô[39m test/database/mock-database.test.ts [2m([22m[2m46 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32mΓ£ô[39m test/lib/ui-helpers.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/inbound-actions.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+stderr | test/actions/product-search-actions.test.ts > product-search-actions > searchProducts > should return error when Supabase returns error
+Product search error: { message: 'Database error' }
+
+stderr | test/actions/product-search-actions.test.ts > product-search-actions > searchProducts > should return unexpected error on exception
+Unexpected error in searchProducts: Error: Connection failed
+    at C:/Users/nteai/Desktop/project/WMSCPP/test/actions/product-search-actions.test.ts:111:9
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///C:/Users/nteai/Desktop/project/WMSCPP/node_modules/@vitest/runner/dist/index.js:915:20
+
+ [32mΓ£ô[39m test/actions/product-search-actions.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+stderr | test/lib/auth-service.test.ts > auth-service > getCurrentUser > should return null if user has no role data
+Security Alert: User 123 has no role assigned.
+
+stderr | test/lib/auth-service.test.ts > auth-service > getCurrentUser > should return null if user is banned
+Access Denied: User 123 is banned.
+
+stderr | test/lib/auth-service.test.ts > auth-service > getCurrentUser > should return null if user is inactive
+Access Denied: User 123 is inactive.
+
+ [32mΓ£ô[39m test/database/database.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32mΓ£ô[39m test/lib/auth-service.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+stderr | test/actions/auth-actions.test.ts > Auth Actions > login > should handle invalid login credentials
+Login Error: Invalid login credentials
+
+stderr | test/actions/auth-actions.test.ts > Auth Actions > login > should handle role check error
+Login role check error: Role check failed
+
+stderr | test/actions/auth-actions.test.ts > Auth Actions > login > should handle general auth error
+Login Error: Some other error
+
+ [32mΓ£ô[39m test/lib/db-helpers.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32mΓ£ô[39m test/lib/utils.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/auth-actions.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32mΓ£ô[39m test/lib/supabase-server.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32mΓ£ô[39m test/TypeError.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/warehouse-actions.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/dashboard-actions.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32mΓ£ô[39m test/lib/auth-schemas.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32mΓ£ô[39m test/actions/bulk-import-validation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m48 passed[39m[22m[90m (48)[39m
+[2m      Tests [22m [1m[32m597 passed[39m[22m[90m (597)[39m
+[2m   Start at [22m 18:20:47
+[2m   Duration [22m 47.44s[2m (transform 22.91s, setup 59.28s, import 139.76s, tests 5.43s, environment 44.96s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   90.68 |    77.06 |      93 |   93.57 |                   
+ src/actions       |   88.43 |    73.38 |   90.22 |   91.94 |                   
+  audit-actions.ts |   89.38 |    80.95 |      75 |   91.91 | 77,83-96          
+  auth-actions.ts  |     100 |    92.85 |     100 |     100 | 28                
+  ...rt-actions.ts |   84.26 |    72.29 |    87.5 |   88.88 | ...33-637,644-650 
+  ...ma-actions.ts |    87.2 |    78.57 |      80 |   90.78 | ...,80-82,123-124 
+  ...rd-actions.ts |     100 |    73.07 |     100 |     100 | 37,54-90          
+  ...rt-actions.ts |     100 |       76 |     100 |     100 | ...72-173,183-188 
+  ...ry-actions.ts |   90.69 |       67 |    92.3 |      90 | ...96,199,209-212 
+  ...nd-actions.ts |   93.44 |    78.57 |      90 |   98.11 | 189               
+  ...nd-actions.ts |   94.28 |     92.3 |   66.66 |   96.66 | 116               
+  ...ch-actions.ts |     100 |      100 |     100 |     100 |                   
+  ...on-actions.ts |   91.89 |    84.37 |     100 |   95.16 | 142-143,174       
+  ...gs-actions.ts |   89.65 |    69.23 |     100 |   94.48 | ...74,313,334,359 
+  ...us-actions.ts |   84.95 |    68.55 |    93.1 |   89.63 | ...22-623,641-642 
+  ...er-actions.ts |   84.09 |    73.19 |   77.77 |   88.88 | ...86-387,391-392 
+  user-actions.ts  |   89.24 |     67.6 |    87.5 |   91.46 | ...69-170,189,245 
+  ...se-actions.ts |     100 |      100 |     100 |     100 |                   
+ src/hooks         |   96.09 |    87.17 |   94.23 |   98.34 |                   
+  ...edia-query.ts |      90 |       50 |      80 |     100 | 5                 
+  ...iaAnnounce.ts |   81.81 |    71.42 |   66.66 |   81.81 | 29-30             
+  useFormAction.ts |   96.66 |     92.3 |     100 |   96.66 | 48                
+  ...tSelection.ts |     100 |      100 |     100 |     100 |                   
+  ...essReceipt.ts |     100 |      100 |     100 |     100 |                   
+  ...ipeGesture.ts |   94.02 |    86.84 |    87.5 |     100 | 82-84,92,100,131  
+  ...actionFlow.ts |     100 |    83.33 |     100 |     100 | 35                
+  ...tionRouter.ts |     100 |      100 |     100 |     100 |                   
+ src/lib           |   97.92 |     95.2 |   92.85 |    98.3 |                   
+  action-utils.ts  |   98.86 |    93.33 |     100 |     100 | 32,171,191,240    
+  auth-service.ts  |     100 |      100 |     100 |     100 |                   
+  constants.ts     |     100 |      100 |     100 |     100 |                   
+  haptics.ts       |   92.68 |      100 |   78.57 |   91.42 | 66,70,74          
+  ui-helpers.ts    |     100 |     87.5 |     100 |     100 | 12-13             
+  utils.ts         |     100 |      100 |     100 |     100 |                   
+ src/lib/supabase  |     100 |      100 |     100 |     100 |                   
+  server.ts        |     100 |      100 |     100 |     100 |                   
+ src/lib/utils     |    87.5 |       85 |     100 |   88.09 |                   
+  db-helpers.ts    |     100 |      100 |     100 |     100 |                   
+  excel-utils.ts   |   86.36 |    81.25 |     100 |   87.17 | 101-105           
+ ...ib/validations |     100 |      100 |     100 |     100 |                   
+  auth-schemas.ts  |     100 |      100 |     100 |     100 |                   
+ test/mocks        |     100 |    97.77 |     100 |     100 |                   
+  database.ts      |     100 |    97.77 |     100 |     100 | 188               
+-------------------|---------|----------|---------|---------|-------------------

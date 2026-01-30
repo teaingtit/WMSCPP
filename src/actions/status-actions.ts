@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { ActionResponse } from '@/types/action-response';
 import { StatusDefinition, StatusEntityType, EntityStatus } from '@/types/status';
 import { validateFormData, ok, fail, handleDuplicateError } from '@/lib/action-utils';
+import { TABLES } from '@/lib/constants';
 
 // --- Zod Schemas ---
 const entityTypeEnum = z.enum(['STOCK', 'LOCATION', 'WAREHOUSE', 'PRODUCT'] as const);
@@ -88,7 +89,7 @@ async function getAuthUser(supabase: any) {
 export async function getStatusDefinitions(): Promise<StatusDefinition[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('status_definitions')
+    .from(TABLES.STATUS_DEFINITIONS)
     .select('*')
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
@@ -102,7 +103,7 @@ export async function getStatusDefinitions(): Promise<StatusDefinition[]> {
 export async function getAllStatusDefinitions(): Promise<StatusDefinition[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('status_definitions')
+    .from(TABLES.STATUS_DEFINITIONS)
     .select('*')
     .order('sort_order', { ascending: true })
     .order('name', { ascending: true });
@@ -115,7 +116,7 @@ export async function getAllStatusDefinitions(): Promise<StatusDefinition[]> {
 export async function getDefaultStatus(): Promise<StatusDefinition | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('status_definitions')
+    .from(TABLES.STATUS_DEFINITIONS)
     .select('*')
     .eq('is_default', true)
     .eq('is_active', true)
@@ -129,7 +130,7 @@ export async function getDefaultStatus(): Promise<StatusDefinition | null> {
 export async function getLocationStatusDefinitions(): Promise<StatusDefinition[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('status_definitions')
+    .from(TABLES.STATUS_DEFINITIONS)
     .select('*')
     .eq('is_active', true)
     .eq('status_type', 'LOCATION')
@@ -175,12 +176,12 @@ export async function createStatusDefinition(formData: FormData): Promise<Action
     // If setting as default, unset other defaults first
     if (is_default) {
       await supabase
-        .from('status_definitions')
+        .from(TABLES.STATUS_DEFINITIONS)
         .update({ is_default: false })
         .eq('is_default', true);
     }
 
-    const { error } = await supabase.from('status_definitions').insert({
+    const { error } = await supabase.from(TABLES.STATUS_DEFINITIONS).insert({
       name,
       code,
       description: description || null,
@@ -233,14 +234,14 @@ export async function updateStatusDefinition(formData: FormData): Promise<Action
   try {
     if (updateData.is_default) {
       await supabase
-        .from('status_definitions')
+        .from(TABLES.STATUS_DEFINITIONS)
         .update({ is_default: false })
         .eq('is_default', true)
         .neq('id', id);
     }
 
     const { error } = await supabase
-      .from('status_definitions')
+      .from(TABLES.STATUS_DEFINITIONS)
       .update({ ...updateData, description: updateData.description || null })
       .eq('id', id);
 
@@ -265,7 +266,7 @@ export async function deleteStatusDefinition(formData: FormData): Promise<Action
 
   try {
     const { count } = await supabase
-      .from('entity_statuses')
+      .from(TABLES.ENTITY_STATUSES)
       .select('*', { count: 'exact', head: true })
       .eq('status_id', id);
 
@@ -276,7 +277,7 @@ export async function deleteStatusDefinition(formData: FormData): Promise<Action
     }
 
     const { error } = await supabase
-      .from('status_definitions')
+      .from(TABLES.STATUS_DEFINITIONS)
       .update({ is_active: false })
       .eq('id', id);
     if (error) throw error;
@@ -303,7 +304,7 @@ export async function getEntityStatus(
 ): Promise<EntityStatus | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('entity_statuses')
+    .from(TABLES.ENTITY_STATUSES)
     .select(entityStatusSelect)
     .eq('entity_type', entityType)
     .eq('entity_id', entityId)
@@ -320,7 +321,7 @@ export async function getEntityStatuses(
 ): Promise<Map<string, EntityStatus>> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('entity_statuses')
+    .from(TABLES.ENTITY_STATUSES)
     .select(entityStatusSelectSimple)
     .eq('entity_type', entityType)
     .in('entity_id', entityIds);
@@ -357,14 +358,14 @@ export async function applyEntityStatus(formData: FormData): Promise<ActionRespo
 
     // Get current status for logging
     const { data: currentStatus } = await supabase
-      .from('entity_statuses')
+      .from(TABLES.ENTITY_STATUSES)
       .select('status_id')
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
       .single();
 
     // Upsert the status
-    const { error: upsertError } = await supabase.from('entity_statuses').upsert(
+    const { error: upsertError } = await supabase.from(TABLES.ENTITY_STATUSES).upsert(
       {
         entity_type,
         entity_id,
@@ -381,7 +382,7 @@ export async function applyEntityStatus(formData: FormData): Promise<ActionRespo
 
     // Log the status change (non-blocking)
     await supabase
-      .from('status_change_logs')
+      .from(TABLES.STATUS_CHANGE_LOGS)
       .insert({
         entity_type,
         entity_id,
@@ -412,14 +413,14 @@ export async function removeEntityStatus(formData: FormData): Promise<ActionResp
   try {
     const user = await getAuthUser(supabase);
     const { data: currentStatus } = await supabase
-      .from('entity_statuses')
+      .from(TABLES.ENTITY_STATUSES)
       .select('status_id, affected_quantity')
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
       .single();
 
     const { error } = await supabase
-      .from('entity_statuses')
+      .from(TABLES.ENTITY_STATUSES)
       .delete()
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id);
@@ -429,7 +430,7 @@ export async function removeEntityStatus(formData: FormData): Promise<ActionResp
     // Log the status removal
     if (currentStatus && user) {
       await supabase
-        .from('status_change_logs')
+        .from(TABLES.STATUS_CHANGE_LOGS)
         .insert({
           entity_type,
           entity_id,
@@ -454,7 +455,7 @@ export async function removeEntityStatus(formData: FormData): Promise<ActionResp
 export async function getLotStatus(warehouseId: string, lot: string): Promise<LotStatus | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('lot_statuses')
+    .from(TABLES.LOT_STATUSES)
     .select(lotStatusSelect)
     .eq('warehouse_id', warehouseId)
     .eq('lot', lot)
@@ -483,7 +484,7 @@ export async function setLotStatus(formData: FormData): Promise<ActionResponse> 
 
   // Check admin role
   const { data: roleData } = await supabase
-    .from('user_roles')
+    .from(TABLES.USER_ROLES)
     .select('role')
     .eq('user_id', user.id)
     .single();
@@ -503,7 +504,7 @@ export async function setLotStatus(formData: FormData): Promise<ActionResponse> 
 
   try {
     if (status_id) {
-      const { error } = await supabase.from('lot_statuses').upsert(
+      const { error } = await supabase.from(TABLES.LOT_STATUSES).upsert(
         {
           warehouse_id,
           lot,
@@ -522,7 +523,7 @@ export async function setLotStatus(formData: FormData): Promise<ActionResponse> 
 
     // Remove status
     const { error } = await supabase
-      .from('lot_statuses')
+      .from(TABLES.LOT_STATUSES)
       .delete()
       .eq('warehouse_id', warehouse_id)
       .eq('lot', lot);
@@ -545,7 +546,7 @@ export async function getInventoryStatusData(stockIds: string[]): Promise<{
 
   // Fetch entity statuses
   const { data: statusData, error: statusError } = await supabase
-    .from('entity_statuses')
+    .from(TABLES.ENTITY_STATUSES)
     .select('*, status:status_definitions(*)')
     .eq('entity_type', 'STOCK')
     .in('entity_id', stockIds);
@@ -557,7 +558,7 @@ export async function getInventoryStatusData(stockIds: string[]): Promise<{
 
   // Fetch note counts
   const { data: noteData, error: noteError } = await supabase
-    .from('entity_notes')
+    .from(TABLES.ENTITY_NOTES)
     .select('entity_id')
     .eq('entity_type', 'STOCK')
     .in('entity_id', stockIds);
@@ -590,7 +591,7 @@ export async function getInventoryStatusData(stockIds: string[]): Promise<{
 export async function getLotStatuses(warehouseId: string): Promise<Map<string, LotStatus>> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('lot_statuses')
+    .from(TABLES.LOT_STATUSES)
     .select('*, status:status_definitions(*)')
     .eq('warehouse_id', warehouseId);
 
@@ -612,7 +613,7 @@ export async function getLotStatuses(warehouseId: string): Promise<Map<string, L
 export async function getEntityNotes(entityType: StatusEntityType, entityId: string): Promise<any> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('entity_notes')
+    .from(TABLES.ENTITY_NOTES)
     .select('*')
     .eq('entity_type', entityType)
     .eq('entity_id', entityId);
@@ -631,7 +632,7 @@ export async function getStatusChangeHistory(
 ): Promise<any> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('status_change_logs')
+    .from(TABLES.STATUS_CHANGE_LOGS)
     .select('*')
     .eq('entity_type', entityType)
     .eq('entity_id', entityId);
@@ -647,7 +648,7 @@ export async function getStatusChangeHistory(
 export async function removePartialStatus(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const { error } = await supabase
-    .from('partial_status_removals')
+    .from(TABLES.PARTIAL_STATUS_REMOVALS)
     .insert(Object.fromEntries(formData));
 
   if (error) {
@@ -660,7 +661,7 @@ export async function removePartialStatus(formData: FormData): Promise<ActionRes
 /** Add a note to an entity */
 export async function addEntityNote(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
-  const { error } = await supabase.from('entity_notes').insert(Object.fromEntries(formData));
+  const { error } = await supabase.from(TABLES.ENTITY_NOTES).insert(Object.fromEntries(formData));
 
   if (error) {
     console.error('Error adding entity note:', error);
@@ -680,7 +681,7 @@ export async function updateEntityNote(formData: FormData): Promise<ActionRespon
   if (content !== null) updates.content = content;
   if (is_pinned !== null) updates.is_pinned = is_pinned === 'true';
 
-  const { error } = await supabase.from('entity_notes').update(updates).eq('id', id);
+  const { error } = await supabase.from(TABLES.ENTITY_NOTES).update(updates).eq('id', id);
 
   if (error) {
     console.error('Error updating entity note:', error);
@@ -692,7 +693,7 @@ export async function updateEntityNote(formData: FormData): Promise<ActionRespon
 /** Delete an entity note */
 export async function deleteEntityNote(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
-  const { error } = await supabase.from('entity_notes').delete().eq('id', formData.get('id'));
+  const { error } = await supabase.from(TABLES.ENTITY_NOTES).delete().eq('id', formData.get('id'));
 
   if (error) {
     console.error('Error deleting entity note:', error);
@@ -705,7 +706,7 @@ export async function deleteEntityNote(formData: FormData): Promise<ActionRespon
 export async function toggleNotePin(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
   const { error } = await supabase
-    .from('entity_notes')
+    .from(TABLES.ENTITY_NOTES)
     .update({ is_pinned: formData.get('is_pinned') })
     .eq('id', formData.get('id'));
 

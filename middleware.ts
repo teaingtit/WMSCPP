@@ -1,6 +1,7 @@
 // middleware.ts
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { TABLES } from '@/lib/constants';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -43,7 +44,7 @@ export async function middleware(request: NextRequest) {
   if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/')) {
     // ดึง Role ของ User เพื่อ Redirect ไปหน้าแรกที่เหมาะสม
     const { data: roleData } = await supabase
-      .from('user_roles')
+      .from(TABLES.USER_ROLES)
       .select('role, allowed_warehouses')
       .eq('user_id', user.id)
       .single();

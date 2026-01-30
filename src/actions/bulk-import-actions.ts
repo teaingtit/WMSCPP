@@ -8,6 +8,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Worksheet, Row, Cell } from 'exceljs';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { checkManagerRole } from '@/lib/auth-service';
+import { RPC, TABLES } from '@/lib/constants';
 
 // ImportResult intentionally removed (unused) — keep helpers minimal
 
@@ -328,7 +329,7 @@ export async function importInboundStock(formData: FormData) {
     }
 
     // 6. Batch Execution via RPC
-    const { error } = await supabase.rpc('process_inbound_batch', {
+    const { error } = await supabase.rpc(RPC.PROCESS_INBOUND_BATCH, {
       p_transactions: transactions,
     });
 

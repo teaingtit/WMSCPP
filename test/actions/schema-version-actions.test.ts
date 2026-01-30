@@ -168,6 +168,32 @@ describe('Schema Version Actions', () => {
       expect(result.success).toBe(true);
       expect(result.version).toBe(3);
     });
+
+    it('should return error when inserting fails', async () => {
+      mockChain.insert.mockImplementationOnce(() => {
+        mockChain.error = new Error('Insert failed');
+        return mockChain;
+      });
+
+      const result = await createSchemaVersion('FOOD', []);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Insert failed');
+    });
+  });
+
+  describe('revertToVersion error handling', () => {
+    it('should return unauthenticated when user is null', async () => {
+      const { createClient } = await import('@/lib/supabase/server');
+      vi.mocked(createClient).mockResolvedValueOnce({
+        auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+        from: vi.fn(() => mockChain),
+        rpc: vi.fn(),
+      } as any);
+
+      const result = await revertToVersion('FOOD', 1);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Unauthenticated');
+    });
   });
 
   describe('revertToVersion', () => {
@@ -215,6 +241,116 @@ describe('Schema Version Actions', () => {
       expect(result.success).toBe(true);
       expect(result.diff.removed).toHaveLength(1);
       expect(result.diff.removed[0].key).toBe('expiry');
+    });
+
+    it('should return error when one or both versions not found', async () => {
+      mockChain.in.mockImplementationOnce(() => {
+        mockChain.data = [mockSchemaVersions[0]];
+        return mockChain;
+      });
+
+      const result = await compareSchemaVersions('FOOD', 1, 99);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('not found');
+    });
+
+    it('should return error on database exception', async () => {
+      mockChain.in.mockImplementationOnce(() => {
+        throw new Error('Query error');
+      });
+
+      const result = await compareSchemaVersions('FOOD', 1, 2);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Query error');
+    });
+  });
+
+  describe('getSchemaHistory', () => {
+    it('should return error and empty data on DB error', async () => {
+      const prevError = mockChain.error;
+      const prevData = mockChain.data;
+      mockChain.error = new Error('DB error');
+      mockChain.data = null;
+      mockChain.then = function (resolve: any) {
+        resolve({ data: this.data, error: this.error });
+        return { catch: vi.fn() };
+      };
+
+      const result = await getSchemaHistory('FOOD');
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('DB error');
+      expect(result.data).toEqual([]);
+      mockChain.error = prevError;
+      mockChain.data = prevData;
+    });
+  });
+
+  describe('createSchemaVersion', () => {
+    it('should return unauthenticated when user is null', async () => {
+      const { createClient } = await import('@/lib/supabase/server');
+      vi.mocked(createClient).mockResolvedValue({
+        auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+        from: vi.fn(() => mockChain),
+        rpc: vi.fn(),
+      } as any);
+
+      const result = await createSchemaVersion('FOOD', [{ key: 'x', label: 'X', type: 'text' }]);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Unauthenticated');
+    });
+  });
+
+  describe('getProductsBySchemaVersion', () => {
+    it('should return products for schema version', async () => {
+      const { getProductsBySchemaVersion } = await import('@/actions/schema-version-actions');
+      const mockProducts = [
+        { id: 'p1', sku: 'SKU1', name: 'Product 1', schema_version_created: 1 },
+      ];
+      const productChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        then: vi.fn((resolve: any) => {
+          resolve({ data: mockProducts, error: null });
+          return { catch: vi.fn() };
+        }),
+      };
+      const { createClient } = await import('@/lib/supabase/server');
+      vi.mocked(createClient).mockImplementationOnce(() =>
+        Promise.resolve({
+          auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }) },
+          from: vi.fn((_table: string) => productChain),
+          rpc: vi.fn(),
+        } as any),
+      );
+
+      const result = await getProductsBySchemaVersion('FOOD', 1);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockProducts);
+      expect(result.count).toBe(1);
+    });
+
+    it('should return error and empty data on failure', async () => {
+      const { getProductsBySchemaVersion } = await import('@/actions/schema-version-actions');
+      const prevError = mockChain.error;
+      const prevData = mockChain.data;
+      mockChain.error = new Error('DB error');
+      mockChain.data = null;
+      mockChain.then = function (resolve: any) {
+        resolve({ data: this.data, error: this.error });
+        return { catch: vi.fn() };
+      };
+
+      const result = await getProductsBySchemaVersion('FOOD', 1);
+
+      expect(result.success).toBe(false);
+      expect(result.data).toEqual([]);
+      expect(result.count).toBe(0);
+      mockChain.error = prevError;
+      mockChain.data = prevData;
     });
   });
 });
