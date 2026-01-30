@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { SubmitButton } from '@/components/SubmitButton';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { EffectSelector } from './EffectSelector';
 import {
   Plus,

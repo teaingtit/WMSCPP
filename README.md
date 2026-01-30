@@ -1,142 +1,83 @@
-# GemWMS (my-wms-app)
+# GemWMS (My-WMS-App)
 
-This repository contains a Next.js 14-based warehouse management UI.
+Modern Warehouse Management System (WMS) built with **Next.js 16**.
 
-## Quick Start
+## 🚀 Key Features
 
-### Development Mode
+- **Dashboard:** Real-time overview of warehouse operations.
+- **Inventory Visualization:** **2.5D Interactive Map** for warehouse layout and stock positioning.
+- **Operations:**
+  - **Inbound:** Receive goods, manage lots/batches.
+  - **Outbound:** Pick & Pack, validate stock.
+  - **Transfer:** Move stock between bins/locations with "From -> To" workflow.
+- **Multi-Warehouse:** Manage multiple sites/zones.
+- **Role-Based Access:** Admin, Manager, Staff roles (via Supabase Auth).
+- **Responsive Design:** Optimized for Desktop and Tablet use.
 
-1. Install dependencies:
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 16 (App Router, Server Actions)
+- **Database:** Supabase (PostgreSQL)
+- **UI Library:** Shadcn UI, TailwindCSS, Lucide Icons
+- **Language:** TypeScript
+- **Testing:**
+  - **Unit:** Vitest
+  - **E2E:** Playwright
+- **Others:** Zod (Validation), Date-fns
+
+## 🏗️ Quick Start
+
+### Development
 
 ```bash
+# Install dependencies
 npm install
-```
 
-2. Start dev server:
-
-```bash
+# Start development server
 npm run dev
 ```
 
-### Production Mode
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-This project uses **Next.js Standalone Output** mode for optimized production deployment.
-
-1. Build the application:
+### Production Build
 
 ```bash
 npm run build
-```
-
-2. Run production server:
-
-```bash
 npm run start
-# หรือ
-node .next/standalone/server.js
 ```
 
-> **Note:** เนื่องจากใช้ `output: 'standalone'` ใน `next.config.mjs` คำสั่ง `npm run start` จะรัน standalone server โดยอัตโนมัติ
+## 📦 Deployment
 
-## Available Scripts
+This project uses **Next.js Standalone Output** for optimized Docker deployment.
 
-- `npm run dev` — Run Next.js development server (with hot reload)
-- `npm run build` — Build for production (creates standalone output)
-- `npm run start` — Run production server (standalone mode)
-- `npm run start:dev` — Run production server (standard Next.js mode, for testing only)
-- `npm run lint` — Run ESLint checks
-- `npm run format` — Run Prettier formatter
-- `npm run check` — Run TypeScript type checking + ESLint
-- `npm run test` — Run all tests (unit + e2e)
-- `npm run test:unit` — Run unit tests with Vitest
-- `npm run test:e2e` — Run end-to-end tests with Playwright
+### Automated Deployment (Recommended)
 
-## Deployment
-
-### Standalone Mode Benefits
-
-This project is configured with `output: 'standalone'` which provides:
-
-- 📦 **Smaller deployment size** - Only necessary files are included
-- 🚀 **Faster deployment** - No need to upload entire `node_modules`
-- 🐳 **Docker-friendly** - Perfect for containerization
-- 💾 **Less disk space** - Optimized for production environments
-
-### Quick Deploy with Automated Script
-
-**Prerequisites:** Configure SSH alias first (one-time setup)
-
-1. **Setup SSH config** (ครั้งแรกเท่านั้น):
-
-   ```powershell
-   # Create/edit SSH config
-   notepad ~/.ssh/config
-   ```
-
-   Add this configuration:
-
-   ```ssh-config
-   Host home-server
-       HostName 100.96.9.50
-       User teaingtit
-       Port 22
-       IdentityFile ~/.ssh/id_rsa
-   ```
-
-   Test connection: `ssh home-server`
-
-2. **Deploy with one command:**
-
-   ```powershell
-   .\deploy.ps1
-   ```
-
-   The script will automatically:
-
-   - ✅ Test SSH connection
-   - 📦 Create archive (excluding node_modules, .next, .git)
-   - 📤 Upload to server
-   - 🔧 Extract and build with Docker
-   - 🏥 Verify deployment health
-
-### Manual Deployment
-
-For detailed step-by-step instructions, see:
-
-```bash
-# Full deployment workflow
-.agent/workflows/deploy.md
-```
-
-Or deploy manually:
-
-1. Build the project: `npm run build`
-2. Copy `.next/standalone/` folder to your server
-3. Copy `public/` folder to server (if you have static assets)
-4. Copy `.next/static/` to server's `.next/static/`
-5. Run: `node server.js` on the server
-
-### Deployment Commands
+Use the included PowerShell script to deploy to your server (requires SSH config):
 
 ```powershell
-# Quick update (recommended)
 .\deploy.ps1
-
-# View logs
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
-
-# Check status
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml ps"
-
-# Restart application
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml restart"
 ```
 
-## CI/CD
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for full details.
 
-A GitHub Actions workflow is included at `.github/workflows/ci.yml` that runs:
+## 🧪 Testing
 
-- Install dependencies
-- TypeScript type checking
-- ESLint linting
-- Production build
+```bash
+# Run Unit Tests
+npm run test:unit
+
+# Run E2E Tests
+npm run test:e2e
+
+# Run Type Check & Lint
+npm run check
+```
+
+## 📂 Project Structure
+
+- `src/app`: Next.js App Router pages & layouts.
+- `src/actions`: Server Actions (Data mutations).
+- `src/components`: React components (UI, features).
+- `src/lib`: Utilities, database clients, helpers.
+- `src/types`: TypeScript definitions.
+- `e2e`: Playwright E2E tests.

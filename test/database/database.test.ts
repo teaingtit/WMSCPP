@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { TABLES, RPC, ROLES } from '@/lib/constants';
 import * as fs from 'fs';

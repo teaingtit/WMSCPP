@@ -7,7 +7,7 @@ import SchemaBuilder from './SchemaBuilder';
 import VisualSchemaDesigner from './VisualSchemaDesigner';
 import UnitsBuilder from './UnitsBuilder';
 import SchemaVersionHistory from './SchemaVersionHistory';
-import { SubmitButton } from '@/components/SubmitButton';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { useState, useRef, useEffect } from 'react';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 import { Button } from '@/components/ui/button';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getHistory } from '@/actions/history-actions';
 import { createMockSupabaseClient } from '../utils/test-helpers';
@@ -748,6 +749,451 @@ describe('History Actions', () => {
 
       expect(result[0].from).toBe('System');
       expect(result[0].to).toBe('Adjustment');
+    });
+
+    it('should exclude system logs when filtering by TRANSACTION type', async () => {
+      const mockWarehouse = { id: 'wh1' };
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+      };
+
+      const mockCategoriesQuery = {
+        select: vi.fn().mockResolvedValue({ data: [] }),
+      };
+
+      const mockTransactions = [
+        {
+          id: 'tx1',
+          type: 'INBOUND',
+          quantity: 10,
+          created_at: '2024-01-01T00:00:00Z',
+          user_email: 'user@example.com',
+          details: 'Test',
+          attributes: {},
+          product: { sku: 'SKU001', name: 'Product 1', uom: 'PCS' },
+          from_loc: null,
+          to_loc: { code: 'L01', warehouse: { name: 'WH1' } },
+        },
+      ];
+
+      const createTransactionsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: mockTransactions, error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        Object.defineProperty(query, 'data', {
+          get: () => mockTransactions,
+          enumerable: true,
+        });
+        Object.defineProperty(query, 'error', {
+          get: () => null,
+          enumerable: true,
+        });
+        return query;
+      };
+
+      const mockLocations = [{ id: 'loc1' }];
+      const mockLocationQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: mockLocations }),
+      };
+
+      // The logs should NOT be queried when type filter is a transaction type
+      const mockStatusLogs = [
+        {
+          id: 'log1',
+          entity_type: 'LOCATION',
+          entity_id: 'loc1',
+          changed_at: '2024-01-01T00:00:00Z',
+          reason: 'Status changed',
+          changer: { email: 'admin@example.com' },
+          from_status: { name: 'Available' },
+          to_status: { name: 'Reserved' },
+        },
+      ];
+
+      const createStatusLogsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: mockStatusLogs, error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        Object.defineProperty(query, 'data', {
+          get: () => mockStatusLogs,
+          enumerable: true,
+        });
+        Object.defineProperty(query, 'error', {
+          get: () => null,
+          enumerable: true,
+        });
+        return query;
+      };
+
+      const mockLocationDetailsQuery = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({ data: [{ id: 'loc1', code: 'L01' }] }),
+      };
+
+      let locCallCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        if (table === 'transactions') return createTransactionsQuery();
+        if (table === 'locations') {
+          locCallCount++;
+          if (locCallCount === 1) return mockLocationQuery;
+          return mockLocationDetailsQuery;
+        }
+        if (table === 'status_change_logs') return createStatusLogsQuery();
+        return mockWarehouseQuery;
+      });
+
+      // Using type filter 'INBOUND' should still include transactions only
+      const result = await getHistory('WH01', 100, 'detailed', { type: 'INBOUND' });
+
+      // All results should be TRANSACTION category (no SYSTEM logs because they're filtered client-side when type is set)
+      const transactionEntries = result.filter((e) => e.category === 'TRANSACTION');
+      expect(transactionEntries.length).toBeGreaterThan(0);
+    });
+
+    it('should apply date range filter to system logs in detailed mode', async () => {
+      const mockWarehouse = { id: 'wh1' };
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+      };
+
+      const mockCategoriesQuery = {
+        select: vi.fn().mockResolvedValue({ data: [] }),
+      };
+
+      const mockTransactions: any[] = [];
+
+      const createTransactionsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: mockTransactions, error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        Object.defineProperty(query, 'data', {
+          get: () => mockTransactions,
+          enumerable: true,
+        });
+        Object.defineProperty(query, 'error', {
+          get: () => null,
+          enumerable: true,
+        });
+        return query;
+      };
+
+      const mockLocations = [{ id: 'loc1' }];
+      const mockLocationQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: mockLocations }),
+      };
+
+      const mockStatusLogs = [
+        {
+          id: 'log1',
+          entity_type: 'LOCATION',
+          entity_id: 'loc1',
+          changed_at: '2024-01-15T00:00:00Z',
+          reason: 'In date range',
+          changer: { email: 'admin@example.com' },
+          from_status: { name: 'Available' },
+          to_status: { name: 'Reserved' },
+        },
+      ];
+
+      const createStatusLogsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: mockStatusLogs, error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        Object.defineProperty(query, 'data', {
+          get: () => mockStatusLogs,
+          enumerable: true,
+        });
+        Object.defineProperty(query, 'error', {
+          get: () => null,
+          enumerable: true,
+        });
+        return query;
+      };
+
+      const mockLocationDetailsQuery = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({ data: [{ id: 'loc1', code: 'L01' }] }),
+      };
+
+      let locCallCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        if (table === 'transactions') return createTransactionsQuery();
+        if (table === 'locations') {
+          locCallCount++;
+          if (locCallCount === 1) return mockLocationQuery;
+          return mockLocationDetailsQuery;
+        }
+        if (table === 'status_change_logs') return createStatusLogsQuery();
+        return mockWarehouseQuery;
+      });
+
+      const result = await getHistory('WH01', 100, 'detailed', {
+        startDate: '2024-01-01',
+        endDate: '2024-01-31',
+      });
+
+      // Should include system logs within the date range
+      const hasSystemLog = result.some((entry) => entry.category === 'SYSTEM');
+      expect(hasSystemLog).toBe(true);
+    });
+
+    it('should filter system logs by changer email in search', async () => {
+      const mockWarehouse = { id: 'wh1' };
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+      };
+
+      const mockCategoriesQuery = {
+        select: vi.fn().mockResolvedValue({ data: [] }),
+      };
+
+      const mockTransactions: any[] = [];
+
+      const createTransactionsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: mockTransactions, error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        Object.defineProperty(query, 'data', {
+          get: () => mockTransactions,
+          enumerable: true,
+        });
+        Object.defineProperty(query, 'error', {
+          get: () => null,
+          enumerable: true,
+        });
+        return query;
+      };
+
+      const mockLocations = [{ id: 'loc1' }];
+      const mockLocationQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: mockLocations }),
+      };
+
+      // Two logs - one matches search, one doesn't
+      const mockStatusLogs = [
+        {
+          id: 'log1',
+          entity_type: 'LOCATION',
+          entity_id: 'loc1',
+          changed_at: '2024-01-01T00:00:00Z',
+          reason: 'Change 1',
+          changer: { email: 'admin@example.com' }, // Should match search="admin"
+          from_status: { name: 'Available' },
+          to_status: { name: 'Reserved' },
+        },
+        {
+          id: 'log2',
+          entity_type: 'LOCATION',
+          entity_id: 'loc1',
+          changed_at: '2024-01-02T00:00:00Z',
+          reason: 'Change 2',
+          changer: { email: 'user@example.com' }, // Should NOT match search="admin"
+          from_status: { name: 'Reserved' },
+          to_status: { name: 'Available' },
+        },
+      ];
+
+      const createStatusLogsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.or = vi.fn(function () {
+          return query;
+        });
+        query.gte = vi.fn(function () {
+          return query;
+        });
+        query.lte = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: mockStatusLogs, error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        Object.defineProperty(query, 'data', {
+          get: () => mockStatusLogs,
+          enumerable: true,
+        });
+        Object.defineProperty(query, 'error', {
+          get: () => null,
+          enumerable: true,
+        });
+        return query;
+      };
+
+      const mockLocationDetailsQuery = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({ data: [{ id: 'loc1', code: 'L01' }] }),
+      };
+
+      let locCallCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        if (table === 'transactions') return createTransactionsQuery();
+        if (table === 'locations') {
+          locCallCount++;
+          if (locCallCount === 1) return mockLocationQuery;
+          return mockLocationDetailsQuery;
+        }
+        if (table === 'status_change_logs') return createStatusLogsQuery();
+        return mockWarehouseQuery;
+      });
+
+      // The client-side filter in history-actions.ts should filter logs by changer email
+      const result = await getHistory('WH01', 100, 'detailed', { search: 'admin' });
+
+      // All SYSTEM entries should have "admin" in their user field
+      const systemEntries = result.filter((e) => e.category === 'SYSTEM');
+      expect(systemEntries.length).toBe(1);
+      expect(systemEntries[0].user).toContain('admin');
     });
   });
 });

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { loginSchema } from '@/lib/validations/auth-schemas';
 

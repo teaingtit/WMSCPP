@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { cn, isValidUUID, formatAttributeKey, formatAttributeValue } from '@/lib/utils';
 import { format } from 'date-fns';

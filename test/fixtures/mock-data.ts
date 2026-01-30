@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Shared mock data for unit tests.
  * Use in action tests, db-helpers, and components.

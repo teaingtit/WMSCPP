@@ -1,7 +1,7 @@
 'use client';
 
 import { Building2, Trash2 } from 'lucide-react';
-import { SubmitButton } from '@/components/SubmitButton';
+import { SubmitButton } from '@/components/ui/submit-button';
 
 interface WarehouseListProps {
   warehouses: any[];

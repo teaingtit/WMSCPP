@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect } from 'vitest';
 import { validateFormData, extractFormFields } from '../src/lib/action-utils';
 import { z } from 'zod';

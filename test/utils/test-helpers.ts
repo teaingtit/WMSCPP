@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 

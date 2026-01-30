@@ -11,7 +11,9 @@ async function login(page: Page) {
   const testPassword = process.env.TEST_USER_PASSWORD || 'testpassword';
   await page.fill('input[type="email"], input[name="email"]', testEmail);
   await page.fill('input[type="password"], input[name="password"]', testPassword);
-  await page.click('button[type="submit"]');
+  const submitButton = page.locator('button[type="submit"]');
+  await expect(submitButton).toBeVisible({ timeout: 10000 });
+  await submitButton.click();
   await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
 }
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { redirect } from 'next/navigation';
 import { ROLES, TABLES } from '@/lib/constants';

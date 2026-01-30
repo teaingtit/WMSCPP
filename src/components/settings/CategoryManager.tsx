@@ -16,7 +16,7 @@ import {
   Edit,
   Layers,
 } from 'lucide-react';
-import { SubmitButton } from '@/components/SubmitButton';
+import { SubmitButton } from '@/components/ui/submit-button';
 import ProductManager from './ProductManager';
 import CategoryForm from './CategoryForm';
 import EditCategoryForm from './EditCategoryForm';

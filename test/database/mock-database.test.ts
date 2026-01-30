@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Unit tests for test/mocks/database.ts — target ≥80% coverage.
  * Covers MockDatabase, query builders, Supabase client mock, factories, errors, and helpers.

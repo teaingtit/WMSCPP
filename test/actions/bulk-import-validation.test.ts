@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { importMasterData, importInboundStock } from '@/actions/bulk-import-actions';
 import * as ExcelUtils from '@/lib/utils/excel-utils';

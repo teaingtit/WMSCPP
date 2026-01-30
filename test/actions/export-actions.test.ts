@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { exportInventoryToExcel } from '@/actions/export-actions';
 import { createMockSupabaseClient } from '../utils/test-helpers';

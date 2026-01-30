@@ -20,7 +20,7 @@ import TransactionConfirmModal from '@/components/shared/TransactionConfirmModal
 import SuccessReceiptModal from '@/components/shared/SuccessReceiptModal';
 import useTransactionFlow from '@/hooks/useTransactionFlow';
 import { useSearchParams } from 'next/navigation';
-import { supabaseBrowser } from '@/lib/supabase-browser';
+import { supabaseBrowser } from '@/lib/supabase/client';
 // drawer/floating UI removed — queue is rendered inline now
 
 interface OutboundQueueItem {

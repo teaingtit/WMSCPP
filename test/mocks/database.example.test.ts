@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Example test file demonstrating database mocking patterns.
  *

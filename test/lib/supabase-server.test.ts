@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createClient } from '@/lib/supabase/server';
 import { createServerClient } from '@supabase/ssr';

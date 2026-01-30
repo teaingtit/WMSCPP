@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { wrapFormAction, notify, confirmAction } from '@/lib/ui-helpers';
 import { toast } from 'sonner';

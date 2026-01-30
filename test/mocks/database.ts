@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Database Mocking Utilities for Testing
  *

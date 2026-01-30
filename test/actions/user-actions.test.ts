@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getUsers, createUser, deleteUser, reactivateUser } from '@/actions/user-actions';
 import {

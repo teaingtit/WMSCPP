@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { SubmitButton } from '@/components/SubmitButton';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { Tag, ChevronDown, X, History, Shield, Check } from 'lucide-react';
 
 interface StatusBadgeProps {

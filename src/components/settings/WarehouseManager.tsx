@@ -4,7 +4,7 @@ import { useRef, useEffect } from 'react';
 import { useFormState } from 'react-dom';
 import { createWarehouse, deleteWarehouse } from '@/actions/settings-actions';
 import { Save } from 'lucide-react';
-import { SubmitButton } from '@/components/SubmitButton';
+import { SubmitButton } from '@/components/ui/submit-button';
 import { DimensionConfig } from './warehouse/DimensionConfig'; // Import ที่แยกมา
 import { WarehouseList } from './warehouse/WarehouseList'; // Import ที่แยกมา
 import { wrapFormAction, notify } from '@/lib/ui-helpers';

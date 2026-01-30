@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { createMockSupabaseClient } from '../utils/test-helpers';

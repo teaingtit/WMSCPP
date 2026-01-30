@@ -1,15 +1,55 @@
-# 🚀 Quick Deployment Guide
+# 🚀 Deployment Guide
 
-## ⚡ One-Time Setup (5 นาที)
+This project is configured for **automated deployment** using a PowerShell script that orchestrates the build and release process to a Linux server via Docker.
 
-### 1. ตั้งค่า SSH Config
+## 📋 Prerequisites
+
+### Local Environment (Your Machine)
+
+- **PowerShell**: For running the automation script.
+- **SSH Client**: Configured and working.
+- **Tar**: For archiving the project (available in Git Bash or standard Windows 10+).
+
+### Server Environment (`home-server`)
+
+- **Docker & Docker Compose**: Installed and running.
+- **Directory**: `/opt/wmscpp` created and writable by your user.
+- **Environment**: `.env` file must exist in `/opt/wmscpp/.env`.
+
+---
+
+## 🛠️ Automated Deployment
+
+We use a helper script `deploy.ps1` to handle everything.
+
+### Usage
 
 ```powershell
-# เปิด SSH config file
-notepad ~/.ssh/config
+.\deploy.ps1
 ```
 
-เพิ่ม configuration นี้:
+### How it Works (Under the Hood)
+
+The script performs the following 6 atomic steps:
+
+1.  **Connection Test**: Pings the server via SSH to ensure connectivity.
+2.  **Packaging**: Creates a lightweight `project.tar.gz` archive.
+    - _Excludes_: `node_modules`, `.next`, `.git`, `.env.local` to keep uploads fast (~2MB).
+3.  **Upload**: SCPs the archive to `/opt/wmscpp/`.
+4.  **Remote Execution**: Connects via SSH to:
+    - Extract the new code.
+    - Remove the archive.
+    - Run `docker compose up -d --build` to rebuild the container with the new code.
+5.  **Status Check**: Verifies the Docker container state is `running`.
+6.  **Health Check**: Pings `http://<server-ip>:3000/api/health` to confirm the app is responsive.
+
+---
+
+## ⚡ One-Time Setup
+
+### 1. SSH Config
+
+Add this to your `~/.ssh/config` file to create the `home-server` alias:
 
 ```ssh-config
 Host home-server
@@ -18,161 +58,70 @@ Host home-server
     Port 22
     IdentityFile ~/.ssh/id_rsa
     ServerAliveInterval 60
-    ServerAliveCountMax 3
 ```
 
-**ทดสอบการเชื่อมต่อ:**
+### 2. Server Prep
 
-```powershell
-ssh home-server
-```
-
-✅ ถ้าเชื่อมต่อได้ = สำเร็จ!
-
-### 2. ตั้งค่า SSH Agent (Optional - แนะนำ)
-
-ถ้าคุณใช้ SSH key ที่มี passphrase และไม่อยากพิมพ์ทุกครั้ง:
-
-**เปิด PowerShell แบบ Administrator:**
-
-```powershell
-# เปิด ssh-agent
-Set-Service ssh-agent -StartupType Automatic
-Start-Service ssh-agent
-```
-
-**กลับมา PowerShell ปกติ:**
-
-```powershell
-# เพิ่ม key เข้า agent (พิมพ์ passphrase ครั้งเดียว)
-ssh-add ~/.ssh/id_ed25519
-```
-
-✅ ตอนนี้ไม่ต้องพิมพ์ passphrase อีก!
-
-> 💡 **หมายเหตุ:** ทุกครั้งที่เปิดเครื่องใหม่ ต้องรัน `ssh-add` อีกครั้ง  
-> ดูวิธี auto-load ใน `SSH-SETUP.md`
-
----
-
-## 🎯 Deploy ครั้งแรก (First Time)
-
-### 1. เตรียม Server (รันครั้งเดียว)
+Run these commands locally to prepare the remote directory:
 
 ```bash
+ssh home-server "sudo mkdir -p /opt/wmscpp && sudo chown -R $USER:$USER /opt/wmscpp"
+```
+
+### 3. Environment Secrets
+
+**CRITICAL:** You must manually create the `.env` file on the server. The deployment script _intentionally_ does not upload your local secrets for security.
+
+```bash
+# SSH into server and create .env
 ssh home-server
-sudo mkdir -p /opt/wmscpp
-sudo chown -R $USER:$USER /opt/wmscpp
-cd /opt/wmscpp
-nano .env  # Copy จาก .env.local ของคุณ
-exit
+nano /opt/wmscpp/.env
 ```
 
-### 2. Deploy!
-
-```powershell
-.\deploy.ps1
-```
-
-✅ เสร็จแล้ว! เปิด http://100.96.9.50:3000
-
----
-
-## 🔄 Update แอป (ทุกครั้งที่แก้โค้ด)
-
-```powershell
-.\deploy.ps1
-```
-
-**นั่นแหละ! แค่นี้เอง** 🎉
-
----
-
-## 📊 คำสั่งที่ใช้บ่อย
-
-### ดู Logs
-
-```powershell
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
-```
-
-### เช็คสถานะ
-
-```powershell
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml ps"
-```
-
-### Restart แอป
-
-```powershell
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml restart"
-```
-
-### Stop แอป
-
-```powershell
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml down"
-```
-
-### ทดสอบ Health
-
-```powershell
-curl http://100.96.9.50:3000/api/health
-```
+Paste your production variables (Supabase keys, Auth secrets, etc.).
 
 ---
 
 ## 🐛 Troubleshooting
 
-### ปัญหา: SSH connection failed
+### Common Failure Points
 
-**แก้ไข:**
+#### ❌ "SSH connection failed"
 
-1. ตรวจสอบ `~/.ssh/config` ว่าถูกต้อง
-2. ทดสอบ: `ssh home-server`
-3. ถ้ายังไม่ได้ ลอง: `ssh teaingtit@100.96.9.50`
+- **Cause:** VPN is down, wrong IP, or SSH key permission issue.
+- **Fix:** Try `ssh home-server` manually. If that fails, the script will fail.
 
-### ปัญหา: Container ไม่ขึ้น
+#### ❌ "Upload failed"
 
-**แก้ไข:**
+- **Cause:** Permission denied on `/opt/wmscpp`.
+- **Fix:** Run `sudo chown -R $USER:$USER /opt/wmscpp` on the server.
 
-```bash
-ssh home-server
-cd /opt/wmscpp
-docker compose logs
-# ดู error message แล้วแก้ตาม
+#### ❌ "Container is running" but App is down
+
+- **Cause:** Runtime error (likely missing env vars).
+- **Fix:** Check container logs:
+  ```powershell
+  ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
+  ```
+
+#### ❌ "Health Check Failed"
+
+- **Cause:** The app started but is crashing or slow to initialize.
+- **Fix:** Wait 10s and check logs. If using Supabase, ensure the server can reach Supabase APIs.
+
+---
+
+## 📊 Management Commands
+
+Useful shortcuts for managing the production instance:
+
+```powershell
+# Live Logs
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
+
+# Restart Container
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml restart"
+
+# Stop System
+ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml down"
 ```
-
-### ปัญหา: Application ไม่ตอบสนอง
-
-**แก้ไข:**
-
-```bash
-# เช็คว่า .env ถูกต้องหรือไม่
-ssh home-server "cat /opt/wmscpp/.env"
-
-# Restart
-ssh home-server "cd /opt/wmscpp && docker compose restart"
-```
-
----
-
-## 📚 เอกสารเพิ่มเติม
-
-- **SSH Passphrase Setup:** `SSH-SETUP.md` ⭐ แก้ปัญหาต้องพิมพ์ passphrase ทุกครั้ง
-- **Full Deployment Guide:** `.agent/workflows/deploy.md`
-- **SSH Config Example:** `.agent/workflows/ssh-config.example`
-- **README:** `README.md`
-
----
-
-## 💡 Tips
-
-1. **ใช้ `.\deploy.ps1` เสมอ** - มันจะทำทุกอย่างให้อัตโนมัติ
-2. **ดู logs ก่อนเสมอ** - ถ้ามีปัญหา logs จะบอก
-3. **Backup `.env`** - เก็บไว้ที่ปลอดภัย อย่า commit ลง Git
-4. **ทดสอบ local ก่อน** - รัน `npm run build` ให้ผ่านก่อน deploy
-
----
-
-**Happy Deploying! 🚀**

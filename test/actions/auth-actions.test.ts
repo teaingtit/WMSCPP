@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { login, logout } from '@/actions/auth-actions';
 import { createMockSupabaseClient, createMockFormData } from '../utils/test-helpers';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getStatusDefinitions,
@@ -567,6 +568,43 @@ describe('Status Actions', () => {
       expect(result.statuses.size).toBe(0);
       expect(result.noteCounts.size).toBe(0);
     });
+
+    it('should handle noteError gracefully', async () => {
+      const mockStatuses = [
+        {
+          entity_id: 'stock1',
+          status: { id: 'status1', name: 'Available' },
+        },
+      ];
+
+      const mockStatusQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({ data: mockStatuses, error: null }),
+      };
+
+      const mockNotesQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({ data: null, error: new Error('Notes Error') }),
+      };
+
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'entity_statuses') {
+          return mockStatusQuery;
+        }
+        if (table === 'entity_notes') {
+          return mockNotesQuery;
+        }
+        return mockStatusQuery;
+      });
+
+      const result = await getInventoryStatusData(['stock1']);
+
+      // Statuses should still be returned even if notes fail
+      expect(result.statuses.size).toBe(1);
+      expect(result.noteCounts.size).toBe(0); // Notes failed so empty
+    });
   });
 
   describe('getAllStatusDefinitions', () => {
@@ -755,6 +793,18 @@ describe('Status Actions', () => {
 
       expect(result.size).toBe(2);
       expect(result.get('LOT001')).toBeDefined();
+    });
+
+    it('should handle errors and return empty map', async () => {
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: null, error: new Error('DB Error') }),
+      };
+      mockSupabase.from = vi.fn(() => mockQuery);
+
+      const result = await (await import('@/actions/status-actions')).getLotStatuses('wh1');
+
+      expect(result.size).toBe(0);
     });
   });
 

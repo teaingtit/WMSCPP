@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { renderHook, act } from '@testing-library/react';
 import useSuccessReceipt from '@/hooks/useSuccessReceipt';
 import { useRouter } from 'next/navigation';

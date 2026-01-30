@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   createAuditSession,
@@ -221,6 +222,171 @@ describe('Audit Actions', () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toBe('Insert items failed');
+    });
+
+    it('should handle invalid JSON in items gracefully', async () => {
+      const mockSession = { id: 'session1' };
+      const { getWarehouseId } = await import('@/lib/utils/db-helpers');
+      vi.mocked(getWarehouseId).mockResolvedValue('wh1');
+
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      };
+
+      let callCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'audit_sessions') {
+          callCount++;
+          if (callCount === 1) return mockQuery;
+          return {
+            insert: vi.fn().mockReturnThis(),
+            select: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+          };
+        }
+        if (table === 'stocks') {
+          const stocksQuery: any = {};
+          stocksQuery.select = vi.fn().mockReturnThis();
+          stocksQuery.eq = vi.fn().mockReturnThis();
+          stocksQuery.gt = vi.fn().mockResolvedValue({ data: [] });
+          return stocksQuery;
+        }
+        if (table === 'audit_items') {
+          return { insert: vi.fn().mockResolvedValue({ error: null }) };
+        }
+        return mockQuery;
+      });
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const formData = createMockFormData({
+        warehouseId: 'wh1',
+        name: 'Test Audit',
+        items: 'invalid-json-{{{',
+      });
+
+      const result = await (createAuditSession as any)(formData, {
+        user: mockUser,
+        supabase: mockSupabase,
+      });
+
+      // Should still succeed but fallback to full audit (empty stocks)
+      expect(result.success).toBe(true);
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should create partial audit with selected items', async () => {
+      const mockSession = { id: 'session1' };
+      const { getWarehouseId } = await import('@/lib/utils/db-helpers');
+      vi.mocked(getWarehouseId).mockResolvedValue('wh1');
+
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      };
+
+      const mockStocksData = [
+        { id: 'stock1', product_id: 'p1', location_id: 'l1', quantity: 10 },
+        { id: 'stock2', product_id: 'p2', location_id: 'l2', quantity: 20 },
+      ];
+
+      let callCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'audit_sessions') {
+          callCount++;
+          if (callCount === 1) return mockQuery;
+          return {
+            insert: vi.fn().mockReturnThis(),
+            select: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+          };
+        }
+        if (table === 'stocks') {
+          const stocksQuery: any = {};
+          stocksQuery.select = vi.fn().mockReturnThis();
+          stocksQuery.in = vi.fn().mockResolvedValue({ data: mockStocksData });
+          return stocksQuery;
+        }
+        if (table === 'audit_items') {
+          return { insert: vi.fn().mockResolvedValue({ error: null }) };
+        }
+        return mockQuery;
+      });
+
+      const selectedItems = [{ inventory_id: 'stock1' }, { inventory_id: 'stock2' }];
+
+      const formData = createMockFormData({
+        warehouseId: 'wh1',
+        name: 'Partial Audit',
+        items: JSON.stringify(selectedItems),
+      });
+
+      const result = await (createAuditSession as any)(formData, {
+        user: mockUser,
+        supabase: mockSupabase,
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.sessionId).toBe('session1');
+    });
+
+    it('should handle partial audit with missing inventory items', async () => {
+      const mockSession = { id: 'session1' };
+      const { getWarehouseId } = await import('@/lib/utils/db-helpers');
+      vi.mocked(getWarehouseId).mockResolvedValue('wh1');
+
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      };
+
+      // Only stock1 exists in DB, stock2 does not
+      const mockStocksData = [{ id: 'stock1', product_id: 'p1', location_id: 'l1', quantity: 10 }];
+
+      let callCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'audit_sessions') {
+          callCount++;
+          if (callCount === 1) return mockQuery;
+          return {
+            insert: vi.fn().mockReturnThis(),
+            select: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: mockSession, error: null }),
+          };
+        }
+        if (table === 'stocks') {
+          const stocksQuery: any = {};
+          stocksQuery.select = vi.fn().mockReturnThis();
+          stocksQuery.in = vi.fn().mockResolvedValue({ data: mockStocksData });
+          return stocksQuery;
+        }
+        if (table === 'audit_items') {
+          return { insert: vi.fn().mockResolvedValue({ error: null }) };
+        }
+        return mockQuery;
+      });
+
+      // Request stock1 (exists) and stock2 (doesn't exist)
+      const selectedItems = [{ inventory_id: 'stock1' }, { inventory_id: 'stock2' }];
+
+      const formData = createMockFormData({
+        warehouseId: 'wh1',
+        name: 'Partial Audit Missing',
+        items: JSON.stringify(selectedItems),
+      });
+
+      const result = await (createAuditSession as any)(formData, {
+        user: mockUser,
+        supabase: mockSupabase,
+      });
+
+      // Should succeed but only include the found item
+      expect(result.success).toBe(true);
     });
   });
 

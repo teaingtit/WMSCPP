@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchStockForOutbound, submitOutbound } from '@/actions/outbound-actions';
 import { createMockSupabaseClient, createMockUser } from '../utils/test-helpers';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getStockById,
@@ -356,6 +357,181 @@ describe('Transfer Actions', () => {
       expect(result.message).toContain('ย้ายสินค้าสำเร็จ');
       expect(result.details?.type).toBe('TRANSFER');
     });
+
+    it('should transfer using lot/cart/level coordinates', async () => {
+      const mockUser = createMockUser();
+      const sourceStock = {
+        product_id: 'prod1',
+        location_id: 'loc1',
+        products: { name: 'P1', sku: 'SKU1', uom: 'PCS' },
+        locations: { code: 'L01-P01-Z01' },
+      };
+
+      const mockLocLookupQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'loc2' } }),
+      };
+      const stockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: sourceStock }),
+      };
+      const statusQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      };
+
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'locations') return mockLocLookupQuery;
+        if (table === 'stocks') return stockQuery;
+        if (table === 'entity_statuses') return statusQuery;
+        if (table === 'transactions') return { insert: vi.fn().mockResolvedValue({ error: null }) };
+        return stockQuery;
+      });
+      mockSupabase.rpc = vi.fn().mockResolvedValue({ data: { success: true }, error: null });
+
+      const result = await (submitTransfer as any)(
+        {
+          warehouseId: 'wh1',
+          stockId: 'stock1',
+          targetLocationId: '', // No location ID, use coordinates
+          targetLot: '02',
+          targetCart: '03',
+          targetLevel: '1',
+          transferQty: 5,
+        } as any,
+        { user: mockUser as any, supabase: mockSupabase },
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.message).toContain('ย้ายสินค้าสำเร็จ');
+    });
+
+    it('should reject when target location not found by coordinates', async () => {
+      const mockUser = createMockUser();
+
+      const mockLocLookupQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      };
+
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'locations') return mockLocLookupQuery;
+        return mockLocLookupQuery;
+      });
+
+      await expect(
+        (submitTransfer as any)(
+          {
+            warehouseId: 'wh1',
+            stockId: 'stock1',
+            targetLocationId: '',
+            targetLot: '99',
+            targetCart: '99',
+            targetLevel: '9',
+            transferQty: 5,
+          } as any,
+          { user: mockUser as any, supabase: mockSupabase },
+        ),
+      ).rejects.toThrow('ไม่พบพิกัดปลายทาง');
+    });
+
+    it('should return error when RPC returns failure', async () => {
+      const mockUser = createMockUser();
+      const sourceStock = {
+        product_id: 'prod1',
+        location_id: 'loc1',
+        products: { name: 'P1', sku: 'SKU1', uom: 'PCS' },
+        locations: { code: 'L01' },
+      };
+      const locQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { id: 'loc2', code: 'L02' } }),
+      };
+      const stockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: sourceStock }),
+      };
+      const statusQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      };
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'locations') return locQuery;
+        if (table === 'stocks') return stockQuery;
+        if (table === 'entity_statuses') return statusQuery;
+        return stockQuery;
+      });
+      mockSupabase.rpc = vi
+        .fn()
+        .mockResolvedValue({ data: { success: false, message: 'Insufficient qty' }, error: null });
+
+      const result = await (submitTransfer as any)(
+        {
+          warehouseId: 'wh1',
+          stockId: 'stock1',
+          targetLocationId: 'loc2',
+          transferQty: 5,
+        } as any,
+        { user: mockUser as any, supabase: mockSupabase },
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Insufficient qty');
+    });
+
+    it('should handle other status effects like CLOSED', async () => {
+      const mockUser = createMockUser();
+      const sourceStock = {
+        product_id: 'prod1',
+        location_id: 'loc1',
+        products: { name: 'P1', sku: 'SKU1', uom: 'PCS' },
+        locations: { code: 'L01' },
+      };
+      const statusData = {
+        status_definitions: { effect: 'CLOSED', name: 'Closed for Audit' },
+      };
+      const locQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { id: 'loc2', code: 'L02' } }),
+      };
+      const stockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: sourceStock }),
+      };
+      const statusQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: statusData }),
+      };
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'locations') return locQuery;
+        if (table === 'stocks') return stockQuery;
+        if (table === 'entity_statuses') return statusQuery;
+        return stockQuery;
+      });
+
+      const result = await (submitTransfer as any)(
+        {
+          warehouseId: 'wh1',
+          stockId: 'stock1',
+          targetLocationId: 'loc2',
+          transferQty: 5,
+        } as any,
+        { user: mockUser as any, supabase: mockSupabase },
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('สถานะ');
+    });
   });
 
   describe('submitCrossTransfer', () => {
@@ -539,6 +715,143 @@ describe('Transfer Actions', () => {
       expect(result.success).toBe(true);
       expect(result.message).toContain('ย้ายข้ามคลังสำเร็จ');
       expect(result.details?.type).toBe('CROSS_TRANSFER');
+    });
+
+    it('should cross-transfer using lot/cart/level coordinates', async () => {
+      const mockUser = createMockUser();
+      const mockTargetWarehouse = {
+        id: 'wh2',
+        code: 'WH02',
+        name: 'WH2',
+        is_active: true,
+      };
+      const sourceStock = {
+        product_id: 'prod1',
+        location_id: 'loc1',
+        quantity: 10,
+        products: { name: 'P1', uom: 'PCS' },
+        locations: { code: 'L01' },
+      };
+
+      const stocksChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: sourceStock }),
+      };
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'stocks') return stocksChain;
+        if (table === 'transactions') return { insert: vi.fn().mockResolvedValue({ error: null }) };
+        return stocksChain;
+      });
+
+      const { supabaseAdmin } = await import('@/lib/supabase/admin');
+      vi.mocked(supabaseAdmin.from).mockImplementation((table: string) => {
+        if (table === 'warehouses')
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: mockTargetWarehouse }),
+          } as any;
+        if (table === 'locations')
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: { code: 'L02-P03-Z01' } }),
+          } as any;
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({ data: sourceStock }),
+        } as any;
+      });
+      vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+        data: { success: true },
+        error: null,
+      } as any);
+
+      const result = await (submitCrossTransfer as any)(
+        {
+          sourceWarehouseId: 'wh1',
+          targetWarehouseId: 'wh2',
+          stockId: 'stock1',
+          targetLocationId: '', // No location ID - use coordinates
+          targetLot: '02',
+          targetCart: '03',
+          targetLevel: '1',
+          transferQty: 5,
+        } as any,
+        { user: mockUser as any, supabase: mockSupabase },
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.details?.toLocation).toBe('L02-P03-Z01');
+    });
+
+    it('should return error when cross-transfer RPC fails', async () => {
+      const mockUser = createMockUser();
+      const mockTargetWarehouse = {
+        id: 'wh2',
+        code: 'WH02',
+        name: 'WH2',
+        is_active: true,
+      };
+      const sourceStock = {
+        product_id: 'prod1',
+        location_id: 'loc1',
+        quantity: 10,
+        products: { name: 'P1', uom: 'PCS' },
+        locations: { code: 'L01' },
+      };
+
+      const stocksChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: sourceStock }),
+      };
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'stocks') return stocksChain;
+        if (table === 'transactions') return { insert: vi.fn().mockResolvedValue({ error: null }) };
+        return stocksChain;
+      });
+
+      const { supabaseAdmin } = await import('@/lib/supabase/admin');
+      vi.mocked(supabaseAdmin.from).mockImplementation((table: string) => {
+        if (table === 'warehouses')
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: mockTargetWarehouse }),
+          } as any;
+        if (table === 'locations')
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: { code: 'L02' } }),
+          } as any;
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({ data: sourceStock }),
+        } as any;
+      });
+      vi.mocked(supabaseAdmin.rpc).mockResolvedValue({
+        data: { success: false, message: 'Location not found in target warehouse' },
+        error: null,
+      } as any);
+
+      const result = await (submitCrossTransfer as any)(
+        {
+          sourceWarehouseId: 'wh1',
+          targetWarehouseId: 'wh2',
+          stockId: 'stock1',
+          targetLocationId: 'loc2',
+          transferQty: 5,
+        } as any,
+        { user: mockUser as any, supabase: mockSupabase },
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Location not found');
     });
   });
 

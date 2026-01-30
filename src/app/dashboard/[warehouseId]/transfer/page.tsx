@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { ArrowRightLeft, Building2 } from 'lucide-react';
 import { getWarehouses } from '@/actions/warehouse-actions';
 import { useSearchParams } from 'next/navigation';
-import { supabaseBrowser } from '@/lib/supabase-browser';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 // Import 2 Components ใหม่
 import TransferSourceSelector from '@/components/transfer/TransferSourceSelector';
