@@ -142,6 +142,22 @@ export default function TopNav() {
             <span>หน้าหลัก</span>
           </Link>
 
+          {/* Audit - Direct link for desktop visibility (no collapsed nav) */}
+          {warehouseId && (
+            <Link
+              href={`/dashboard/${warehouseId}/audit`}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+                pathname.includes('/audit')
+                  ? 'bg-white/10 text-white shadow-sm'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white',
+              )}
+            >
+              <ClipboardList size={18} />
+              <span>ตรวจนับสต็อก</span>
+            </Link>
+          )}
+
           {/* Operations Dropdown */}
           {warehouseId && (
             <NavDropdown

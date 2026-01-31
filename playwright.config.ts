@@ -8,6 +8,8 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 export default defineConfig({
   testDir: 'e2e',
   timeout: 30 * 1000,
+  /* Use 1 worker to avoid race conditions with shared DB seeding (auth tests) */
+  workers: 1,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
