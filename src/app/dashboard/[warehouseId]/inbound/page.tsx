@@ -5,11 +5,11 @@ import BulkInboundManager from '@/components/inbound/BulkInboundManager';
 import { Box, Container, ArrowRight } from 'lucide-react';
 
 interface PageProps {
-  params: { warehouseId: string };
+  params: Promise<{ warehouseId: string }>;
 }
 
 export default async function InboundMenuPage({ params }: PageProps) {
-  const { warehouseId } = params;
+  const { warehouseId } = await params;
   const categories = await getProductCategories();
   const supabase = await createClient();
   const {
@@ -17,7 +17,7 @@ export default async function InboundMenuPage({ params }: PageProps) {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-6">
+    <div className="max-w-5xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
       <h1 className="text-2xl font-bold text-slate-900 mb-8">รับสินค้าเข้าคลัง (Inbound)</h1>
 
       {/* 1. Bulk Import Section (Context-Aware) */}

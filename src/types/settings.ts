@@ -11,10 +11,17 @@ export interface Warehouse {
   created_at?: string;
 }
 
+/** Single field in a category's form_schema (dynamic product/lot attributes). */
+export interface FormSchemaField {
+  key: string;
+  type?: string;
+  scope?: string;
+}
+
 export interface Category {
   id: string;
   name: string;
-  form_schema?: any; // JSON Schema
+  form_schema?: FormSchemaField[];
   units?: string[]; // Unit of Measure options
 }
 

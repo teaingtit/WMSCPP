@@ -2,17 +2,17 @@ import { getAuditSessions } from '@/actions/audit-actions';
 import AuditSessionList from '@/components/audit/AuditSessionList';
 import PageHeader from '@/components/ui/PageHeader';
 
-export default async function AuditPage({ params }: { params: { warehouseId: string } }) {
-  const sessions = await getAuditSessions(params['warehouseId']);
-  console.log('Audit Sessions Data:', JSON.stringify(sessions, null, 2));
+export default async function AuditPage({ params }: { params: Promise<{ warehouseId: string }> }) {
+  const { warehouseId } = await params;
+  const sessions = await getAuditSessions(warehouseId);
   return (
     <div className="space-y-6">
       <PageHeader
         title="Stock Audit"
         subtitle="ระบบตรวจนับสินค้าและปรับปรุงยอดสต็อก"
-        warehouseId={params['warehouseId']}
+        warehouseId={warehouseId}
       />
-      <AuditSessionList warehouseId={params['warehouseId']} sessions={sessions} />
+      <AuditSessionList warehouseId={warehouseId} sessions={sessions} />
     </div>
   );
 }

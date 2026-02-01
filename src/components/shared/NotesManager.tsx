@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
 import { addEntityNote, updateEntityNote, deleteEntityNote } from '@/actions/status-actions';
 import { EntityNote, StatusEntityType } from '@/types/status';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
@@ -58,17 +57,17 @@ export function NotesManager({
   const [newNotePinned, setNewNotePinned] = useState(false);
   const [editContent, setEditContent] = useState('');
 
-  const [addState, addAction] = useFormState(addNoteWrapper, {
+  const [addState, addAction] = useActionState(addNoteWrapper, {
     success: false,
     message: '',
   });
 
-  const [updateState, updateAction] = useFormState(updateNoteWrapper, {
+  const [updateState, updateAction] = useActionState(updateNoteWrapper, {
     success: false,
     message: '',
   });
 
-  const [deleteState, deleteAction] = useFormState(deleteNoteWrapper, {
+  const [deleteState, deleteAction] = useActionState(deleteNoteWrapper, {
     success: false,
     message: '',
   });
@@ -272,7 +271,7 @@ export function NotesManager({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-lg max-h-dvh-80 overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
@@ -439,7 +438,7 @@ export function QuickNoteInput({
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [addState, addAction] = useFormState(addNoteWrapper, {
+  const [addState, addAction] = useActionState(addNoteWrapper, {
     success: false,
     message: '',
   });

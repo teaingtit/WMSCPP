@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountingInterface from '@/components/audit/CountingInterface';
-import { AuditItem, AuditSession } from '@/types/inventory';
+import { AuditItem, AuditSession, type AuditItemRealtimeRow } from '@/types/inventory';
 import VarianceReport from '@/components/audit/VarianceReport';
 import { Button } from '@/components/ui/button';
 import { notify } from '@/lib/ui-helpers';
@@ -60,21 +60,26 @@ export default function AuditDetailPage() {
   const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       try {
         const [sessionData, itemsData] = await Promise.all([
           getAuditSessionById(sessionId),
           getAuditItems(sessionId),
         ]);
+        if (cancelled) return;
         setSession(sessionData);
         setItems(itemsData);
       } catch (error) {
-        notify.error('ไม่สามารถโหลดข้อมูลรอบการนับได้');
+        if (!cancelled) notify.error('ไม่สามารถโหลดข้อมูลรอบการนับได้');
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [sessionId]);
 
   // Realtime Subscription
@@ -90,17 +95,17 @@ export default function AuditDetailPage() {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          const updatedItem = payload.new as any;
+          const updatedItem = payload.new as AuditItemRealtimeRow;
           setItems((prev) =>
             prev.map((item) =>
               item.id === updatedItem.id
-                ? {
+                ? ({
                     ...item,
                     ...updatedItem,
                     // Preserve joined fields (product, location) which are not in payload
                     product: item.product,
                     location: item.location,
-                  }
+                  } as AuditItem)
                 : item,
             ),
           );
@@ -254,6 +259,7 @@ export default function AuditDetailPage() {
 
         <button
           onClick={() => setIsCountingMode(true)}
+          data-testid="counting-mode-btn"
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95"
         >
           <ScanBarcode size={20} />
@@ -268,6 +274,7 @@ export default function AuditDetailPage() {
           <input
             type="text"
             name="searchAuditItems"
+            data-testid="search-audit-items"
             placeholder="ค้นหา SKU, ชื่อสินค้า, Location..."
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             value={searchTerm}
@@ -286,6 +293,7 @@ export default function AuditDetailPage() {
         <TabsList className="bg-slate-100 p-1 rounded-xl h-auto">
           <TabsTrigger
             value="pending"
+            data-testid="tab-pending"
             className="flex-1 sm:flex-none rounded-lg px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
           >
             <Clock className="w-4 h-4 mr-2 text-amber-500" />
@@ -293,6 +301,7 @@ export default function AuditDetailPage() {
           </TabsTrigger>
           <TabsTrigger
             value="completed"
+            data-testid="tab-completed"
             className="flex-1 sm:flex-none rounded-lg px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
           >
             <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" />
@@ -355,7 +364,7 @@ export default function AuditDetailPage() {
 
         {/* Desktop Table View */}
         <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table data-stack="true" className="w-full text-left text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
@@ -443,6 +452,7 @@ export default function AuditDetailPage() {
           <Button
             onClick={() => setShowFinalizeConfirm(true)}
             disabled={isFinalizing}
+            data-testid="finalize-btn"
             className="bg-slate-900 hover:bg-slate-800 text-white min-w-[200px] h-12 rounded-xl shadow-lg shadow-slate-200 active:scale-95 transition-all"
           >
             {isFinalizing ? (
@@ -491,6 +501,7 @@ export default function AuditDetailPage() {
             </Button>
             <Button
               onClick={handleFinalize}
+              data-testid="confirm-finalize-btn"
               className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white h-11 rounded-xl shadow-md shadow-red-100"
             >
               ยืนยันปิดรอบ

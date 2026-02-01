@@ -95,66 +95,75 @@ export default function OutboundPage() {
       return;
     }
 
+    let active = true;
     const performSearch = async () => {
       setIsSearching(true);
       try {
         const results = await searchStockForOutbound(warehouseId, debouncedSearch);
+        if (!active) return;
         // Filter out items already in queue
         const filtered = results.filter((stock: any) => !queuedStockIds.has(stock.id));
         setSearchResults(filtered);
       } catch (error) {
         console.error('Search failed:', error);
-        setSearchResults([]);
+        if (active) setSearchResults([]);
       } finally {
-        setIsSearching(false);
+        if (active) setIsSearching(false);
       }
     };
 
     performSearch();
+    return () => {
+      active = false;
+    };
   }, [debouncedSearch, warehouseId, queuedStockIds]);
 
   useEffect(() => {
     // If `ids` present in query (from Inventory bulk action), prefill queue
     const idsParam = searchParams?.get('ids');
-    if (idsParam) {
-      const ids = idsParam.split(',').filter(Boolean);
-      if (ids.length > 0) {
-        (async () => {
-          try {
-            const { data: stocks, error } = await supabaseBrowser
-              .from('stocks')
-              .select(
-                `id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code)`,
-              )
-              .in('id', ids)
-              .limit(100);
+    if (!idsParam) return;
 
-            if (error) {
-              console.error('Prefill Outbound Error:', error);
-              return;
-            }
+    const ids = idsParam.split(',').filter(Boolean);
+    if (ids.length === 0) return;
 
-            if (stocks && stocks.length > 0) {
-              // Map to queue items with default qty = 1
-              const prefilled = stocks.map((stock: any) => ({
-                id: Date.now().toString() + '-' + String(stock.id),
-                stock: stock,
-                qty: 1,
-                note: '',
-              }));
-              setQueue((prev) => {
-                // Avoid duplications: add only stocks not already present
-                const existingIds = new Set(prev.map((p) => p.stock.id));
-                const toAdd = prefilled.filter((p) => !existingIds.has(p.stock.id));
-                return [...prev, ...toAdd];
-              });
-            }
-          } catch (err) {
-            console.error('Failed to prefill outbound:', err);
-          }
-        })();
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: stocks, error } = await supabaseBrowser
+          .from('stocks')
+          .select(
+            `id, quantity, attributes, products!inner(id, sku, name, uom), locations!inner(id, code)`,
+          )
+          .in('id', ids)
+          .limit(100);
+
+        if (error) {
+          console.error('Prefill Outbound Error:', error);
+          return;
+        }
+
+        if (cancelled) return;
+        if (stocks && stocks.length > 0) {
+          // Map to queue items with default qty = 1
+          const prefilled = stocks.map((stock: any) => ({
+            id: Date.now().toString() + '-' + String(stock.id),
+            stock: stock,
+            qty: 1,
+            note: '',
+          }));
+          setQueue((prev) => {
+            const existingIds = new Set(prev.map((p) => p.stock.id));
+            const toAdd = prefilled.filter((p) => !existingIds.has(p.stock.id));
+            return [...prev, ...toAdd];
+          });
+        }
+      } catch (err) {
+        console.error('Failed to prefill outbound:', err);
       }
-    }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams]);
 
   // Handlers

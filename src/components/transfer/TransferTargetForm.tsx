@@ -3,7 +3,12 @@
 import { useState, useEffect } from 'react';
 import { Save, Loader2, ArrowRight, Trash2, X, ListChecks, Eye, Box, MapPin } from 'lucide-react';
 import { notify } from '@/lib/ui-helpers';
-import { submitBulkTransfer, preflightBulkTransfer } from '@/actions/transfer-actions';
+import {
+  submitBulkTransfer,
+  preflightBulkTransfer,
+  type PreflightTransferItem,
+  type PreflightTransferResultItem,
+} from '@/actions/transfer-actions';
 import LocationSelector, { LocationData } from '../shared/LocationSelector';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
 import { StockWithDetails } from '@/types/inventory';
@@ -39,12 +44,6 @@ interface Props {
 }
 // simple uid generator for deterministic unique ids in tests
 let __uid = 0;
-
-interface PreflightResult {
-  stockId: string;
-  ok: boolean;
-  reason?: string;
-}
 
 export default function TransferTargetForm({
   currentWarehouseId,
@@ -89,21 +88,26 @@ export default function TransferTargetForm({
       }
 
       // Preflight
-      const preflightPayload = queue.map((item) => ({
+      const preflightPayload: PreflightTransferItem[] = queue.map((item) => ({
         sourceStock: { id: item.sourceStock.id },
         qty: item.qty,
         targetLocation: item.targetLocation ? { id: item.targetLocation.id } : null,
         mode: item.mode,
       }));
 
-      const pre = await preflightBulkTransfer(preflightPayload as any);
-      const okCount = pre.summary?.ok ?? (pre.results || []).filter((r: any) => r.ok).length;
+      const pre = await preflightBulkTransfer(preflightPayload);
+      const okCount =
+        pre.summary?.ok ??
+        (pre.results || []).filter((r: PreflightTransferResultItem) => r.ok).length;
       const total = pre.summary?.total ?? (pre.results || []).length;
       setPreviewResults(
-        (pre.results || []).reduce((acc: Record<string, any>, r: any) => {
-          if (r.stockId) acc[r.stockId] = r;
-          return acc;
-        }, {} as Record<string, any>),
+        (pre.results || []).reduce(
+          (acc: Record<string, PreflightTransferResultItem>, r: PreflightTransferResultItem) => {
+            if (r.stockId) acc[r.stockId] = r;
+            return acc;
+          },
+          {} as Record<string, PreflightTransferResultItem>,
+        ),
       );
       setPreviewSummary(pre.summary || { total, ok: okCount });
 
@@ -194,9 +198,10 @@ export default function TransferTargetForm({
   // State
   const [queue, setQueue] = useState<TransferQueueItem[]>([]);
   const [activeQueueItemId, setActiveQueueItemId] = useState<string | null>(null);
-  const [previewResults, setPreviewResults] = useState<Record<string, PreflightResult> | null>(
-    null,
-  );
+  const [previewResults, setPreviewResults] = useState<Record<
+    string,
+    PreflightTransferResultItem
+  > | null>(null);
   const [previewSummary, setPreviewSummary] = useState<{ total: number; ok: number } | null>(null);
   const [transferErrors, setTransferErrors] = useState<Record<string, string>>({});
   const [targetWarehouseId, setTargetWarehouseId] = useState<string | null>(null);
@@ -379,23 +384,25 @@ export default function TransferTargetForm({
       // Clear previous transfer errors when running new preview
       setTransferErrors({});
 
-      const payload = queue.map((item) => ({
+      const payload: PreflightTransferItem[] = queue.map((item) => ({
         sourceStock: { id: item.sourceStock.id },
         qty: item.qty,
         targetLocation: item.targetLocation ? { id: item.targetLocation.id } : null,
         mode: item.mode,
       }));
 
-      const res = await preflightBulkTransfer(payload as any);
+      const res = await preflightBulkTransfer(payload);
       // Map results by stockId for quick lookup
-      const map: Record<string, any> = {};
-      (res.results || []).forEach((r: any) => {
+      const map: Record<string, PreflightTransferResultItem> = {};
+      (res.results || []).forEach((r: PreflightTransferResultItem) => {
         if (r.stockId) map[r.stockId] = r;
       });
       setPreviewResults(map);
       setPreviewSummary(res.summary || null);
 
-      const okCount = res.summary?.ok ?? Object.values(map).filter((r: any) => r.ok).length;
+      const okCount =
+        res.summary?.ok ??
+        Object.values(map).filter((r: PreflightTransferResultItem) => r.ok).length;
       const total = res.summary?.total ?? Object.keys(map).length;
       if (okCount === total) {
         notify.success(`ตรวจสอบสถานะเรียบร้อย — ทุกรายการพร้อมย้าย (${okCount}/${total})`);

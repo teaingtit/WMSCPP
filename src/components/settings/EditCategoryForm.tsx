@@ -1,6 +1,5 @@
 'use client';
 
-import { useFormState } from 'react-dom';
 import { updateCategory } from '@/actions/settings-actions';
 import { Save, Info, History, Eye, Code } from 'lucide-react';
 import SchemaBuilder from './SchemaBuilder';
@@ -8,9 +7,10 @@ import VisualSchemaDesigner from './VisualSchemaDesigner';
 import UnitsBuilder from './UnitsBuilder';
 import SchemaVersionHistory from './SchemaVersionHistory';
 import { SubmitButton } from '@/components/ui/submit-button';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useActionState } from 'react';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 import { Button } from '@/components/ui/button';
+import type { FormSchemaField } from '@/types/settings';
 
 const updateCategoryWrapper = wrapFormAction(updateCategory);
 
@@ -18,7 +18,7 @@ interface EditCategoryFormProps {
   category: {
     id: string;
     name: string;
-    form_schema?: any;
+    form_schema?: FormSchemaField[];
     units?: string[];
   };
   onClose?: () => void;
@@ -31,7 +31,7 @@ export default function EditCategoryForm({ category, onClose }: EditCategoryForm
   const [showHistory, setShowHistory] = useState(false);
   const [useVisualMode, setUseVisualMode] = useState(true);
 
-  const [state, action] = useFormState(updateCategoryWrapper, { success: false, message: '' });
+  const [state, action] = useActionState(updateCategoryWrapper, { success: false, message: '' });
 
   useEffect(() => {
     if (state.message) {

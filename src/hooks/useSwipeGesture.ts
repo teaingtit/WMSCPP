@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type SwipeDirection = 'left' | 'right' | 'up' | 'down';
 
@@ -149,6 +149,14 @@ export function useSwipeGesture(options: UseSwipeGestureOptions = {}) {
     },
     [handleEnd],
   );
+
+  // Remove window listeners on unmount (e.g. user navigates away mid-swipe)
+  useEffect(() => {
+    return () => {
+      cleanupRef.current?.();
+      cleanupRef.current = null;
+    };
+  }, []);
 
   return {
     bind: {

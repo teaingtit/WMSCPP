@@ -13,8 +13,13 @@ yarn-error.log*
 .eslintcache
 tsconfig.tsbuildinfo
 tsconfig.strict.tsbuildinfo
+tsconfig.test.tsbuildinfo
+.vitest
+node_modules/.cache
+node_modules/.vite
 test-results/
 e2e-results/
+coverage/
 .venv/
 
 # Deployment artifacts

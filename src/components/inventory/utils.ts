@@ -10,13 +10,18 @@ export const WARNING_EFFECTS = ['INBOUND_ONLY', 'OUTBOUND_ONLY', 'AUDIT_ONLY'] a
  * Check if status effect restricts all transactions
  */
 export const isRestricted = (status: EntityStatus | null | undefined): boolean =>
-  !!(status?.status?.effect && RESTRICTED_EFFECTS.includes(status.status.effect as any));
+  !!(
+    status?.status?.effect &&
+    (RESTRICTED_EFFECTS as readonly string[]).includes(status.status.effect)
+  );
 
 /**
  * Check if status has a warning effect (partial restriction)
  */
 export const hasWarning = (status: EntityStatus | null | undefined): boolean =>
-  !!(status?.status?.effect && WARNING_EFFECTS.includes(status.status.effect as any));
+  !!(
+    status?.status?.effect && (WARNING_EFFECTS as readonly string[]).includes(status.status.effect)
+  );
 
 /**
  * Get status classification for styling

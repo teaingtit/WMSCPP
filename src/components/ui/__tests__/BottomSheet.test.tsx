@@ -117,7 +117,7 @@ describe('BottomSheet', () => {
       </BottomSheet>,
     );
 
-    const sheet = container.querySelector('.max-h-\\[90vh\\]');
+    const sheet = container.querySelector('.max-h-dvh-90');
     expect(sheet).toBeInTheDocument();
   });
 });

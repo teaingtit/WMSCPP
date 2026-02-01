@@ -32,6 +32,12 @@ describe('utils', () => {
       expect(formatAttributeKey('qty')).toBe('Quantity');
     });
 
+    it('should be case-insensitive for known keys', () => {
+      expect(formatAttributeKey('LOT')).toBe('Lot No.');
+      expect(formatAttributeKey('Lot')).toBe('Lot No.');
+      expect(formatAttributeKey('BATCH')).toBe('Batch');
+    });
+
     it('should format snake_case keys', () => {
       expect(formatAttributeKey('user_id')).toBe('User Id');
       expect(formatAttributeKey('created_at')).toBe('Created At');

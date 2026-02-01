@@ -138,7 +138,7 @@ export default function BottomSheet({
           'relative w-full bg-white dark:bg-slate-900',
           'rounded-t-3xl md:rounded-3xl',
           'shadow-2xl',
-          'max-h-[90vh] md:max-h-[80vh] md:max-w-2xl',
+          'max-h-dvh-90 md:max-h-dvh-80 md:max-w-2xl',
           'flex flex-col',
           'animate-in slide-in-from-bottom duration-300 ease-smooth',
           'md:animate-in md:zoom-in-95 md:fade-in',

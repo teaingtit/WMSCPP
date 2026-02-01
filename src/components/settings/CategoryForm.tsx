@@ -1,16 +1,15 @@
 'use client';
 
-import { useFormState } from 'react-dom';
 import { createCategory } from '@/actions/settings-actions';
 import { Plus, Info, Eye, Code } from 'lucide-react';
 import SchemaBuilder from './SchemaBuilder';
 import VisualSchemaDesigner from './VisualSchemaDesigner';
 import UnitsBuilder from './UnitsBuilder';
 import { SubmitButton } from '@/components/ui/submit-button';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useActionState } from 'react';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 
-// Use helper wrapper for `useFormState` signature
+// Use helper wrapper for `useActionState` signature
 const createCategoryWrapper = wrapFormAction(createCategory);
 
 export default function CategoryForm() {
@@ -19,7 +18,7 @@ export default function CategoryForm() {
   const [unitsJson, setUnitsJson] = useState('[]');
   const [useVisualMode, setUseVisualMode] = useState(true);
 
-  const [state, action] = useFormState(createCategoryWrapper, { success: false, message: '' });
+  const [state, action] = useActionState(createCategoryWrapper, { success: false, message: '' });
 
   useEffect(() => {
     if (state.message) {

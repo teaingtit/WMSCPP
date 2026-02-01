@@ -25,6 +25,8 @@ export default function ProductAutocomplete({
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Server-side search with debounce
   useEffect(() => {
@@ -59,6 +61,14 @@ export default function ProductAutocomplete({
       active = false;
     };
   }, [debouncedSearch, queuedProductIds, selectedProduct]);
+
+  // Clear timeouts on unmount to avoid setState / focus on unmounted component
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+      if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+    };
+  }, []);
 
   // Reset highlight when search changes
   useEffect(() => {
@@ -98,8 +108,11 @@ export default function ProductAutocomplete({
   // Suggestion 3: Create a dedicated handler for clearing the selection.
   const handleClearSelection = useCallback(() => {
     onSelect(null);
-    // Don't clear search term - keep the search active
-    setTimeout(() => inputRef.current?.focus(), 100);
+    if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
+    focusTimeoutRef.current = setTimeout(() => {
+      focusTimeoutRef.current = null;
+      inputRef.current?.focus();
+    }, 100);
   }, [onSelect]);
 
   // Redesigned layout: Always show search input, show selected product above results
@@ -126,7 +139,13 @@ export default function ProductAutocomplete({
             setShowDropdown(true);
           }}
           onFocus={() => setShowDropdown(true)}
-          onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+          onBlur={() => {
+            if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
+            blurTimeoutRef.current = setTimeout(() => {
+              blurTimeoutRef.current = null;
+              setShowDropdown(false);
+            }, 200);
+          }}
           onKeyDown={handleKeyDown}
           autoComplete="off"
         />

@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS locations (
 -- Product categories table
 CREATE TABLE IF NOT EXISTS product_categories (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code TEXT UNIQUE,
     name TEXT NOT NULL UNIQUE,
     form_schema JSONB DEFAULT '{}',
     units TEXT[] DEFAULT '{"PCS"}',

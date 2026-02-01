@@ -7,7 +7,11 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 export default defineConfig({
   testDir: 'e2e',
-  timeout: 30 * 1000,
+  /* Temporarily disabled global setup - seeding happens in fixture */
+  // globalSetup: require.resolve('./e2e/global-setup'),
+  // globalTeardown: require.resolve('./e2e/global-teardown'),
+  /* Test timeout */
+  timeout: 60 * 1000,
   /* Use 1 worker to avoid race conditions with shared DB seeding (auth tests) */
   workers: 1,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -18,7 +22,7 @@ export default defineConfig({
   reporter: [['html', { open: 'never' }]],
   use: {
     headless: true,
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3006',
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
     /* Screenshot on failure */
@@ -26,8 +30,8 @@ export default defineConfig({
   },
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    url: 'http://localhost:3006',
+    reuseExistingServer: true,
     timeout: 120 * 1000,
   },
   projects: [

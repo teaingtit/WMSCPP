@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import ExcelJS from 'exceljs';
+import type { FormSchemaField } from '@/types/settings';
 
 interface ExportResult {
   success: boolean;
@@ -66,9 +67,9 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
     // สร้าง Map สำหรับแปลภาษา
     const keyLabelMap = new Map<string, string>();
     if (categories) {
-      categories.forEach((cat: any) => {
+      categories.forEach((cat: { form_schema?: (FormSchemaField & { label?: string })[] }) => {
         if (Array.isArray(cat.form_schema)) {
-          cat.form_schema.forEach((field: any) => {
+          cat.form_schema.forEach((field) => {
             if (field.key && field.label) {
               keyLabelMap.set(field.key, field.label);
             }

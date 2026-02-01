@@ -26,8 +26,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Skip static page generation during build (ป้องกัน Supabase connection errors)
 ENV SKIP_ENV_VALIDATION=1
 # Build-time Supabase config (จะถูก override ด้วยค่าจริงตอน runtime)
-ENV NEXT_PUBLIC_SUPABASE_URL=https://pbqiaqrrtyjarrkbvmyz.supabase.co
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBicWlhcXJydHlqYXJya2J2bXl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3NDU3ODgsImV4cCI6MjA4MjMyMTc4OH0.PK73jpNRG4YCeTfhyaS2n7s-4GqPmCTk6M7UX8u-LKY
+ENV NEXT_PUBLIC_SUPABASE_URL=https://wpufstdvknzrrsvmcgwu.supabase.co
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwdWZzdGR2a256cnJzdm1jZ3d1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MjE0NjYsImV4cCI6MjA4NTI5NzQ2Nn0.iFJZNPzi6exfXxH1YgWohRYrw0SYdfbeQR79LicEV6w
 
 # Build the application
 RUN npm run build
@@ -64,6 +64,8 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+# Prevent Supabase/cookie headers overflow (see health route)
+ENV NODE_OPTIONS="--max-http-header-size=65536"
 
 # Start the application
 CMD ["node", "server.js"]

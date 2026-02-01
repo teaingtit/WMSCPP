@@ -44,6 +44,49 @@ export interface Location {
 }
 
 /**
+ * Product shape returned from stocks select with products!inner(...) join.
+ * Used when typing Supabase join results in transfer/outbound actions.
+ */
+export interface StockProductJoin {
+  id?: string;
+  sku?: string;
+  name: string;
+  uom?: string;
+}
+
+/**
+ * Location shape returned from stocks select with locations!inner(...) join.
+ * Used when typing Supabase join results in transfer/outbound actions.
+ */
+export interface StockLocationJoin {
+  id?: string;
+  code: string;
+  warehouse_id?: string;
+}
+
+/**
+ * Stock row shape when selected with products and locations joins.
+ * Supabase returns products/locations as single objects for !inner joins.
+ */
+export interface StockRowWithJoins {
+  id?: string;
+  quantity?: number;
+  product_id?: string;
+  location_id?: string;
+  products: StockProductJoin;
+  locations: StockLocationJoin;
+}
+
+/**
+ * Raw stock row where products/locations may be single object or array (Supabase join result).
+ * Use when normalizing query results into StockWithDetails.
+ */
+export type StockRowPrefill = Omit<StockRowWithJoins, 'products' | 'locations'> & {
+  products: StockProductJoin | StockProductJoin[];
+  locations: StockLocationJoin | StockLocationJoin[];
+};
+
+/**
  * Represents a stock item with its associated product and location details.
  * This is a composite type, typically generated from a database join.
  */
@@ -108,3 +151,22 @@ export interface AuditItem {
     email: string | null;
   };
 }
+
+/**
+ * Row shape from Supabase realtime postgres_changes payload for audit_items.
+ * payload.new contains only table columns (no joined relations).
+ */
+export type AuditItemRealtimeRow = Pick<
+  AuditItem,
+  | 'id'
+  | 'session_id'
+  | 'product_id'
+  | 'location_id'
+  | 'status'
+  | 'system_qty'
+  | 'counted_qty'
+  | 'diff_qty'
+  | 'counter_id'
+  | 'assignee_id'
+  | 'updated_at'
+>;

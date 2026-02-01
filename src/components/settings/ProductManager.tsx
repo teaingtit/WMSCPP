@@ -17,9 +17,21 @@ import {
 } from 'lucide-react';
 import { notify } from '@/lib/ui-helpers';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
+import type { FormSchemaField } from '@/types/settings';
+
+/** Extended FormSchemaField with optional label for display purposes. */
+interface FormSchemaFieldWithLabel extends FormSchemaField {
+  label?: string;
+}
+
 interface ProductManagerProps {
   products: any[];
-  category: any;
+  category: {
+    id: string;
+    name: string;
+    form_schema?: FormSchemaFieldWithLabel[];
+    units?: string[];
+  };
 }
 
 export default function ProductManager({ products, category }: ProductManagerProps) {
@@ -44,7 +56,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
   );
 
   const productSchema = (category.form_schema || []).filter(
-    (f: any) => !f.scope || f.scope === 'PRODUCT',
+    (f: FormSchemaFieldWithLabel) => !f.scope || f.scope === 'PRODUCT',
   );
 
   // Virtualization setup
@@ -60,8 +72,8 @@ export default function ProductManager({ products, category }: ProductManagerPro
 
   // ✅ NEW LOGIC: ฟังก์ชันแปลง Key (field_xxx) -> Label (ทะเบียน)
   const getAttrLabel = (key: string) => {
-    const field = (category.form_schema || []).find((f: any) => f.key === key);
-    return field ? field.label : key; // ถ้าเจอให้ใช้ Label, ถ้าไม่เจอใช้ Key เดิม
+    const field = (category.form_schema || []).find((f: FormSchemaFieldWithLabel) => f.key === key);
+    return field?.label ?? key; // ถ้าเจอให้ใช้ Label, ถ้าไม่เจอใช้ Key เดิม
   };
 
   async function handleCreate(formData: FormData) {
@@ -230,7 +242,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                 <Tag size={16} /> Spec (รายละเอียดคงที่)
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {productSchema.map((field: any) => (
+                {productSchema.map((field: FormSchemaFieldWithLabel) => (
                   <div key={field.key}>
                     <label
                       htmlFor={field.key}

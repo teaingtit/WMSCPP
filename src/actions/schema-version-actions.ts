@@ -4,6 +4,14 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { RPC } from '@/lib/constants';
 
+/** Schema field in a version (has scope for PRODUCT/LOT). */
+export interface SchemaVersionField {
+  key?: string;
+  type?: string;
+  scope?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Schema Version History Entry
  */
@@ -11,7 +19,7 @@ export interface SchemaVersion {
   id: string;
   category_id: string;
   version: number;
-  schema: any[];
+  schema: SchemaVersionField[];
   created_at: string;
   created_by: string | null;
   change_notes: string | null;
@@ -167,7 +175,9 @@ export async function compareSchemaVersions(
       return { success: false, message: 'One or both versions not found' };
     }
 
-    const [older, newer] = data;
+    // Type the versions with proper schema typing
+    const versions = data as Array<{ version: number; schema: SchemaVersionField[] }>;
+    const [older, newer] = versions;
 
     if (!older || !newer) {
       return { success: false, message: 'Invalid version data' };
@@ -175,15 +185,17 @@ export async function compareSchemaVersions(
 
     // Calculate differences
     const added = newer.schema.filter(
-      (newField: any) => !older.schema.find((oldField: any) => oldField.key === newField.key),
+      (newField: SchemaVersionField) =>
+        !older.schema.find((oldField: SchemaVersionField) => oldField.key === newField.key),
     );
 
     const removed = older.schema.filter(
-      (oldField: any) => !newer.schema.find((newField: any) => newField.key === oldField.key),
+      (oldField: SchemaVersionField) =>
+        !newer.schema.find((newField: SchemaVersionField) => newField.key === oldField.key),
     );
 
-    const modified = newer.schema.filter((newField: any) => {
-      const oldField = older.schema.find((f: any) => f.key === newField.key);
+    const modified = newer.schema.filter((newField: SchemaVersionField) => {
+      const oldField = older.schema.find((f: SchemaVersionField) => f.key === newField.key);
       if (!oldField) return false;
       return JSON.stringify(oldField) !== JSON.stringify(newField);
     });

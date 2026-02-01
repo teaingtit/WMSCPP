@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-import { useFormState } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
 import { applyEntityStatus, removeEntityStatus } from '@/actions/status-actions';
 import {
   StatusDefinition,
@@ -117,12 +115,12 @@ export function StatusSelector({
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
 
-  const [applyState, applyAction] = useFormState(applyStatusWrapper, {
+  const [applyState, applyAction] = useActionState(applyStatusWrapper, {
     success: false,
     message: '',
   });
 
-  const [removeState, removeAction] = useFormState(removeStatusWrapper, {
+  const [removeState, removeAction] = useActionState(removeStatusWrapper, {
     success: false,
     message: '',
   });

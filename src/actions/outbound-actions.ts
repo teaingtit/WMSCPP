@@ -3,8 +3,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
-import { withAuth, processBulkAction } from '@/lib/action-utils';
+import { withAuth, processBulkAction, WithAuthContext } from '@/lib/action-utils';
 import { RPC } from '@/lib/constants';
+import type { StockRowWithJoins } from '@/types/inventory';
 
 interface OutboundFormData {
   warehouseId: string;
@@ -36,18 +37,22 @@ export async function searchStockForOutbound(warehouseId: string, query: string)
   return stocks || [];
 }
 
-const submitOutboundHandler = async (formData: OutboundFormData, { user, supabase }: any) => {
+const submitOutboundHandler = async (
+  formData: OutboundFormData,
+  { user, supabase }: WithAuthContext,
+) => {
   const { warehouseId, stockId, qty, note } = formData;
   const deductQty = Number(qty);
   if (isNaN(deductQty) || deductQty <= 0) return { success: false, message: 'จำนวนไม่ถูกต้อง' };
 
   // ✅ 1. ดึงข้อมูลสินค้าก่อนตัดสต็อก (เพื่อเอาไว้แสดงผล)
-  const { data: stockInfo } = await supabase
+  const { data: stockInfoData } = await supabase
     .from('stocks')
     .select(`id, quantity, products!inner(name, sku, uom), locations!inner(code)`)
     .eq('id', stockId)
     .single();
 
+  const stockInfo = stockInfoData as StockRowWithJoins | null;
   if (!stockInfo) throw new Error('ไม่พบข้อมูลสต็อก');
 
   // ✅ Check status restrictions before outbound
@@ -58,9 +63,14 @@ const submitOutboundHandler = async (formData: OutboundFormData, { user, supabas
     .eq('entity_id', stockId)
     .single();
 
-  if (entityStatus?.status) {
-    const effect = entityStatus.status.effect;
-    const statusName = entityStatus.status.name;
+  const statusData = entityStatus?.status
+    ? Array.isArray(entityStatus.status)
+      ? entityStatus.status[0]
+      : entityStatus.status
+    : null;
+  if (statusData) {
+    const effect = statusData.effect;
+    const statusName = statusData.name;
 
     // Block outbound for restricted statuses
     if (['TRANSACTIONS_PROHIBITED', 'CLOSED', 'INBOUND_ONLY', 'AUDIT_ONLY'].includes(effect)) {
@@ -72,10 +82,11 @@ const submitOutboundHandler = async (formData: OutboundFormData, { user, supabas
   }
 
   // ✅ Validate: Check quantity before sending to RPC
-  if (deductQty > stockInfo.quantity) {
+  const availableQty = stockInfo.quantity ?? 0;
+  if (deductQty > availableQty) {
     return {
       success: false,
-      message: `จำนวนที่ต้องการ (${deductQty}) มากกว่าสินค้าคงเหลือ (${stockInfo.quantity})`,
+      message: `จำนวนที่ต้องการ (${deductQty}) มากกว่าสินค้าคงเหลือ (${availableQty})`,
     };
   }
 
@@ -100,10 +111,10 @@ const submitOutboundHandler = async (formData: OutboundFormData, { user, supabas
     message: result.message,
     details: {
       type: 'OUTBOUND',
-      productName: (stockInfo.products as any).name,
-      locationCode: (stockInfo.locations as any).code,
+      productName: stockInfo.products.name,
+      locationCode: stockInfo.locations.code,
       quantity: deductQty,
-      uom: (stockInfo.products as any).uom,
+      uom: stockInfo.products.uom,
       note: note || '-',
       timestamp: new Date().toISOString(),
     },

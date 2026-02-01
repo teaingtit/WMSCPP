@@ -207,4 +207,51 @@ describe('useSwipeGesture', () => {
     });
     // Should not crash, swiping state depends on implementation
   });
+
+  it('should handle touchmove with no touches gracefully', async () => {
+    const { result } = renderHook(() =>
+      useSwipeGesture({ onSwipeLeft, onSwipeRight, threshold: 50 }),
+    );
+
+    act(() => {
+      result.current.bind.onTouchStart({
+        touches: [{ clientX: 0, clientY: 50 }],
+      } as React.TouchEvent);
+    });
+
+    const moveEventNoTouches = new TouchEvent('touchmove', { touches: [] });
+    await act(async () => {
+      window.dispatchEvent(moveEventNoTouches);
+    });
+    expect(onSwipeLeft).not.toHaveBeenCalled();
+    expect(onSwipeRight).not.toHaveBeenCalled();
+  });
+
+  it('should use preventScroll when explicitly set', async () => {
+    const preventDefaultSpy = vi.fn();
+    const { result } = renderHook(() =>
+      useSwipeGesture({
+        onSwipeLeft,
+        onSwipeRight,
+        preventScroll: true,
+        threshold: 50,
+      }),
+    );
+
+    act(() => {
+      result.current.bind.onTouchStart({
+        touches: [{ clientX: 0, clientY: 50 }],
+      } as React.TouchEvent);
+    });
+
+    const moveEvent = new TouchEvent('touchmove', {
+      touches: [{ clientX: 80, clientY: 55 } as Touch],
+    });
+    Object.defineProperty(moveEvent, 'preventDefault', { value: preventDefaultSpy });
+    await act(async () => {
+      window.dispatchEvent(moveEvent);
+    });
+
+    expect(preventDefaultSpy).toHaveBeenCalled();
+  });
 });

@@ -55,7 +55,8 @@ This project uses **Next.js Standalone Output** for optimized Docker deployment.
 Use the included PowerShell script to deploy to your server (requires SSH config):
 
 ```powershell
-.\deploy.ps1
+.\deploy.ps1        # update (default; fast)
+.\deploy.ps1 full   # full rebuild (no cache)
 ```
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for full details.

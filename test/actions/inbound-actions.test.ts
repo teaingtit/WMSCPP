@@ -8,6 +8,7 @@ import {
   getCartsByLot,
   getLevelsByCart,
   submitInbound,
+  submitBulkInbound,
 } from '@/actions/inbound-actions';
 import { createMockSupabaseClient, createMockUser } from '../utils/test-helpers';
 
@@ -478,6 +479,28 @@ describe('Inbound Actions', () => {
 
       expect(result.success).toBe(false);
       expect(result.errors).toBeDefined();
+    });
+  });
+
+  describe('submitBulkInbound', () => {
+    it('should call processBulkAction with items and submitInbound', async () => {
+      const { processBulkAction } = await import('@/lib/action-utils');
+      const mockResult = { success: true, results: [] };
+      vi.mocked(processBulkAction).mockResolvedValue(mockResult as any);
+
+      const items = [
+        {
+          warehouseId: 'wh1',
+          locationId: '00000000-0000-0000-0000-000000000000',
+          productId: '00000000-0000-0000-0000-000000000001',
+          quantity: 5,
+        },
+      ];
+
+      const result = await submitBulkInbound(items);
+
+      expect(processBulkAction).toHaveBeenCalledWith(items, submitInbound);
+      expect(result).toEqual(mockResult);
     });
   });
 });

@@ -1,20 +1,20 @@
 import { test, expect, devices } from '@playwright/test';
 
-// Use iPhone 13 emulation for mobile checks
-test.use({ ...devices['iPhone 13'] });
+// Use Pixel 5 emulation for mobile checks (uses chromium instead of webkit)
+test.use({ ...devices['Pixel 5'] });
 
 const ROUTES = ['/', '/login', '/dashboard', '/dashboard/settings'];
 
 test.describe('mobile rendering', () => {
   for (const route of ROUTES) {
-    test(`loads ${route} on mobile`, async ({ page }) => {
-      const url = `http://localhost:3000${route}`;
+    test(`loads ${route} on mobile`, async ({ page, baseURL }) => {
       const messages: string[] = [];
 
       page.on('console', (msg) => messages.push(`${msg.type()}: ${msg.text()}`));
       page.on('pageerror', (err) => messages.push(`pageerror: ${err.message}`));
 
-      await page.goto(url, { waitUntil: 'networkidle' });
+      // Use baseURL from config (http://localhost:3006) instead of hardcoded port
+      await page.goto(route, { waitUntil: 'networkidle' });
 
       // capture screenshot for visual inspection
       const safeName =

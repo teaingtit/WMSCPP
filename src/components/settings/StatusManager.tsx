@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
 import {
   createStatusDefinition,
   updateStatusDefinition,
@@ -61,17 +60,17 @@ export function StatusManager({ statuses }: StatusManagerProps) {
   const [selectedStatusType, setSelectedStatusType] = useState<StatusType>('PRODUCT');
   const [activeTab, setActiveTab] = useState<StatusType>('PRODUCT');
 
-  const [createState, createAction] = useFormState(createStatusWrapper, {
+  const [createState, createAction] = useActionState(createStatusWrapper, {
     success: false,
     message: '',
   });
 
-  const [updateState, updateAction] = useFormState(updateStatusWrapper, {
+  const [updateState, updateAction] = useActionState(updateStatusWrapper, {
     success: false,
     message: '',
   });
 
-  const [deleteState, deleteAction] = useFormState(deleteStatusWrapper, {
+  const [deleteState, deleteAction] = useActionState(deleteStatusWrapper, {
     success: false,
     message: '',
   });
@@ -154,7 +153,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
       </div>
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-dvh-90 overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Tag size={20} className="text-indigo-600" />
@@ -249,7 +248,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingStatus} onOpenChange={(open) => !open && setEditingStatus(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-dvh-90 overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit2 size={20} className="text-amber-600" />

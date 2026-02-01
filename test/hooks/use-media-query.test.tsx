@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 const mockMatchMedia = (matches: boolean) => ({
@@ -42,5 +42,28 @@ describe('useMediaQuery', () => {
 
     const { result } = renderHook(() => useMediaQuery('(max-width: 767px)'));
     expect(result.current).toBe(false);
+  });
+
+  it('should update when media query match changes', async () => {
+    const listeners: Array<() => void> = [];
+    const mockMedia = mockMatchMedia(false);
+    mockMedia.addEventListener = vi.fn((_type: string, fn: () => void) => {
+      listeners.push(fn);
+    });
+    mockMedia.removeEventListener = vi.fn((_type: string, fn: () => void) => {
+      const i = listeners.indexOf(fn);
+      if (i >= 0) listeners.splice(i, 1);
+    });
+    (window as any).matchMedia = vi.fn(() => mockMedia);
+
+    const { result, rerender } = renderHook(() => useMediaQuery('(min-width: 768px)'));
+    expect(result.current).toBe(false);
+
+    Object.defineProperty(mockMedia, 'matches', { value: true, configurable: true });
+    await act(async () => {
+      listeners.forEach((fn) => fn());
+    });
+    rerender();
+    expect(result.current).toBe(true);
   });
 });

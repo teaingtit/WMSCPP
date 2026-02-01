@@ -134,16 +134,66 @@ export async function login(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/dashboard\/TEST/, { timeout: 10000 });
 }
 
+/**
+ * Helper class for audit-related operations in tests.
+ */
+export class AuditHelpers {
+  constructor(private page: Page) {}
+
+  /**
+   * Creates a new audit session and returns to the session detail page.
+   */
+  async createSession(name?: string): Promise<void> {
+    await this.page.goto('/dashboard/TEST/audit');
+    await this.page.waitForLoadState('networkidle');
+
+    await this.page.getByTestId('create-audit-btn').click();
+    await this.page.getByTestId('session-name-input').fill(name || `E2E Test ${Date.now()}`);
+    await this.page.getByTestId('confirm-create-btn').click();
+
+    // Wait for success modal and close it
+    await expect(this.page.getByText('เปิดรอบการนับสำเร็จ')).toBeVisible({ timeout: 10000 });
+    await this.page.keyboard.press('Escape');
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Creates a session and navigates to its detail page.
+   */
+  async createAndNavigate(name?: string): Promise<void> {
+    await this.createSession(name);
+    await this.page.getByText('จัดการ / ตรวจสอบ').first().click();
+    await this.page.waitForLoadState('networkidle');
+  }
+
+  /**
+   * Creates a session and enters counting mode.
+   */
+  async enterCountingMode(name?: string): Promise<void> {
+    await this.createAndNavigate(name || `Count Test ${Date.now()}`);
+    await this.page.getByTestId('counting-mode-btn').click();
+    await this.page.waitForTimeout(300);
+  }
+}
+
 // Worker-scoped fixtures type
 type WorkerFixtures = {
   userReady: boolean;
+};
+
+// Test-scoped fixtures type
+type TestFixtures = {
+  /** Page that is already logged in and in TEST warehouse */
+  authenticatedPage: Page;
+  /** Audit helper utilities */
+  auditHelpers: AuditHelpers;
 };
 
 /**
  * Extended test fixture with authentication support.
  * Automatically seeds the test user before tests run.
  */
-export const test = base.extend<object, WorkerFixtures>({
+export const test = base.extend<TestFixtures, WorkerFixtures>({
   userReady: [
     async ({}, use) => {
       const ready = await seedTestUser();
@@ -151,6 +201,22 @@ export const test = base.extend<object, WorkerFixtures>({
     },
     { scope: 'worker', auto: true },
   ],
+
+  authenticatedPage: async ({ page, userReady }, use) => {
+    if (!userReady) {
+      throw new Error('Test user not seeded');
+    }
+    await login(page);
+    await use(page);
+  },
+
+  auditHelpers: async ({ page, userReady }, use) => {
+    if (!userReady) {
+      throw new Error('Test user not seeded');
+    }
+    await login(page);
+    await use(new AuditHelpers(page));
+  },
 });
 
 export { expect };

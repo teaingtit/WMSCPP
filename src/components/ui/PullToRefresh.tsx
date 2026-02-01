@@ -11,6 +11,17 @@ interface PullToRefreshProps {
   threshold?: number;
 }
 
+/** Track mounted state to prevent setState after unmount. */
+function useMountedRef() {
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+  return mountedRef;
+}
+
 /**
  * PullToRefresh - Pull down to refresh functionality
  *
@@ -37,6 +48,7 @@ export default function PullToRefresh({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [canPull, setCanPull] = useState(false);
 
+  const mountedRef = useMountedRef();
   const startY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
@@ -94,13 +106,14 @@ export default function PullToRefresh({
       } catch (error) {
         console.error('Refresh failed:', error);
       } finally {
+        if (!mountedRef.current) return;
         setIsRefreshing(false);
         setPullDistance(0);
       }
     } else {
       setPullDistance(0);
     }
-  }, [canPull, pullDistance, threshold, isRefreshing, onRefresh]);
+  }, [canPull, pullDistance, threshold, isRefreshing, onRefresh, mountedRef]);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -24,7 +24,7 @@ export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProp
   const isAdmin = user?.role === 'admin';
 
   return (
-    <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm h-18">
+    <header className="bg-white border-b border-slate-200 px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm min-h-[4.5rem]">
       <div className="flex items-center gap-4">
         {/* 1. ปุ่มย้อนกลับ */}
         {!isRoot && (

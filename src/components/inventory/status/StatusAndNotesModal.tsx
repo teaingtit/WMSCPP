@@ -197,7 +197,7 @@ export default function StatusAndNotesModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      <div className="bg-white w-full max-w-2xl max-h-dvh-90 rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
         {/* Header */}
         <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 p-5 text-white">
           <button

@@ -55,7 +55,7 @@ export default async function WarehouseLayout({
   return (
     <div className="flex flex-col h-full bg-slate-50 text-slate-900">
       <WarehouseHeader warehouse={warehouse} user={user} />
-      <div className="flex-1 p-6 overflow-auto">{children}</div>
+      <div className="flex-1 p-4 sm:p-6 overflow-auto">{children}</div>
     </div>
   );
 }

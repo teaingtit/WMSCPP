@@ -8,10 +8,20 @@ import { useEffect, useState } from 'react';
 // original table when the viewport is larger.
 
 export default function TableStacker() {
-  const [enabled, setEnabled] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Wait for hydration to complete before enabling DOM manipulation
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure we're past the hydration phase
+    const rafId = requestAnimationFrame(() => {
+      setHasMounted(true);
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Don't run until after hydration is complete
+    if (!hasMounted) return;
 
     const mq = window.matchMedia('(max-width: 640px)');
 
@@ -87,10 +97,8 @@ export default function TableStacker() {
 
     apply();
     mq.addEventListener('change', apply);
-    setEnabled(true);
     return () => mq.removeEventListener('change', apply);
-  }, []);
+  }, [hasMounted]);
 
-  if (!enabled) return null;
   return null;
 }

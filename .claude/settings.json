@@ -1,5 +1,5 @@
 {
   "permissions": {
-    "allow": ["Bash(where:*)"]
+    "allow": ["Bash(where:*)", "Bash(npx tsc:*)"]
   }
 }

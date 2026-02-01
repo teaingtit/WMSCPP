@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, createContext, useContext, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Package, Shield } from 'lucide-react';
 import SearchInput from '@/components/ui/SearchInput';
@@ -429,7 +430,27 @@ const InventoryDashboardContent = ({
       {/* Main Content: Loop Render Lots - Mobile-First with Animations */}
       <div>
         {lotKeys.length === 0 && (
-          <div className="text-center py-12 text-slate-400">ไม่พบรายการสินค้า</div>
+          <div className="text-center py-12 px-4">
+            <p className="text-slate-500 mb-4">ไม่พบรายการสินค้า</p>
+            <p className="text-sm text-slate-400 max-w-md mx-auto">
+              ยังไม่มีสต็อกในคลังนี้ — รับสินค้าเข้าจากเมนู Inbound หรือเพิ่มตำแหน่ง (Lot/Position)
+              ในตั้งค่าระบบ
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link
+                href={`/dashboard/${warehouseId}/inbound`}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <Package size={18} /> รับสินค้าเข้า (Inbound)
+              </Link>
+              <Link
+                href="/dashboard/settings"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
+              >
+                ตั้งค่าระบบ
+              </Link>
+            </div>
+          </div>
         )}
 
         {lotKeys.length > 0 && (

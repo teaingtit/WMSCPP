@@ -22,6 +22,10 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
 
+vi.mock('@/actions/schema-version-actions', () => ({
+  createSchemaVersion: vi.fn(),
+}));
+
 describe('Settings Actions', () => {
   let mockSupabase: any;
 
@@ -615,6 +619,9 @@ describe('Settings Actions', () => {
 
     it('should create schema version when schema changes', async () => {
       const { updateCategory } = await import('@/actions/settings-actions');
+      const { createSchemaVersion } = await import('@/actions/schema-version-actions');
+
+      vi.mocked(createSchemaVersion).mockResolvedValue({ success: true } as any);
 
       const mockCurrentCategory = {
         form_schema: [{ key: 'color', label: 'Color' }],
@@ -631,11 +638,6 @@ describe('Settings Actions', () => {
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockResolvedValue({ error: null }),
       };
-
-      // Mock the schema version creation
-      vi.mock('@/actions/schema-version-actions', () => ({
-        createSchemaVersion: vi.fn().mockResolvedValue({ success: true }),
-      }));
 
       let _callCount = 0;
       mockSupabase.from = vi.fn((table) => {
@@ -658,6 +660,71 @@ describe('Settings Actions', () => {
       const result = await updateCategory(formData);
 
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('updateCategory when createSchemaVersion fails', () => {
+    it('should return fail when createSchemaVersion fails', async () => {
+      const { updateCategory } = await import('@/actions/settings-actions');
+      const { createSchemaVersion } = await import('@/actions/schema-version-actions');
+
+      vi.mocked(createSchemaVersion).mockResolvedValue({
+        success: false,
+        message: 'Version creation failed',
+      } as any);
+
+      const mockCurrentCategory = {
+        form_schema: [{ key: 'color', type: 'text' }],
+        schema_version: 1,
+      };
+
+      const mockFetchQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockCurrentCategory }),
+      };
+
+      const mockUpdateQuery = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: null }),
+      };
+
+      let _callCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'product_categories') {
+          _callCount++;
+          if (_callCount === 1) return mockFetchQuery;
+          return mockUpdateQuery;
+        }
+        return mockFetchQuery;
+      });
+
+      const formData = createMockFormData({
+        id: 'CAT1',
+        name: 'Updated',
+        schema: '[{"key":"size","type":"text"}]',
+        units: '["PCS"]',
+        change_notes: 'Added size',
+      });
+
+      const result = await updateCategory(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Failed to create schema version');
+    });
+  });
+
+  describe('updateCategoryUnits error handling', () => {
+    it('should return fail on JSON parse error', async () => {
+      const formData = createMockFormData({
+        id: 'cat1',
+        units: 'invalid-json',
+      });
+
+      const result = await updateCategoryUnits(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Error');
     });
   });
 
@@ -795,6 +862,31 @@ describe('Settings Actions', () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('System Error');
+    });
+
+    it('should return fail when insert returns warehouse without id', async () => {
+      const mockInsertQuery = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {},
+          error: null,
+        }),
+      };
+      mockSupabase.from = vi.fn(() => mockInsertQuery);
+
+      const formData = createMockFormData({
+        code: 'WH01',
+        name: 'Warehouse 1',
+        axis_x: '5',
+        axis_y: '5',
+        axis_z: '3',
+      });
+
+      const result = await createWarehouse(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('สร้างคลังสินค้าไม่สำเร็จ');
     });
 
     it('should handle RPC result with success false', async () => {

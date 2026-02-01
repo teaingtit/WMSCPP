@@ -4,6 +4,22 @@ description: Deploy app to private server with Supabase Cloud
 
 # Deployment Workflow: Private Server + Supabase Cloud
 
+## Automated deployment (recommended)
+
+From the project root in PowerShell:
+
+```powershell
+# Normal update (fast, uses Docker cache)
+.\deploy.ps1
+
+# Full rebuild (no cache; use after dependency/Dockerfile changes)
+.\deploy.ps1 full
+```
+
+The script: tests SSH, creates an archive (excluding `node_modules`, `.next`, `.git`, `.env`, etc.), uploads to `/opt/wmscpp`, extracts, runs `docker compose up -d --build`, and checks container + health endpoint. See [DEPLOYMENT.md](../../DEPLOYMENT.md) for details.
+
+---
+
 ## Prerequisites
 
 - Private server (VPS/Physical) with **Docker** and **Docker Compose** installed
@@ -128,7 +144,7 @@ docker compose down
    tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
    ```
 
-// turbo 2. **ส่งไฟล์ไปที่ Server:**
+2. **ส่งไฟล์ไปที่ Server:**
 
 ```powershell
 scp project.tar.gz home-server:/opt/wmscpp/
@@ -187,15 +203,13 @@ curl http://100.96.9.50:3000/api/health
 
 เมื่อมีการแก้ไขโค้ดและต้องการอัปเดต:
 
-// turbo
-
 1. **บีบอัดไฟล์ใหม่:**
 
    ```powershell
    tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
    ```
 
-// turbo 2. **ส่งไฟล์ใหม่:**
+2. **ส่งไฟล์ใหม่:**
 
 ```powershell
 scp project.tar.gz home-server:/opt/wmscpp/
@@ -214,7 +228,7 @@ scp project.tar.gz home-server:/opt/wmscpp/
 ### ดู Logs แบบ Real-time
 
 ```bash
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
+ssh home-server "cd /opt/wmscpp && docker compose logs -f"
 ```
 
 ### เช็ค Resource Usage
@@ -245,11 +259,18 @@ ssh home-server "cd /opt/wmscpp && docker compose down"
 
 ## Quick Reference (คำสั่งด่วน)
 
-### 🚀 Deploy ครั้งแรก (Full Setup)
+### 🚀 Deploy ด้วย Script (แนะนำ)
+
+```powershell
+.\deploy.ps1        # update (default)
+.\deploy.ps1 full   # full rebuild
+```
+
+### 🚀 Deploy ครั้งแรก (Manual)
 
 ```powershell
 # บน Local
-tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
+tar --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='.env' -cvzf project.tar.gz .
 scp project.tar.gz home-server:/opt/wmscpp/
 
 # บน Server (SSH)
@@ -260,21 +281,20 @@ rm project.tar.gz
 docker compose up -d --build
 ```
 
-### 🔄 Update แอป (Quick Update)
+### 🔄 Update แอป (Manual one-liner)
 
 ```powershell
-# บน Local - One-liner
-tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz . && scp project.tar.gz home-server:/opt/wmscpp/ && ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz && docker compose up -d --build"
+tar --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='.env' -cvzf project.tar.gz . && scp project.tar.gz home-server:/opt/wmscpp/ && ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz && docker compose up -d --build"
 ```
 
 ### 📊 ตรวจสอบสถานะ
 
 ```bash
 # ดู logs
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f wmscpp"
+ssh home-server "cd /opt/wmscpp && docker compose logs -f"
 
 # เช็คสถานะ container
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml ps"
+ssh home-server "cd /opt/wmscpp && docker compose ps"
 
 # ทดสอบ health endpoint
 curl http://100.96.9.50:3000/api/health

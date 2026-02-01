@@ -238,13 +238,14 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
               <DialogTrigger asChild className="w-full sm:w-auto">
                 <Button
                   disabled={isCreating}
+                  data-testid="create-audit-btn"
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto shadow-md shadow-blue-200 transition-all active:scale-95"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   เปิดรอบนับใหม่
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+              <DialogContent className="max-w-3xl max-h-dvh-90 flex flex-col">
                 <DialogHeader>
                   <DialogTitle>เปิดรอบการนับใหม่</DialogTitle>
                   <DialogDescription>
@@ -256,6 +257,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                   <Input
                     value={newSessionName}
                     name="newSessionName"
+                    data-testid="session-name-input"
                     onChange={(e) => setNewSessionName(e.target.value)}
                     placeholder="ระบุชื่อรอบการนับ..."
                   />
@@ -344,7 +346,11 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={handleCreate} disabled={isCreating || !newSessionName}>
+                  <Button
+                    onClick={handleCreate}
+                    disabled={isCreating || !newSessionName}
+                    data-testid="confirm-create-btn"
+                  >
                     {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     ยืนยัน
                   </Button>
@@ -358,6 +364,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
       <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-xl w-full sm:w-fit backdrop-blur-sm">
         <button
           onClick={() => setViewMode('ACTIVE')}
+          data-testid="tab-active"
           className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-center ${
             viewMode === 'ACTIVE'
               ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5'
@@ -368,6 +375,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
         </button>
         <button
           onClick={() => setViewMode('HISTORY')}
+          data-testid="tab-history"
           className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-center ${
             viewMode === 'HISTORY'
               ? 'bg-white text-slate-800 shadow-sm ring-1 ring-black/5'
@@ -387,6 +395,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
           filteredSessions.map((session) => (
             <div
               key={session.id}
+              data-testid="session-card"
               className="group bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-blue-300 hover:shadow-md transition-all duration-200"
             >
               <div>

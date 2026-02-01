@@ -171,6 +171,11 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
@@ -488,6 +493,15 @@ html {
 
   .mb-safe {
     margin-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Dynamic viewport height for modals - avoids content cut-off on mobile */
+  .max-h-dvh-90 {
+    max-height: min(90vh, 90dvh);
+  }
+
+  .max-h-dvh-80 {
+    max-height: min(80vh, 80dvh);
   }
 }
 

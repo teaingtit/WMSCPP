@@ -6,6 +6,13 @@ import { StockWithDetails } from '@/types/inventory';
 import { getProductCategories } from '@/actions/inbound-actions';
 import { getInventoryStatusData, getLotStatuses } from '@/actions/status-actions';
 import { isValidUUID } from '@/lib/utils';
+import { Category } from '@/components/inbound/DynamicInboundForm';
+import {
+  formatInventoryError,
+  formatSupabaseError,
+  transformStockForUI,
+  buildAttributeLabelMap,
+} from '@/lib/inventory-helpers';
 
 const PAGE_SIZE = 50;
 
@@ -13,12 +20,13 @@ export default async function InventoryPage({
   params,
   searchParams,
 }: {
-  params: { warehouseId: string };
-  searchParams?: { q?: string; page?: string };
+  params: Promise<{ warehouseId: string }>;
+  searchParams?: Promise<{ q?: string; page?: string }>;
 }) {
-  const { warehouseId } = params;
-  const query = searchParams?.q || '';
-  const currentPage = Math.max(1, Number(searchParams?.page) || 1);
+  const { warehouseId } = await params;
+  const resolvedSearchParams = await searchParams;
+  const query = resolvedSearchParams?.q || '';
+  const currentPage = Math.max(1, Number(resolvedSearchParams?.page) || 1);
 
   const supabase = await createClient();
 
@@ -48,110 +56,110 @@ export default async function InventoryPage({
     );
   }
 
-  // Fetch product categories and all warehouses (for cross transfer modal)
-  const [categories, warehousesRes] = await Promise.all([
-    getProductCategories(),
-    supabase.from('warehouses').select('id, code, name').order('code'),
-  ]);
+  let categories: Category[] = [];
+  let warehouses: { id: string; code: string; name: string }[] = [];
+  let stocks: unknown[] = [];
+  let formattedError: { message: string; details?: string; isHeadersOverflow: boolean } | null =
+    null;
+  let totalCount = 0;
+  let totalPages = 0;
 
-  const warehouses = warehousesRes.data || [];
+  try {
+    // Fetch product categories and all warehouses (for cross transfer modal)
+    const [categoriesRes, warehousesRes] = await Promise.all([
+      getProductCategories(),
+      supabase.from('warehouses').select('id, code, name').order('code'),
+    ]);
 
-  // Build base query for stocks
-  let baseQuery = supabase
-    .from('stocks')
-    .select(
-      `
+    categories = Array.isArray(categoriesRes) ? (categoriesRes as Category[]) : [];
+    warehouses = warehousesRes.data || [];
+
+    // Build stocks query: filter by warehouse via locations join (no location-ID cap or sentinel)
+    let baseQuery = supabase
+      .from('stocks')
+      .select(
+        `
       id, quantity, updated_at, attributes,
       products!inner(*),
       locations!inner(*)
     `,
-      { count: 'exact' },
-    )
-    .eq('locations.warehouse_id', wh.id)
-    .gt('quantity', 0);
+        { count: 'exact' },
+      )
+      .eq('locations.warehouse_id', wh.id)
+      .eq('locations.is_active', true)
+      .gt('quantity', 0);
 
-  // Apply server-side search filter if query exists
-  if (query) {
-    const searchPattern = `%${query}%`;
-    baseQuery = baseQuery.or(
-      `products.name.ilike.${searchPattern},products.sku.ilike.${searchPattern}`,
-    );
+    // Apply server-side search filter if query exists
+    if (query) {
+      const searchPattern = `%${query}%`;
+      baseQuery = baseQuery.or(
+        `products.name.ilike.${searchPattern},products.sku.ilike.${searchPattern}`,
+      );
+    }
+
+    // Calculate pagination offset
+    const offset = (currentPage - 1) * PAGE_SIZE;
+
+    // Execute query with pagination and ordering
+    const result = await baseQuery
+      .order('lot', { foreignTable: 'locations', ascending: true })
+      .order('cart', { foreignTable: 'locations', ascending: true })
+      .order('level', { foreignTable: 'locations', ascending: true })
+      .order('sku', { foreignTable: 'products', ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    stocks = result.data ?? [];
+    formattedError = formatSupabaseError(result.error);
+    totalCount = result.count ?? 0;
+    totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  } catch (err: unknown) {
+    formattedError = formatInventoryError(err);
+    console.error('Inventory load error:', formattedError.message, formattedError.details ?? '');
   }
 
-  // Calculate pagination offset
-  const offset = (currentPage - 1) * PAGE_SIZE;
-
-  // Execute query with pagination and ordering
-  const {
-    data: stocks,
-    error,
-    count,
-  } = await baseQuery
-    .order('lot', { foreignTable: 'locations', ascending: true })
-    .order('cart', { foreignTable: 'locations', ascending: true })
-    .order('level', { foreignTable: 'locations', ascending: true })
-    .order('sku', { foreignTable: 'products', ascending: true })
-    .range(offset, offset + PAGE_SIZE - 1);
-
-  const totalCount = count || 0;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-
-  if (error) {
-    console.error(error);
+  if (formattedError) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 p-8 text-center animate-in fade-in zoom-in duration-500">
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center animate-in fade-in zoom-in duration-500">
         <div className="rounded-full bg-slate-50 p-4 ring-1 ring-slate-100">
-          <span className="text-3xl">⚠️</span>
+          <span className="text-3xl">{formattedError.isHeadersOverflow ? '🔌' : '⚠️'}</span>
         </div>
         <div className="space-y-1">
           <h3 className="text-lg font-semibold text-slate-900">เกิดข้อผิดพลาดในการโหลดข้อมูล</h3>
-          <p className="text-sm text-slate-500">กรุณาลองรีเฟรชหน้าใหม่อีกครั้ง</p>
+          <p className="text-sm text-slate-500 max-w-md">
+            {formattedError.isHeadersOverflow
+              ? 'การเชื่อมต่อล้มเหลว (Headers overflow) — ลองล้างคุกกี้ ออกจากระบบแล้วเข้าสู่ระบบใหม่ หรือรีเฟรชหน้า'
+              : 'กรุณาลองรีเฟรชหน้าใหม่อีกครั้ง'}
+          </p>
+        </div>
+        <div className="flex gap-3 mt-2">
+          <a
+            href={`/dashboard/${warehouseId}/inventory`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            รีเฟรชหน้า
+          </a>
+          {formattedError.isHeadersOverflow && (
+            <a
+              href="/auth/logout"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
+            >
+              ออกจากระบบ
+            </a>
+          )}
         </div>
       </div>
     );
   }
 
-  // Build Attribute Label Map
-  const attributeLabelMap: Record<string, string> = {};
-  if (categories) {
-    categories.forEach((cat: any) => {
-      if (Array.isArray(cat.form_schema)) {
-        cat.form_schema.forEach((field: any) => {
-          if (field.key && field.label) {
-            attributeLabelMap[field.key] = field.label;
-          }
-        });
-      }
-    });
-  }
+  // Build attribute label map from categories using helper
+  const attributeLabelMap = buildAttributeLabelMap(
+    categories as Array<{ form_schema?: Array<{ key?: string; label?: string }> }>,
+  );
 
-  // Transform stock data to match UI component expectations
-  const formattedStocks: StockWithDetails[] = (stocks || []).map((stock: any) => {
-    // Resolve Attributes
-    const resolvedAttributes: Record<string, any> = {};
-    if (stock.attributes) {
-      Object.entries(stock.attributes).forEach(([key, value]) => {
-        const label = attributeLabelMap[key] || key;
-        resolvedAttributes[label] = value;
-      });
-    }
-
-    return {
-      ...stock,
-      id: String(stock.id),
-      // Fix: Map plural (DB) to singular (UI Component Expectation)
-      product: stock.products,
-      location: stock.locations,
-      // Map nested data to top-level properties for UI compatibility
-      lot: stock.locations?.lot,
-      cart: stock.locations?.cart,
-      level: stock.locations?.level,
-      sku: stock.products?.sku,
-      name: stock.products?.name,
-      image_url: stock.products?.image_url,
-      attributes: resolvedAttributes, // Pass resolved attributes
-    };
-  });
+  // Transform stock data to match UI component expectations using helper
+  const formattedStocks = (stocks || []).map((stock: unknown) =>
+    transformStockForUI(stock as Record<string, unknown>, { attributeLabelMap }),
+  ) as unknown as StockWithDetails[];
 
   // Fetch status data server-side (eliminates N+1 client-side fetch)
   const stockIds = formattedStocks.map((s) => s.id);

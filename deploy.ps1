@@ -14,7 +14,10 @@ $ErrorActionPreference = "Stop"
 $SERVER_ALIAS = "home-server"
 $REMOTE_PATH = "/opt/wmscpp"
 $ARCHIVE_NAME = "project.tar.gz"
-$EXCLUDE_PATTERNS = @('node_modules', '.next', '.git', '.env.local', '*.log')
+$EXCLUDE_PATTERNS = @(
+    'node_modules', '.next', '.git', '.env', '.env.local', '*.log',
+    'coverage', 'test-results', 'playwright-report', 'e2e-results', '.turbo'
+)
 
 # Colors
 function Write-Success { Write-Host $args -ForegroundColor Green }
@@ -25,6 +28,17 @@ function Write-Error { param($msg) Write-Host $msg -ForegroundColor Red }
 Write-Info "🚀 WMSCPP Deployment Script"
 Write-Info "Mode: $Mode"
 Write-Info "Target: $SERVER_ALIAS"
+Write-Info ""
+
+# Step 0: Local build (fail fast before upload)
+Write-Info "🔨 Running local build..."
+$buildResult = npm run build 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "❌ Build failed. Fix errors before deploying."
+    $buildResult | Write-Host
+    exit 1
+}
+Write-Success "✅ Build passed"
 Write-Info ""
 
 # Step 1: Test SSH Connection
@@ -64,11 +78,12 @@ try {
 
 # Step 4: Extract and deploy
 Write-Info "🔧 Extracting and deploying..."
+$buildPart = if ($Mode -eq 'full') { "docker compose build --no-cache && " } else { "" }
 $deployCommand = @"
 cd $REMOTE_PATH && \
 tar -xzf $ARCHIVE_NAME && \
 rm $ARCHIVE_NAME && \
-docker compose up -d --build
+${buildPart}docker compose up -d --build
 "@
 
 try {
@@ -88,12 +103,11 @@ Write-Info "📊 Checking deployment status..."
 Start-Sleep -Seconds 3
 
 try {
-    $containerStatus = ssh $SERVER_ALIAS "docker compose -f $REMOTE_PATH/docker-compose.yml ps --format json" | ConvertFrom-Json
-    
-    if ($containerStatus.State -eq "running") {
-        Write-Success "✅ Container is running"
+    $runningIds = ssh $SERVER_ALIAS "cd $REMOTE_PATH && docker compose ps --status running -q"
+    if ($runningIds -and $runningIds.Trim()) {
+        Write-Success "✅ Container(s) running"
     } else {
-        Write-Warning "⚠️  Container state: $($containerStatus.State)"
+        Write-Warning "⚠️  No running containers; check logs on server"
     }
 } catch {
     Write-Warning "⚠️  Could not check container status"
@@ -123,6 +137,6 @@ Write-Success "🎉 Deployment completed!"
 Write-Info "📍 Application URL: http://100.96.9.50:3000"
 Write-Info ""
 Write-Info "Useful commands:"
-Write-Info "  View logs:    ssh $SERVER_ALIAS 'docker compose -f $REMOTE_PATH/docker-compose.yml logs -f'"
-Write-Info "  Check status: ssh $SERVER_ALIAS 'docker compose -f $REMOTE_PATH/docker-compose.yml ps'"
-Write-Info "  Restart:      ssh $SERVER_ALIAS 'docker compose -f $REMOTE_PATH/docker-compose.yml restart'"
+Write-Info "  View logs:    ssh $SERVER_ALIAS 'cd $REMOTE_PATH && docker compose logs -f'"
+Write-Info "  Check status: ssh $SERVER_ALIAS 'cd $REMOTE_PATH && docker compose ps'"
+Write-Info "  Restart:      ssh $SERVER_ALIAS 'cd $REMOTE_PATH && docker compose restart'"

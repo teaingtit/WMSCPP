@@ -146,7 +146,7 @@ export default function VarianceReport({ items }: VarianceReportProps) {
           </div>
 
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto border rounded-xl shadow-sm bg-white">
+          <div className="hidden md:block overflow-x-auto custom-scrollbar border rounded-xl shadow-sm bg-white">
             <Table data-stack="true">
               <TableHeader>
                 <TableRow className="bg-slate-50/50">

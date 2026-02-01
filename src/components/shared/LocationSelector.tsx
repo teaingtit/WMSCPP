@@ -53,13 +53,21 @@ export default function LocationSelector({
     setLevels([]);
     onSelect(null);
 
-    if (warehouseId) {
-      setLoadingLots(true);
-      getWarehouseLots(warehouseId)
-        .then(setLots)
-        .catch((err) => console.error('Error fetching lots:', err))
-        .finally(() => setLoadingLots(false));
-    }
+    if (!warehouseId) return;
+
+    let cancelled = false;
+    setLoadingLots(true);
+    getWarehouseLots(warehouseId)
+      .then((data) => {
+        if (!cancelled) setLots(data);
+      })
+      .catch((err) => console.error('Error fetching lots:', err))
+      .finally(() => {
+        if (!cancelled) setLoadingLots(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [warehouseId]);
 
   // 2. Fetch Positions (เมื่อเปลี่ยน Lot)
@@ -70,13 +78,21 @@ export default function LocationSelector({
     setLevels([]);
     onSelect(null);
 
-    if (warehouseId && selectedLot) {
-      setLoadingPos(true);
-      getCartsByLot(warehouseId, selectedLot)
-        .then(setPositions)
-        .catch((err) => console.error('Error fetching positions:', err))
-        .finally(() => setLoadingPos(false));
-    }
+    if (!warehouseId || !selectedLot) return;
+
+    let cancelled = false;
+    setLoadingPos(true);
+    getCartsByLot(warehouseId, selectedLot)
+      .then((data) => {
+        if (!cancelled) setPositions(data);
+      })
+      .catch((err) => console.error('Error fetching positions:', err))
+      .finally(() => {
+        if (!cancelled) setLoadingPos(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [warehouseId, selectedLot]);
 
   // 3. Fetch Levels (เมื่อเปลี่ยน Position)
@@ -85,20 +101,26 @@ export default function LocationSelector({
     setLevels([]);
     onSelect(null);
 
-    if (warehouseId && selectedLot && selectedPos) {
-      setLoadingLevels(true);
-      getLevelsByCart(warehouseId, selectedLot, selectedPos)
-        .then((data) => {
-          // ✅ ป้องกันกรณี data เป็น null หรือ undefined
-          if (Array.isArray(data)) {
-            setLevels(data);
-          } else {
-            setLevels([]);
-          }
-        })
-        .catch((err) => console.error('Error fetching levels:', err))
-        .finally(() => setLoadingLevels(false));
-    }
+    if (!warehouseId || !selectedLot || !selectedPos) return;
+
+    let cancelled = false;
+    setLoadingLevels(true);
+    getLevelsByCart(warehouseId, selectedLot, selectedPos)
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data)) {
+          setLevels(data);
+        } else {
+          setLevels([]);
+        }
+      })
+      .catch((err) => console.error('Error fetching levels:', err))
+      .finally(() => {
+        if (!cancelled) setLoadingLevels(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [warehouseId, selectedLot, selectedPos]);
 
   // Handle Final Selection

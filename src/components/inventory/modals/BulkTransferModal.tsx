@@ -97,7 +97,7 @@ export const BulkTransferModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-2xl max-h-dvh-90 flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-indigo-700">
             <ArrowRightLeft size={20} />

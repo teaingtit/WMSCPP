@@ -228,7 +228,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
           <h3 className="font-bold text-slate-800">รายชื่อผู้ใช้งาน ({users.length})</h3>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar">
           <table data-stack="true" className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
               <tr>
@@ -256,7 +256,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
                             isBanned ? 'bg-slate-400' : 'bg-indigo-500'
                           }`}
                         >
-                          {(u.first_name?.[0] || u.email[0]).toUpperCase()}
+                          {(u.first_name?.[0] || u.email?.[0] || '?').toUpperCase()}
                         </div>
                         <div>
                           <div className="font-bold text-slate-800">

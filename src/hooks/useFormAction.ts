@@ -1,7 +1,6 @@
 'use client';
 
-import { useFormState } from 'react-dom';
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useActionState } from 'react';
 import { notify, wrapFormAction } from '@/lib/ui-helpers';
 
 type ActionResponse = { success: boolean; message: string };
@@ -17,7 +16,7 @@ interface UseFormActionOptions {
 }
 
 /**
- * Custom hook that wraps useFormState with automatic toast notifications
+ * Custom hook that wraps useActionState with automatic toast notifications
  * and optional form reset on success.
  *
  * @example
@@ -37,7 +36,7 @@ export function useFormAction(
 
   const wrappedAction = wrapFormAction(serverAction);
   const initialState: InitialState = { success: false, message: '' };
-  const [state, action] = useFormState(wrappedAction, initialState);
+  const [state, action] = useActionState(wrappedAction, initialState);
 
   useEffect(() => {
     if (state.message) {

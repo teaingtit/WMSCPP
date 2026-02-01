@@ -3,8 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { AppUser } from '@/types/auth';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient, User } from '@supabase/supabase-js';
 import { ROLES, TABLES } from '@/lib/constants';
+
+type UserWithBanned = User & { banned_until?: string | null };
 
 export async function checkManagerRole(supabase: SupabaseClient, userId: string) {
   const { data: profile } = await supabase
@@ -29,7 +31,8 @@ export async function getCurrentUser(): Promise<AppUser | null> {
     return null;
   }
 
-  // ดึง Role และสถานะ — use admin client so we always see user_roles (same as login; avoids RLS/session)
+  // ดึง Role และสถานะ — use admin client so we always see user_roles (same as login; avoids RLS/session).
+  // Keep role/allowed_warehouses in DB only (not in JWT) to avoid large session cookies and Headers Overflow.
   const { data: roleData, error: roleError } = await supabaseAdmin
     .from(TABLES.USER_ROLES)
     .select('role, allowed_warehouses, is_active')
@@ -46,8 +49,9 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   // ✅ SECURITY FIX 2: เช็คสถานะ Banned และ Inactive
   // ถ้าโดนแบนใน Supabase Auth หรือถูกตั้งค่าเป็น Inactive ในระบบ -> ไม่อนุญาตให้เข้าระบบ
   // The `banned_until` property might not exist on the `User` type in older library versions.
+  const userWithBanned = user as UserWithBanned;
   const isBanned =
-    (user as any).banned_until != null && new Date((user as any).banned_until) > new Date();
+    userWithBanned.banned_until != null && new Date(userWithBanned.banned_until) > new Date();
   const isActive = roleData.is_active;
 
   if (isBanned || !isActive) {

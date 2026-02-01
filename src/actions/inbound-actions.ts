@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
-import { withAuth, processBulkAction } from '@/lib/action-utils';
+import { withAuth, processBulkAction, WithAuthContext } from '@/lib/action-utils';
 import { RPC } from '@/lib/constants';
 
 // --- Validation Schema ---
@@ -102,7 +102,7 @@ export async function getLevelsByCart(warehouseId: string, lot: string, cart: st
 }
 
 // --- Submit Action ---
-const submitInboundHandler = async (rawData: unknown, { user, supabase }: any) => {
+const submitInboundHandler = async (rawData: unknown, { user, supabase }: WithAuthContext) => {
   const validated = InboundSchema.safeParse(rawData);
   if (!validated.success)
     return {
@@ -167,6 +167,8 @@ const submitInboundHandler = async (rawData: unknown, { user, supabase }: any) =
 
   revalidatePath(`/dashboard/${warehouseId}/inventory`);
   revalidatePath(`/dashboard/${warehouseId}/history`);
+  revalidatePath(`/dashboard/${whId}/inventory`);
+  revalidatePath(`/dashboard/${whId}/history`);
 
   return {
     success: true,

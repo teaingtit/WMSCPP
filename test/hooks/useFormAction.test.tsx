@@ -1,6 +1,7 @@
 // @ts-nocheck
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, render } from '@testing-library/react';
 import { useFormAction, useAsyncAction } from '@/hooks/useFormAction';
 
 vi.mock('@/lib/ui-helpers', () => ({
@@ -14,19 +15,19 @@ vi.mock('@/lib/ui-helpers', () => ({
       fn(formData),
 }));
 
-const mockUseFormState = vi.fn();
-vi.mock('react-dom', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-dom')>();
+const mockUseActionState = vi.fn();
+vi.mock('react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react')>();
   return {
     ...actual,
-    useFormState: (...args: unknown[]) => mockUseFormState(...args),
+    useActionState: (...args: unknown[]) => mockUseActionState(...args),
   };
 });
 
 describe('useFormAction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseFormState.mockReturnValue([{ success: false, message: '' }, vi.fn()]);
+    mockUseActionState.mockReturnValue([{ success: false, message: '' }, vi.fn()]);
   });
 
   it('should return state, action, and formRef', () => {
@@ -39,7 +40,7 @@ describe('useFormAction', () => {
 
   it('should call onSuccess when state.success is true', () => {
     const onSuccess = vi.fn();
-    mockUseFormState.mockReturnValue([{ success: true, message: 'Success!' }, vi.fn()]);
+    mockUseActionState.mockReturnValue([{ success: true, message: 'Success!' }, vi.fn()]);
 
     const serverAction = vi.fn().mockResolvedValue({ success: true, message: 'Ok' });
     renderHook(() => useFormAction(serverAction, { onSuccess }));
@@ -49,7 +50,7 @@ describe('useFormAction', () => {
 
   it('should call onError when state.success is false', () => {
     const onError = vi.fn();
-    mockUseFormState.mockReturnValue([{ success: false, message: 'Error occurred' }, vi.fn()]);
+    mockUseActionState.mockReturnValue([{ success: false, message: 'Error occurred' }, vi.fn()]);
 
     const serverAction = vi.fn().mockResolvedValue({ success: false, message: 'Error' });
     renderHook(() => useFormAction(serverAction, { onError }));
@@ -57,25 +58,27 @@ describe('useFormAction', () => {
     expect(onError).toHaveBeenCalledWith('Error occurred');
   });
 
-  it('should reset form on success when resetOnSuccess is true', () => {
-    const mockReset = vi.fn();
-    mockUseFormState.mockReturnValue([{ success: true, message: 'Success!' }, vi.fn()]);
+  it('should reset form on success when resetOnSuccess is true and formRef exists', () => {
+    const resetSpy = vi.spyOn(HTMLFormElement.prototype, 'reset');
+    mockUseActionState.mockReturnValue([{ success: true, message: 'Success!' }, vi.fn()]);
 
     const serverAction = vi.fn().mockResolvedValue({ success: true, message: 'Ok' });
-    const { result } = renderHook(() => useFormAction(serverAction, { resetOnSuccess: true }));
 
-    // Simulate formRef being set
-    (result.current.formRef as any).current = { reset: mockReset };
+    function FormWithReset() {
+      const { formRef } = useFormAction(serverAction, { resetOnSuccess: true });
+      return <form ref={formRef} data-testid="test-form" />;
+    }
 
-    // Trigger effect re-run
-    const { rerender } = renderHook(() => useFormAction(serverAction, { resetOnSuccess: true }));
-    rerender();
+    render(<FormWithReset />);
+
+    expect(resetSpy).toHaveBeenCalled();
+    resetSpy.mockRestore();
   });
 
   it('should not call callbacks when message is empty', () => {
     const onSuccess = vi.fn();
     const onError = vi.fn();
-    mockUseFormState.mockReturnValue([{ success: false, message: '' }, vi.fn()]);
+    mockUseActionState.mockReturnValue([{ success: false, message: '' }, vi.fn()]);
 
     const serverAction = vi.fn().mockResolvedValue({ success: true, message: '' });
     renderHook(() => useFormAction(serverAction, { onSuccess, onError }));

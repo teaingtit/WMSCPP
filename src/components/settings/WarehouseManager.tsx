@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useRef, useEffect, useActionState } from 'react';
 import { createWarehouse, deleteWarehouse } from '@/actions/settings-actions';
 import { Save } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/submit-button';
@@ -14,9 +13,9 @@ const initialState = { success: false, message: '' };
 export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [createState, createAction] = useFormState(wrapFormAction(createWarehouse), initialState);
+  const [createState, createAction] = useActionState(wrapFormAction(createWarehouse), initialState);
 
-  const [deleteState, deleteAction] = useFormState(wrapFormAction(deleteWarehouse), initialState);
+  const [deleteState, deleteAction] = useActionState(wrapFormAction(deleteWarehouse), initialState);
 
   useEffect(() => {
     if (createState.message) {

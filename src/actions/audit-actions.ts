@@ -9,6 +9,9 @@ import { checkManagerRole } from '@/lib/auth-service';
 import { withAuth } from '@/lib/action-utils';
 import { RPC } from '@/lib/constants';
 
+/** Result of audit_items select with audit_sessions!inner(status) join. */
+type AuditItemWithSession = { id: string; session_id: string; audit_sessions: { status: string } };
+
 // --- Create Session ---
 const CreateAuditSchema = z.object({
   warehouseId: z.string().min(1),
@@ -105,10 +108,11 @@ export const createAuditSession = withAuth(
       } else {
         // --- FULL AUDIT (Snapshot All) ---
         // กรณีไม่ได้เลือกสินค้ามา (items = empty/null) ให้ดึงสินค้าทั้งหมดในคลังที่มี quantity > 0
+        // stocks has no warehouse_id — filter via locations join
         const { data: allStocks } = await supabase
           .from('stocks')
-          .select('product_id, location_id, quantity')
-          .eq('warehouse_id', whId)
+          .select('product_id, location_id, quantity, locations!inner(warehouse_id)')
+          .eq('locations.warehouse_id', whId)
           .gt('quantity', 0);
 
         if (allStocks) {
@@ -145,6 +149,7 @@ export async function getInventoryItems(warehouseId: string) {
   const whId = await getWarehouseId(supabase, warehouseId);
   if (!whId) return [];
 
+  // stocks has location_id; warehouse is on locations — filter via join
   const { data, error } = await supabase
     .from('stocks')
     .select(
@@ -155,7 +160,8 @@ export async function getInventoryItems(warehouseId: string) {
             location:locations!inner (id, code)
         `,
     )
-    .eq('warehouse_id', whId);
+    .eq('locations.warehouse_id', whId)
+    .gt('quantity', 0);
 
   if (error) {
     console.error('getInventoryItems Error:', error.message);
@@ -221,17 +227,19 @@ export async function updateAuditItemCount(itemId: string, qty: number) {
   }
 
   // ✅ Validate: Check if audit item exists and session is still OPEN
-  const { data: auditItem } = await supabase
+  const { data: auditItemData } = await supabase
     .from('audit_items')
     .select('id, session_id, audit_sessions!inner(status)')
     .eq('id', itemId)
     .single();
 
+  const auditItem = auditItemData as AuditItemWithSession | null;
+
   if (!auditItem) {
     return { success: false, message: 'ไม่พบรายการตรวจนับนี้' };
   }
 
-  const sessionStatus = (auditItem.audit_sessions as any)?.status;
+  const sessionStatus = auditItem.audit_sessions?.status;
   if (sessionStatus !== 'OPEN') {
     return { success: false, message: 'ไม่สามารถแก้ไขได้ รอบการนับนี้ปิดแล้ว' };
   }

@@ -1,21 +1,9 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, login } from './fixtures/auth';
 
 /**
  * Stock Transfer E2E Tests
  * Tests warehouse-to-warehouse transfer workflow
  */
-
-async function login(page: Page) {
-  await page.goto('/');
-  const testEmail = process.env.TEST_USER_EMAIL || 'test@example.com';
-  const testPassword = process.env.TEST_USER_PASSWORD || 'testpassword';
-  await page.fill('input[type="email"], input[name="email"]', testEmail);
-  await page.fill('input[type="password"], input[name="password"]', testPassword);
-  const submitButton = page.locator('button[type="submit"]');
-  await expect(submitButton).toBeVisible({ timeout: 10000 });
-  await submitButton.click();
-  await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
-}
 
 test.describe('Stock Transfer', () => {
   test.beforeEach(async ({ page }) => {

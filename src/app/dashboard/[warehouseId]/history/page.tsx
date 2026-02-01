@@ -14,25 +14,27 @@ export default async function HistoryPage({
   params,
   searchParams,
 }: {
-  params: { warehouseId: string };
-  searchParams: {
+  params: Promise<{ warehouseId: string }>;
+  searchParams: Promise<{
     mode?: string;
     q?: string;
     type?: string;
     startDate?: string;
     endDate?: string;
-  };
+  }>;
 }) {
-  const mode = (searchParams.mode === 'detailed' ? 'detailed' : 'simple') as HistoryMode;
+  const { warehouseId } = await params;
+  const resolved = await searchParams;
+  const mode = (resolved.mode === 'detailed' ? 'detailed' : 'simple') as HistoryMode;
 
   const filter: HistoryFilter = {};
-  if (searchParams.q) filter.search = searchParams.q;
-  if (searchParams.type) filter.type = searchParams.type;
-  if (searchParams.startDate) filter.startDate = searchParams.startDate;
-  if (searchParams.endDate) filter.endDate = searchParams.endDate;
+  if (resolved.q) filter.search = resolved.q;
+  if (resolved.type) filter.type = resolved.type;
+  if (resolved.startDate) filter.startDate = resolved.startDate;
+  if (resolved.endDate) filter.endDate = resolved.endDate;
 
   // Fetch data
-  const logs = await getHistory(params['warehouseId'], 100, mode, filter);
+  const logs = await getHistory(warehouseId, 100, mode, filter);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-10">
@@ -44,7 +46,7 @@ export default async function HistoryPage({
             ประวัติการทำรายการ (Audit Log)
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Warehouse: <span className="font-bold text-indigo-600">{params['warehouseId']}</span>
+            Warehouse: <span className="font-bold text-indigo-600">{warehouseId}</span>
           </p>
         </div>
         <div className="text-right">
@@ -63,7 +65,7 @@ export default async function HistoryPage({
         <TerminalLogView logs={logs} />
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto custom-scrollbar">
             <table data-stack="true" className="w-full text-sm text-left">
               <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase text-xs">
                 <tr>

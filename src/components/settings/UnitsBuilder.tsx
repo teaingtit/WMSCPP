@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Scale, Info } from 'lucide-react';
 
 interface UnitsBuilderProps {
@@ -11,24 +11,28 @@ interface UnitsBuilderProps {
 export default function UnitsBuilder({ onUnitsChange, initialUnits }: UnitsBuilderProps) {
   const [units, setUnits] = useState<string[]>([]);
   const [newUnit, setNewUnit] = useState('');
+  // Avoid sync loop: skip applying initialUnits when it came from our own onUnitsChange.
+  const lastPushedRef = useRef<string | null>(null);
 
-  // Init Data
+  // Init Data: only apply when initialUnits is from external source (e.g. category), not our own push.
   useEffect(() => {
-    if (initialUnits) {
-      try {
-        const parsed = JSON.parse(initialUnits);
-        if (Array.isArray(parsed)) {
-          setUnits(parsed);
-        }
-      } catch (e) {
-        console.error('Units Parse Error', e);
+    if (!initialUnits) return;
+    if (initialUnits === lastPushedRef.current) return; // came from our Effect2, skip to break loop
+    try {
+      const parsed = JSON.parse(initialUnits);
+      if (Array.isArray(parsed)) {
+        setUnits(parsed);
       }
+    } catch (e) {
+      console.error('Units Parse Error', e);
     }
   }, [initialUnits]);
 
   // Sync to Parent
   useEffect(() => {
-    onUnitsChange(JSON.stringify(units));
+    const str = JSON.stringify(units);
+    lastPushedRef.current = str;
+    onUnitsChange(str);
   }, [units, onUnitsChange]);
 
   const addUnit = () => {

@@ -4,8 +4,54 @@ import { createClient } from '@/lib/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
-import { withAuth } from '@/lib/action-utils';
+import { withAuth, WithAuthContext } from '@/lib/action-utils';
 import { RPC, TABLES } from '@/lib/constants';
+import type { StockRowWithJoins } from '@/types/inventory';
+
+/** Item shape accepted by preflightBulkTransfer (form payload or internal). */
+export interface PreflightTransferItem {
+  sourceStock?: { id: string };
+  stockId?: string;
+  stock_id?: string;
+  qty?: number;
+  transferQty?: number;
+  requested_qty?: number;
+  targetLocation?: { id: string } | null;
+  mode?: 'INTERNAL' | 'CROSS';
+}
+
+/** Form data for internal transfer submission. */
+interface TransferFormData {
+  warehouseId: string;
+  stockId: string;
+  targetLocationId?: string;
+  targetLot?: string;
+  targetCart?: string;
+  targetLevel?: string;
+  transferQty: number | string;
+}
+
+/** Form data for cross-warehouse transfer submission. */
+interface CrossTransferFormData {
+  sourceWarehouseId: string;
+  targetWarehouseId: string;
+  stockId: string;
+  targetLocationId?: string;
+  targetLot?: string;
+  targetCart?: string;
+  targetLevel?: string;
+  transferQty: number | string;
+}
+
+/** Single result item from preflightBulkTransfer validation. */
+export interface PreflightTransferResultItem {
+  ok: boolean;
+  reason?: string;
+  stockId?: string | null;
+  available?: number | undefined;
+  requested?: number;
+  targetLocation?: { id: string; code?: string; warehouse_id?: string } | null;
+}
 
 // Helper: สร้างรหัส Lxx-Pxx-Zxx (ใช้เป็น Fallback เท่านั้น)
 const pad2 = (n: string | number) => String(n).padStart(2, '0');
@@ -52,7 +98,10 @@ export async function searchStockForTransfer(warehouseId: string, query: string)
 }
 
 // --- Internal Transfer ---
-const submitTransferHandler = async (formData: any, { user, supabase }: any) => {
+const submitTransferHandler = async (
+  formData: TransferFormData,
+  { user, supabase }: WithAuthContext,
+) => {
   const {
     warehouseId,
     stockId,
@@ -73,6 +122,9 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
   let targetLocCode = ''; // เก็บ Code ไว้แสดงผล
 
   if (!targetLocId) {
+    if (!targetLot || !targetCart || !targetLevel) {
+      return { success: false, message: 'กรุณาระบุตำแหน่งปลายทาง' };
+    }
     const locData = generate3DCode(targetLot, targetCart, targetLevel);
     targetLocCode = locData.code;
     const { data: targetLoc } = await supabase
@@ -96,12 +148,13 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
   }
 
   // Get Source Info (ดึงมาเพื่อ Log และแสดงผล)
-  const { data: sourceStock } = await supabase
+  const { data: sourceStockData } = await supabase
     .from('stocks')
     .select('product_id, location_id, products!inner(name, sku, uom), locations!inner(code)')
     .eq('id', stockId)
     .single();
 
+  const sourceStock = sourceStockData as StockRowWithJoins | null;
   if (!sourceStock) throw new Error('ไม่พบสต็อกต้นทาง');
 
   // ✅ Check status restrictions before transfer
@@ -112,9 +165,14 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
     .eq('entity_id', stockId)
     .maybeSingle();
 
-  if (stockStatus) {
-    const effect = stockStatus.status_definitions.effect;
-    const statusName = stockStatus.status_definitions.name;
+  const statusDef = stockStatus?.status_definitions
+    ? Array.isArray(stockStatus.status_definitions)
+      ? stockStatus.status_definitions[0]
+      : stockStatus.status_definitions
+    : null;
+  if (statusDef) {
+    const effect = statusDef.effect;
+    const statusName = statusDef.name;
 
     // Block transfer if status prohibits transactions or is outbound-only
     if (
@@ -168,11 +226,11 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
     message: `ย้ายสินค้าสำเร็จ`,
     details: {
       type: 'TRANSFER',
-      productName: (sourceStock.products as any)?.name,
-      fromLocation: (sourceStock.locations as any)?.code,
+      productName: sourceStock.products?.name,
+      fromLocation: sourceStock.locations?.code,
       toLocation: targetLocCode,
       quantity: qty,
-      uom: (sourceStock.products as any)?.uom,
+      uom: sourceStock.products?.uom,
       timestamp: new Date().toISOString(),
     },
   };
@@ -181,7 +239,10 @@ const submitTransferHandler = async (formData: any, { user, supabase }: any) => 
 export const submitTransfer = withAuth(submitTransferHandler);
 
 // --- Cross Transfer ---
-const submitCrossTransferHandler = async (formData: any, { user, supabase }: any) => {
+const submitCrossTransferHandler = async (
+  formData: CrossTransferFormData,
+  { user, supabase }: WithAuthContext,
+) => {
   const {
     sourceWarehouseId,
     targetWarehouseId,
@@ -226,24 +287,29 @@ const submitCrossTransferHandler = async (formData: any, { user, supabase }: any
       .single();
     targetCode = loc?.code || '';
   } else {
+    if (!targetLot || !targetCart || !targetLevel) {
+      return { success: false, message: 'กรุณาระบุตำแหน่งปลายทาง' };
+    }
     const locData = generate3DCode(targetLot, targetCart, targetLevel);
     targetCode = locData.code;
   }
 
   // Get Source Info
-  const { data: sourceStock } = await supabase
+  const { data: sourceStockData } = await supabase
     .from('stocks')
     .select('product_id, location_id, quantity, products!inner(name, uom), locations!inner(code)')
     .eq('id', stockId)
     .single();
 
+  const sourceStock = sourceStockData as StockRowWithJoins | null;
   if (!sourceStock) throw new Error('Stock Source Not Found');
 
   // ✅ Validate: Check quantity before transfer
-  if (qty > (sourceStock as any).quantity) {
+  const sourceQty = sourceStock.quantity ?? 0;
+  if (qty > sourceQty) {
     return {
       success: false,
-      message: `จำนวนที่ต้องการ (${qty}) มากกว่าสินค้าคงเหลือ (${(sourceStock as any).quantity})`,
+      message: `จำนวนที่ต้องการ (${qty}) มากกว่าสินค้าคงเหลือ (${sourceQty})`,
     };
   }
 
@@ -280,12 +346,12 @@ const submitCrossTransferHandler = async (formData: any, { user, supabase }: any
     message: `ย้ายข้ามคลังสำเร็จ`,
     details: {
       type: 'CROSS_TRANSFER',
-      productName: (sourceStock.products as any)?.name,
-      fromLocation: `${(sourceStock.locations as any)?.code}`,
+      productName: sourceStock.products?.name,
+      fromLocation: `${sourceStock.locations?.code}`,
       toWarehouse: targetWh.name,
       toLocation: targetCode,
       quantity: qty,
-      uom: (sourceStock.products as any)?.uom,
+      uom: sourceStock.products?.uom,
       timestamp: new Date().toISOString(),
     },
   };
@@ -325,10 +391,10 @@ export async function submitBulkTransfer(items: any[]) {
 }
 
 // Preflight: validate items without committing. Returns per-item preview and overall summary.
-export async function preflightBulkTransfer(items: any[]) {
+export async function preflightBulkTransfer(items: PreflightTransferItem[]) {
   const supabase = await createClient();
 
-  const results: Array<any> = [];
+  const results: PreflightTransferResultItem[] = [];
 
   for (const item of items) {
     try {
@@ -341,7 +407,7 @@ export async function preflightBulkTransfer(items: any[]) {
       }
 
       // Fetch stock info
-      const { data: stock } = await supabase
+      const { data: stockData } = await supabase
         .from('stocks')
         .select(
           'id, quantity, products!inner(id, sku, name), locations!inner(id, code, warehouse_id)',
@@ -349,6 +415,7 @@ export async function preflightBulkTransfer(items: any[]) {
         .eq('id', stockId)
         .single();
 
+      const stock = stockData as StockRowWithJoins | null;
       if (!stock) {
         results.push({ ok: false, reason: 'Stock not found', stockId });
         continue;
@@ -369,7 +436,7 @@ export async function preflightBulkTransfer(items: any[]) {
         }
 
         // ✅ Validate: Prevent transfer to same location
-        const sourceLocationId = (stock.locations as any)?.id;
+        const sourceLocationId = stock.locations?.id;
         if (targetLoc && sourceLocationId === targetLoc.id) {
           results.push({
             ok: false,

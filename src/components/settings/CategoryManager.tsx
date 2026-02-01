@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useEffect, useActionState } from 'react';
 import { deleteCategory } from '@/actions/settings-actions';
 import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-actions';
 import {
@@ -23,11 +22,12 @@ import EditCategoryForm from './EditCategoryForm';
 import BulkSchemaEditor from './BulkSchemaEditor';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
 import { Button } from '@/components/ui/button';
+import type { FormSchemaField } from '@/types/settings';
 
 interface Category {
   id: string;
   name: string;
-  form_schema?: any;
+  form_schema?: FormSchemaField[];
 }
 
 const deleteCategoryWrapper = wrapFormAction(deleteCategory);
@@ -44,7 +44,7 @@ export default function CategoryManager({
   const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [deleteState, deleteAction] = useFormState(deleteCategoryWrapper, {
+  const [deleteState, deleteAction] = useActionState(deleteCategoryWrapper, {
     success: false,
     message: '',
   });
@@ -268,7 +268,7 @@ export default function CategoryManager({
       {/* Edit Category Modal */}
       {editingCategory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-dvh-90 overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800">
                 แก้ไขหมวดหมู่: {editingCategory.name}
@@ -294,7 +294,7 @@ export default function CategoryManager({
       {/* Bulk Edit Modal */}
       {showBulkEdit && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-dvh-90 overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex justify-between items-center">
               <h2 className="text-xl font-bold text-slate-800">แก้ไข Schema หลายหมวดหมู่</h2>
               <button

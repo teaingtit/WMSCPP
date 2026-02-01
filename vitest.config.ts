@@ -9,10 +9,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  cacheDir: 'node_modules/.vite',
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: 'test/setup.ts',
+    pool: 'threads',
     include: [
       'src/components/**/__tests__/**/*.test.*',
       'src/**/__tests__/**/*.test.*',
@@ -46,11 +48,11 @@ export default defineConfig({
         'src/lib/supabase/client.ts',
         'src/lib/supabase-browser.ts',
       ],
-      // Coverage thresholds - lines/statements/functions 80%, branches 70% (branch tests added, ~73% current)
+      // Coverage thresholds - 80% across all metrics
       thresholds: {
         lines: 80,
         functions: 80,
-        branches: 70,
+        branches: 80,
         statements: 80,
       },
     },

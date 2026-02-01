@@ -6,7 +6,12 @@ import { redirect } from 'next/navigation';
  * This page has been merged with the inventory page for a unified experience.
  * Users are automatically redirected to /dashboard/[warehouseId]/inventory
  */
-export default async function WarehouseOverview({ params }: { params: { warehouseId: string } }) {
+export default async function WarehouseOverview({
+  params,
+}: {
+  params: Promise<{ warehouseId: string }>;
+}) {
+  const { warehouseId } = await params;
   // Redirect to unified inventory/dashboard page
-  redirect(`/dashboard/${params.warehouseId}/inventory`);
+  redirect(`/dashboard/${warehouseId}/inventory`);
 }

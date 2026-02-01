@@ -155,6 +155,129 @@ describe('User Actions', () => {
       expect(result.length).toBeGreaterThan(0);
       expect(result[0].email).toBe('user1@example.com');
     });
+
+    it('should sort users with active first when is_active differs', async () => {
+      const mockUser = createMockUser();
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'admin' } }),
+      };
+
+      const mockUsers = [
+        {
+          id: 'inactive1',
+          email: 'inactive@example.com',
+          created_at: '2024-01-02',
+          last_sign_in_at: null,
+          user_metadata: {},
+        },
+        {
+          id: 'active1',
+          email: 'active@example.com',
+          created_at: '2024-01-01',
+          last_sign_in_at: '2024-01-02',
+          user_metadata: {},
+        },
+      ];
+
+      mockSupabaseAdmin.auth.admin.listUsers = vi.fn().mockResolvedValue({
+        data: { users: mockUsers },
+        error: null,
+      });
+
+      const mockRolesQuery = {
+        select: vi.fn().mockResolvedValue({
+          data: [
+            { user_id: 'inactive1', role: 'staff', allowed_warehouses: [], is_active: false },
+            { user_id: 'active1', role: 'staff', allowed_warehouses: [], is_active: true },
+          ],
+        }),
+      };
+
+      const mockProfilesQuery = {
+        select: vi.fn().mockResolvedValue({ data: [] }),
+      };
+
+      mockSupabase.from = vi.fn(() => mockRoleQuery);
+      mockSupabaseAdmin.from = vi.fn((table) => {
+        if (table === 'user_roles') return mockRolesQuery;
+        if (table === 'profiles') return mockProfilesQuery;
+        return mockRolesQuery;
+      });
+
+      const result = await getUsers();
+
+      expect(result.length).toBe(2);
+      expect(result[0].is_active).toBe(true);
+      expect(result[0].email).toBe('active@example.com');
+      expect(result[1].is_active).toBe(false);
+    });
+
+    it('should sort users by created_at when is_active is same', async () => {
+      const mockUser = createMockUser();
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'admin' } }),
+      };
+
+      const mockUsers = [
+        {
+          id: 'user1',
+          email: 'older@example.com',
+          created_at: '2024-01-01',
+          last_sign_in_at: null,
+          user_metadata: {},
+        },
+        {
+          id: 'user2',
+          email: 'newer@example.com',
+          created_at: '2024-01-03',
+          last_sign_in_at: null,
+          user_metadata: {},
+        },
+      ];
+
+      mockSupabaseAdmin.auth.admin.listUsers = vi.fn().mockResolvedValue({
+        data: { users: mockUsers },
+        error: null,
+      });
+
+      const mockRolesQuery = {
+        select: vi.fn().mockResolvedValue({
+          data: [
+            { user_id: 'user1', role: 'staff', allowed_warehouses: [], is_active: true },
+            { user_id: 'user2', role: 'staff', allowed_warehouses: [], is_active: true },
+          ],
+        }),
+      };
+
+      const mockProfilesQuery = {
+        select: vi.fn().mockResolvedValue({ data: [] }),
+      };
+
+      mockSupabase.from = vi.fn(() => mockRoleQuery);
+      mockSupabaseAdmin.from = vi.fn((table) => {
+        if (table === 'user_roles') return mockRolesQuery;
+        if (table === 'profiles') return mockProfilesQuery;
+        return mockRolesQuery;
+      });
+
+      const result = await getUsers();
+
+      expect(result.length).toBe(2);
+      expect(result[0].email).toBe('newer@example.com');
+      expect(result[1].email).toBe('older@example.com');
+    });
   });
 
   describe('createUser', () => {

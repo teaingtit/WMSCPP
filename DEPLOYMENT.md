@@ -18,6 +18,17 @@ This project is configured for **automated deployment** using a PowerShell scrip
 
 ---
 
+## ✅ Pre-Deploy Checklist
+
+Before running `.\deploy.ps1`:
+
+1. **Build passes:** `npm run build` completes successfully
+2. **SSH works:** `ssh home-server` connects (VPN on if required)
+3. **Server `.env` exists:** `/opt/wmscpp/.env` has production Supabase keys
+4. **No uncommitted secrets:** Ensure `.env` is in `.gitignore` (it is)
+
+---
+
 ## 🛠️ Automated Deployment
 
 We use a helper script `deploy.ps1` to handle everything.
@@ -25,23 +36,32 @@ We use a helper script `deploy.ps1` to handle everything.
 ### Usage
 
 ```powershell
+# Default: update (incremental build)
 .\deploy.ps1
+
+# Full: clean rebuild (no cache)
+.\deploy.ps1 full
 ```
+
+| Mode     | Use case                                                   |
+| -------- | ---------------------------------------------------------- |
+| `update` | Normal code updates; faster (reuses Docker cache).         |
+| `full`   | Clean rebuild; use after dependency or Dockerfile changes. |
 
 ### How it Works (Under the Hood)
 
-The script performs the following 6 atomic steps:
+The script performs the following 6 steps:
 
 1.  **Connection Test**: Pings the server via SSH to ensure connectivity.
 2.  **Packaging**: Creates a lightweight `project.tar.gz` archive.
-    - _Excludes_: `node_modules`, `.next`, `.git`, `.env.local` to keep uploads fast (~2MB).
+    - _Excludes_: `node_modules`, `.next`, `.git`, `.env`, `.env.local`, `coverage`, `*.log` to keep uploads fast (~2MB).
 3.  **Upload**: SCPs the archive to `/opt/wmscpp/`.
 4.  **Remote Execution**: Connects via SSH to:
     - Extract the new code.
     - Remove the archive.
-    - Run `docker compose up -d --build` to rebuild the container with the new code.
-5.  **Status Check**: Verifies the Docker container state is `running`.
-6.  **Health Check**: Pings `http://<server-ip>:3000/api/health` to confirm the app is responsive.
+    - Run `docker compose up -d --build` (in **full** mode: `docker compose build --no-cache` first).
+5.  **Status Check**: Verifies at least one container is running.
+6.  **Health Check**: Pings `http://100.96.9.50:3000/api/health` and expects JSON `{ "status": "healthy", "service": "WMSCPP", "version": "1.0.0" }`.
 
 ---
 
@@ -78,7 +98,16 @@ ssh home-server
 nano /opt/wmscpp/.env
 ```
 
-Paste your production variables (Supabase keys, Auth secrets, etc.).
+**Production `.env` template** (paste and fill in your values):
+
+```env
+# Supabase (required)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIs...
+```
+
+> **Note:** `NEXT_PUBLIC_*` values are baked in at Docker build time (see Dockerfile). If you use different Supabase projects per environment, update the Dockerfile `ENV` lines before deploying, or use Docker build args.
 
 ---
 
@@ -96,12 +125,12 @@ Paste your production variables (Supabase keys, Auth secrets, etc.).
 - **Cause:** Permission denied on `/opt/wmscpp`.
 - **Fix:** Run `sudo chown -R $USER:$USER /opt/wmscpp` on the server.
 
-#### ❌ "Container is running" but App is down
+#### ❌ "Container(s) running" but App is down
 
 - **Cause:** Runtime error (likely missing env vars).
 - **Fix:** Check container logs:
   ```powershell
-  ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
+  ssh home-server "cd /opt/wmscpp && docker compose logs -f"
   ```
 
 #### ❌ "Health Check Failed"
@@ -116,12 +145,12 @@ Paste your production variables (Supabase keys, Auth secrets, etc.).
 Useful shortcuts for managing the production instance:
 
 ```powershell
-# Live Logs
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml logs -f"
+# Live logs (from project dir on server)
+ssh home-server "cd /opt/wmscpp && docker compose logs -f"
 
-# Restart Container
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml restart"
+# Restart container
+ssh home-server "cd /opt/wmscpp && docker compose restart"
 
-# Stop System
-ssh home-server "docker compose -f /opt/wmscpp/docker-compose.yml down"
+# Stop system
+ssh home-server "cd /opt/wmscpp && docker compose down"
 ```

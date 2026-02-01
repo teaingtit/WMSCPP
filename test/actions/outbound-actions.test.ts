@@ -1,6 +1,10 @@
 // @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { searchStockForOutbound, submitOutbound } from '@/actions/outbound-actions';
+import {
+  searchStockForOutbound,
+  submitOutbound,
+  submitBulkOutbound,
+} from '@/actions/outbound-actions';
 import { createMockSupabaseClient, createMockUser } from '../utils/test-helpers';
 
 vi.mock('next/cache', () => ({
@@ -387,6 +391,25 @@ describe('Outbound Actions', () => {
       );
       expect(result.success).toBe(false);
       expect(result.message).toContain('จำนวนไม่ถูกต้อง');
+    });
+  });
+
+  describe('submitBulkOutbound', () => {
+    it('should call processBulkAction with items and submitOutbound', async () => {
+      const { processBulkAction } = await import('@/lib/action-utils');
+      vi.mocked(processBulkAction).mockResolvedValue({
+        success: true,
+        details: { success: 2, failed: 0 },
+      });
+
+      const items = [
+        { warehouseId: 'wh1', stockId: 's1', qty: 1 },
+        { warehouseId: 'wh1', stockId: 's2', qty: 2 },
+      ];
+      const result = await submitBulkOutbound(items);
+
+      expect(processBulkAction).toHaveBeenCalledWith(items, expect.any(Function));
+      expect(result.success).toBe(true);
     });
   });
 });

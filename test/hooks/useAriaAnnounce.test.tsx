@@ -51,4 +51,24 @@ describe('useAriaAnnounce', () => {
       });
     }).not.toThrow();
   });
+
+  it('should clear message after timeout', () => {
+    vi.useFakeTimers();
+    const region = document.createElement('div');
+    region.id = 'aria-live-announcements';
+    document.body.appendChild(region);
+
+    const { result } = renderHook(() => useAriaAnnounce());
+    act(() => {
+      result.current('Temporary message', 'polite');
+    });
+    expect(region.textContent).toBe('Temporary message');
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(region.textContent).toBe('');
+
+    document.body.removeChild(region);
+  });
 });

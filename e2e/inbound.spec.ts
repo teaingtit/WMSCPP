@@ -1,20 +1,9 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, login } from './fixtures/auth';
 
 /**
  * Inbound Stock E2E Tests
  * Tests the stock receiving workflow
  */
-
-// Helper to login before tests
-async function login(page: Page) {
-  await page.goto('/');
-  const testEmail = process.env.TEST_USER_EMAIL || 'test@example.com';
-  const testPassword = process.env.TEST_USER_PASSWORD || 'testpassword';
-  await page.fill('input[type="email"], input[name="email"]', testEmail);
-  await page.fill('input[type="password"], input[name="password"]', testPassword);
-  await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
-}
 
 test.describe('Inbound Stock', () => {
   test.beforeEach(async ({ page }) => {

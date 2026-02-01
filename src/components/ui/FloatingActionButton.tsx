@@ -58,8 +58,8 @@ export default function FloatingActionButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        // Base styles
-        'fixed right-5 bottom-24 md:bottom-8 z-40',
+        // Base styles - above BottomNav (3.5rem) + gap + safe area on mobile
+        'fixed right-5 bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-8 z-40',
         'w-14 h-14 rounded-2xl',
         'flex items-center justify-center',
         'text-white font-semibold',

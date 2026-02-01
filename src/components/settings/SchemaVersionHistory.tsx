@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getSchemaHistory,
   revertToVersion,
@@ -24,19 +24,44 @@ export default function SchemaVersionHistory({
   const [versions, setVersions] = useState<SchemaVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [reverting, setReverting] = useState<number | null>(null);
+  const mountedRef = useRef(true);
 
-  useEffect(() => {
-    loadHistory();
-  }, [categoryId]);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     setLoading(true);
     const result = await getSchemaHistory(categoryId);
+    if (!mountedRef.current) return;
     if (result.success) {
-      setVersions(result.data);
+      setVersions(result.data ?? []);
     }
+    if (!mountedRef.current) return;
     setLoading(false);
-  };
+  }, [categoryId]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getSchemaHistory(categoryId)
+      .then((result) => {
+        if (cancelled) return;
+        if (result.success) setVersions(result.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setVersions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId]);
 
   const handleRevert = async (version: number) => {
     if (
@@ -178,8 +203,8 @@ export default function SchemaVersionHistory({
                   จำนวนฟิลด์: {version.schema.length} ฟิลด์
                   {version.schema.length > 0 && (
                     <span className="ml-2">
-                      ({version.schema.filter((f: any) => f.scope === 'PRODUCT').length} PRODUCT,{' '}
-                      {version.schema.filter((f: any) => f.scope === 'LOT').length} LOT)
+                      ({version.schema.filter((f) => f.scope === 'PRODUCT').length} PRODUCT,{' '}
+                      {version.schema.filter((f) => f.scope === 'LOT').length} LOT)
                     </span>
                   )}
                 </div>

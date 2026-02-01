@@ -14,6 +14,7 @@ import {
   modifyCategoryUnits,
 } from '@/lib/action-utils';
 import { RPC, TABLES } from '@/lib/constants';
+import type { FormSchemaField } from '@/types/settings';
 
 // --- Zod Schemas ---
 const CreateWarehouseSchema = z.object({
@@ -110,8 +111,9 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
 
   // Build dynamic attributes from category schema
   const attributes: Record<string, any> = {};
-  if (category?.form_schema) {
-    (category.form_schema as any[]).forEach((field) => {
+  const formSchema = (category?.form_schema as FormSchemaField[] | undefined) ?? [];
+  if (formSchema.length) {
+    formSchema.forEach((field) => {
       const value = formData.get(field.key);
       if (value) attributes[field.key] = field.type === 'number' ? Number(value) : value;
     });
@@ -123,7 +125,7 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
     const { error } = await supabase.from(TABLES.PRODUCTS).insert({
       sku,
       name,
-      category_id: category_id || 'GENERAL',
+      category_id: category_id || null,
       uom: finalUom,
       image_url: image_url || null,
       attributes,
@@ -232,13 +234,14 @@ export async function createCategory(formData: FormData): Promise<ActionResponse
   const validation = validateFormData(CreateCategorySchema, rawData);
   if (!validation.success) return validation.response;
 
-  const { id, name, schema, units } = validation.data;
+  const { id: code, name, schema, units } = validation.data;
   const supabase = await createClient();
 
   try {
+    // product_categories.id is UUID (auto-generated). User-facing "ID" is stored as code.
     const { error } = await supabase.from(TABLES.PRODUCT_CATEGORIES).insert([
       {
-        id,
+        code,
         name,
         form_schema: JSON.parse(schema),
         units: JSON.parse(units),
@@ -246,7 +249,7 @@ export async function createCategory(formData: FormData): Promise<ActionResponse
     ]);
 
     if (error) {
-      const dupError = handleDuplicateError(error, 'ID', id);
+      const dupError = handleDuplicateError(error, 'ID', code);
       if (dupError) return dupError;
       throw error;
     }

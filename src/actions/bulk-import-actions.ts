@@ -227,6 +227,14 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
       };
     }
 
+    if (dataToUpsert.length === 0) {
+      return {
+        success: false,
+        message:
+          'ไม่พบข้อมูลในไฟล์ กรุณาตรวจสอบว่ามีแถวข้อมูล (อย่างน้อยแถวที่ 3 เป็นต้นไป) และคอลัมน์ SKU/Name ถูกต้อง',
+      };
+    }
+
     const { error } = await supabase.from(table).upsert(dataToUpsert, { onConflict: conflictKey });
     if (error) throw error;
 
@@ -252,11 +260,11 @@ export async function downloadInboundTemplate(warehouseId: string, categoryId: s
     else whQuery = whQuery.eq('code', warehouseId);
 
     const { data: wh, error: whError } = await whQuery.single();
-    const { data: cat, error: catError } = await supabase
-      .from('product_categories')
-      .select('*')
-      .eq('id', categoryId)
-      .single();
+    // Support both UUID and code for category (product_categories.id is UUID; code is optional)
+    let catQuery = supabase.from('product_categories').select('*');
+    if (isValidUUID(categoryId)) catQuery = catQuery.eq('id', categoryId);
+    else catQuery = catQuery.eq('code', categoryId);
+    const { data: cat, error: catError } = await catQuery.single();
 
     if (whError || catError || !wh || !cat)
       throw new Error('ไม่พบข้อมูลคลังสินค้าหรือหมวดหมู่สินค้า');
@@ -287,6 +295,7 @@ export async function importInboundStock(formData: FormData) {
   const userId = user.id;
 
   // Resolve Warehouse ID if it is a Code (แปลง Code เป็น UUID ถ้าจำเป็น)
+  const originalWarehouseId = warehouseId;
   const resolvedWhId = await getWarehouseId(supabase, warehouseId);
   if (!resolvedWhId) return { success: false, message: `ไม่พบคลังสินค้า: ${warehouseId}` };
   warehouseId = resolvedWhId;
@@ -328,14 +337,38 @@ export async function importInboundStock(formData: FormData) {
       return { success: false, message: 'ไม่พบข้อมูลสินค้าในไฟล์' };
     }
 
-    // 6. Batch Execution via RPC
-    const { error } = await supabase.rpc(RPC.PROCESS_INBOUND_BATCH, {
+    // 6. Batch Execution via RPC (function expects p_transactions, p_warehouse_id, p_user_id, p_user_email)
+    const { data: rpcData, error } = await supabase.rpc(RPC.PROCESS_INBOUND_BATCH, {
       p_transactions: transactions,
+      p_warehouse_id: warehouseId,
+      p_user_id: userId,
+      p_user_email: user?.email ?? null,
     });
 
     if (error) throw new Error(error.message);
+    if (rpcData && rpcData.success === false) {
+      const errCount = rpcData.error_count ?? 0;
+      const firstError = (Array.isArray(rpcData.results) ? rpcData.results[0] : undefined)?.error;
+      return {
+        success: false,
+        message:
+          errCount > 0
+            ? `การนำเข้าล้มเหลว ${errCount} รายการ${firstError ? `: ${firstError}` : ''}`
+            : 'การนำเข้าข้อมูลไม่สำเร็จ',
+        report: {
+          total: rpcData.total ?? transactions.length,
+          success: rpcData.success_count ?? 0,
+          failed: errCount,
+          errors: (rpcData.results ?? [])
+            .filter((r: any) => !r?.success && r?.error)
+            .map((r: any) => r.error)
+            .slice(0, 10),
+        },
+      };
+    }
 
     revalidatePath(`/dashboard/${warehouseId}/inventory`);
+    revalidatePath(`/dashboard/${originalWarehouseId}/inventory`);
     return {
       success: true,
       message: `นำเข้าสำเร็จทั้งหมด ${transactions.length} รายการ`,
@@ -557,7 +590,7 @@ function _processInboundRows(
   worksheet: Worksheet,
   headerMap: Map<string, number>,
   context: Awaited<ReturnType<typeof _prefetchInboundData>>,
-  params: { warehouseId: string; userId: string },
+  _params: { warehouseId: string; userId: string },
 ) {
   const transactions: any[] = [];
   const errors: string[] = [];
@@ -569,11 +602,7 @@ function _processInboundRows(
     if (result.error) {
       errors.push(result.error);
     } else if (result.txData) {
-      transactions.push({
-        ...result.txData,
-        p_warehouse_id: params['warehouseId'],
-        p_user_id: params.userId,
-      });
+      transactions.push(result.txData);
     }
   });
 
@@ -654,12 +683,10 @@ function _processInboundRow(
 
   return {
     txData: {
-      p_to_location_id: locId,
-      p_location_id: locId,
-      p_product_id: productId,
-      p_quantity: qty,
-      p_attributes: attributes,
-      p_user_email: 'Bulk Inbound',
+      product_id: productId,
+      location_id: locId,
+      quantity: qty,
+      attributes,
     },
   };
 }

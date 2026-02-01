@@ -1,8 +1,8 @@
 // components/auth/LoginForm.tsx
 'use client';
 
-import { useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { login } from '@/actions/auth-actions';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { notify } from '@/lib/ui-helpers';
@@ -27,7 +27,7 @@ const SubmitButton = () => {
 };
 
 export default function LoginForm() {
-  const [state, formAction] = useFormState(login, initialState);
+  const [state, formAction] = useActionState(login, initialState);
   // ✅ ใช้ useEffect ดักจับ state เพื่อแสดง Toast
   useEffect(() => {
     if (state?.message) {

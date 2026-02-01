@@ -79,6 +79,27 @@ describe('haptics', () => {
       result.current.pulse({ currentTarget: el } as React.MouseEvent<HTMLElement>);
       expect(el.classList.contains('animate-pulse-once')).toBe(true);
     });
+
+    it('should call triggerFeedback with shake type when shake is invoked', () => {
+      const el = document.createElement('div');
+      const { result } = renderHook(() => useHapticFeedback());
+      result.current.shake({ currentTarget: el } as React.MouseEvent<HTMLElement>);
+      expect(el.classList.contains('animate-shake')).toBe(true);
+    });
+
+    it('should call triggerFeedback with success type when success is invoked', () => {
+      const el = document.createElement('div');
+      const { result } = renderHook(() => useHapticFeedback());
+      result.current.success({ currentTarget: el } as React.MouseEvent<HTMLElement>);
+      expect(el.classList.contains('flash-success')).toBe(true);
+    });
+
+    it('should call triggerFeedback with error type when error is invoked', () => {
+      const el = document.createElement('div');
+      const { result } = renderHook(() => useHapticFeedback());
+      result.current.error({ currentTarget: el } as React.MouseEvent<HTMLElement>);
+      expect(el.classList.contains('flash-error')).toBe(true);
+    });
   });
 
   describe('useFeedbackRef', () => {

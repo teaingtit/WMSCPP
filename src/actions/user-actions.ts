@@ -127,6 +127,8 @@ export async function createUser(_prevState: any, formData: FormData) {
   }
 
   const warehouses = formData.getAll('warehouses') as string[];
+  // Keep user_metadata minimal (first_name, last_name, full_name only). Do NOT add allowed_warehouses
+  // or large arrays here — they live in user_roles only to avoid large JWT/session and Headers Overflow.
   const metaData = {
     first_name: firstName,
     last_name: lastName,

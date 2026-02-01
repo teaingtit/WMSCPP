@@ -6,6 +6,7 @@ import { ArrowRightLeft, Building2 } from 'lucide-react';
 import { getWarehouses } from '@/actions/warehouse-actions';
 import { useSearchParams } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import type { StockWithDetails, StockRowPrefill } from '@/types/inventory';
 
 // Import 2 Components ใหม่
 import TransferSourceSelector from '@/components/transfer/TransferSourceSelector';
@@ -16,11 +17,11 @@ export default function TransferPage() {
   const warehouseId = params['warehouseId'] as string;
 
   const [activeTab, setActiveTab] = useState<'INTERNAL' | 'CROSS'>('INTERNAL');
-  const [selectedStock, setSelectedStock] = useState<any>(null);
+  const [selectedStock, setSelectedStock] = useState<StockWithDetails | null>(null);
   const [warehouses, setWarehouses] = useState<any[]>([]);
   const searchParams = useSearchParams();
   const [importedCount, setImportedCount] = useState<number>(0);
-  const [prefilledStocks, setPrefilledStocks] = useState<any[] | null>(null);
+  const [prefilledStocks, setPrefilledStocks] = useState<StockWithDetails[] | null>(null);
   const [queuedFromSource, setQueuedFromSource] = useState<any[]>([]);
 
   // Track IDs of stocks already queued to filter from search results
@@ -31,7 +32,13 @@ export default function TransferPage() {
 
   // Fetch Warehouses for Cross Tab
   useEffect(() => {
-    getWarehouses().then((data) => setWarehouses(data.filter((w) => w.id !== warehouseId)));
+    let cancelled = false;
+    getWarehouses().then((data) => {
+      if (!cancelled) setWarehouses(data.filter((w) => w.id !== warehouseId));
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [warehouseId]);
 
   // If user comes with ?ids=... from inventory bulk action, load the first stock as selected
@@ -45,6 +52,7 @@ export default function TransferPage() {
     const ids = idsParam.split(',').filter(Boolean);
     if (ids.length === 0) return;
 
+    let cancelled = false;
     (async () => {
       try {
         const { data: stocks, error } = await supabaseBrowser
@@ -60,24 +68,31 @@ export default function TransferPage() {
           return;
         }
 
+        if (cancelled) return;
         if (stocks && stocks.length > 0) {
-          // Normalize join shape from Supabase into StockWithDetails-like object
-          const normalized = stocks.map((s: any) => {
-            const product = Array.isArray(s.products) ? s.products[0] : s.products || null;
-            const location = Array.isArray(s.locations) ? s.locations[0] : s.locations || null;
+          const raw = stocks as StockRowPrefill[];
+          const normalized: StockWithDetails[] = raw.map((s) => {
+            const product = Array.isArray(s.products) ? s.products[0] : s.products;
+            const location = Array.isArray(s.locations) ? s.locations[0] : s.locations;
+            const loc = location as
+              | { lot?: string | null; cart?: string | null; level?: string | null }
+              | undefined;
             return {
+              id: s.id!,
+              quantity: s.quantity ?? 0,
+              updated_at: '',
               ...s,
-              product,
-              location,
-              name: s.name || product?.name || product?.sku || '',
+              product: product as StockWithDetails['product'],
+              location: location as StockWithDetails['location'],
+              name: (s as { name?: string }).name || product?.name || product?.sku || '',
               sku: product?.sku,
-              lot: location?.lot ?? null,
-              cart: location?.cart ?? null,
-              level: location?.level ?? null,
-            } as any;
+              lot: loc?.lot ?? null,
+              cart: loc?.cart ?? null,
+              level: loc?.level ?? null,
+            } as StockWithDetails;
           });
 
-          setSelectedStock(normalized[0]);
+          setSelectedStock(normalized[0] ?? null);
           setImportedCount(normalized.length);
           setPrefilledStocks(normalized);
         }
@@ -85,10 +100,13 @@ export default function TransferPage() {
         console.error('Failed to prefill transfer:', err);
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams]);
 
   return (
-    <div className="max-w-5xl mx-auto pb-20">
+    <div className="max-w-5xl mx-auto pb-20 px-4 sm:px-6">
       {importedCount > 0 && (
         <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 font-medium">
           นำเข้าการเลือกจาก Inventory: <span className="font-black">{importedCount}</span> รายการ —

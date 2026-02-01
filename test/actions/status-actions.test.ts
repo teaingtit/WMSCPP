@@ -808,7 +808,104 @@ describe('Status Actions', () => {
     });
   });
 
+  describe('getLotStatus', () => {
+    it('should log error when DB request fails with non-PGRST116 code', async () => {
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: '500', message: 'Unknown DB Error' },
+        }),
+      };
+      mockSupabase.from = vi.fn(() => mockQuery);
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const result = await (await import('@/actions/status-actions')).getLotStatus('wh1', 'LOT001');
+
+      expect(result).toBeNull();
+      expect(consoleSpy).toHaveBeenCalledWith('Error fetching lot status:', expect.anything());
+      consoleSpy.mockRestore();
+    });
+  });
+
   describe('setLotStatus', () => {
+    it('should handle generic error during upsert', async () => {
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'admin' } }),
+      };
+
+      const mockUpsertQuery = {
+        upsert: vi.fn().mockResolvedValue({ error: { message: 'Upsert failed' } }),
+      };
+
+      let callCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'user_roles') return mockRoleQuery;
+        if (table === 'lot_statuses') return mockUpsertQuery;
+        return mockRoleQuery; // fallthrough
+      });
+
+      const formData = createMockFormData({
+        warehouse_id: '00000000-0000-0000-0000-000000000001',
+        lot: 'LOT001',
+        status_id: '00000000-0000-0000-0000-000000000002',
+        reason: 'Test',
+      });
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const result = await (await import('@/actions/status-actions')).setLotStatus(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Upsert failed');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle generic error during delete', async () => {
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'admin' } }),
+      };
+
+      const mockDeleteQuery = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        then: (resolve: any) => resolve({ error: { message: 'Delete failed' } }),
+        catch: vi.fn(),
+      } as any;
+
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'user_roles') return mockRoleQuery;
+        if (table === 'lot_statuses') return mockDeleteQuery;
+        return mockRoleQuery;
+      });
+
+      const formData = createMockFormData({
+        warehouse_id: '00000000-0000-0000-0000-000000000001',
+        lot: 'LOT001',
+        status_id: '',
+      });
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const result = await (await import('@/actions/status-actions')).setLotStatus(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Delete failed');
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
     it('should set lot status for admin user', async () => {
       mockSupabase.auth = {
         getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),

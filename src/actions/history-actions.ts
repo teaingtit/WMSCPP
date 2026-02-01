@@ -10,6 +10,7 @@ import {
   HistoryFilter,
 } from '@/types/history';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
+import type { FormSchemaField } from '@/types/settings';
 
 export { type HistoryMode };
 
@@ -32,9 +33,9 @@ export async function getHistory(
 
   const attributeLabelMap: Record<string, string> = {};
   if (categories) {
-    categories.forEach((cat: any) => {
+    categories.forEach((cat: { form_schema?: (FormSchemaField & { label?: string })[] }) => {
       if (Array.isArray(cat.form_schema)) {
-        cat.form_schema.forEach((field: any) => {
+        cat.form_schema.forEach((field) => {
           if (field.key && field.label) {
             attributeLabelMap[field.key] = field.label;
           }

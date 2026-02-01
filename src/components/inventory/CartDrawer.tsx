@@ -23,8 +23,8 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
         onClick={onClose}
       />
 
-      {/* Drawer Panel - Account for bottom nav height on mobile */}
-      <div className="relative w-full max-w-md bg-white shadow-2xl flex flex-col h-full pb-16 lg:pb-0 animate-in slide-in-from-right duration-300">
+      {/* Drawer Panel - Account for bottom nav + safe area on mobile */}
+      <div className="relative w-full max-w-md bg-white shadow-2xl flex flex-col h-full pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
           <div className="flex items-center gap-3">

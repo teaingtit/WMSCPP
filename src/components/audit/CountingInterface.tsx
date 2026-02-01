@@ -122,6 +122,7 @@ function AuditItemCard({
                 type="number"
                 inputMode="numeric"
                 name={`qty-${item.id}`}
+                data-testid={`qty-input-${item.id}`}
                 pattern="[0-9]*"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
@@ -136,6 +137,7 @@ function AuditItemCard({
               <button
                 onClick={handleSave}
                 disabled={isSaving}
+                data-testid={`save-qty-btn-${item.id}`}
                 className="bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 min-w-[48px] h-12 flex items-center justify-center shadow-md shadow-blue-200 active:scale-95 transition-transform"
               >
                 {isSaving ? (
@@ -152,6 +154,7 @@ function AuditItemCard({
               </div>
               <button
                 onClick={() => setIsEditing(true)}
+                data-testid={`edit-qty-btn-${item.id}`}
                 className="h-12 w-12 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
                 aria-label="แก้ไข"
               >
@@ -245,7 +248,11 @@ export default function CountingInterface({
               Dashboard
             </Button>
           </div>
-          <Progress value={progressPercent} className="h-2 [&>div]:bg-emerald-500 bg-slate-100" />
+          <Progress
+            value={progressPercent}
+            data-testid="progress-bar"
+            className="h-2 [&>div]:bg-emerald-500 bg-slate-100"
+          />
 
           <div className="flex flex-col sm:flex-row gap-3 pt-1">
             <div className="relative flex-grow">

@@ -6,9 +6,12 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
+/** Auth context passed to action handlers by withAuth wrapper. */
+export type WithAuthContext = { user: AppUser; supabase: SupabaseClient };
+
 type ActionHandler<TInput, TOutput> = (
   data: TInput,
-  ctx: { user: AppUser; supabase: SupabaseClient },
+  ctx: WithAuthContext,
 ) => Promise<ActionResponse<TOutput>>;
 
 // ============================================
@@ -275,7 +278,6 @@ export async function processBulkAction<T>(
     errors: [] as string[],
   };
 
-  // Simple chunked execution or parallel map
   const promises = items.map(async (item) => {
     try {
       const result = await action(item);

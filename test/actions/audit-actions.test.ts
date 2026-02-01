@@ -403,7 +403,8 @@ describe('Audit Actions', () => {
 
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: mockItems, error: null }),
+        eq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockResolvedValue({ data: mockItems, error: null }),
       };
       mockSupabase.from = vi.fn(() => mockQuery);
       const { getWarehouseId } = await import('@/lib/utils/db-helpers');
@@ -426,7 +427,8 @@ describe('Audit Actions', () => {
     it('should return empty array on error', async () => {
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: null, error: new Error('DB error') }),
+        eq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockResolvedValue({ data: null, error: new Error('DB error') }),
       };
       mockSupabase.from = vi.fn(() => mockQuery);
       const { getWarehouseId } = await import('@/lib/utils/db-helpers');
@@ -443,9 +445,10 @@ describe('Audit Actions', () => {
 
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
+        eq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
       };
-      mockSupabase.from = vi.fn().mockReturnValue(mockQuery);
+      mockSupabase.from = vi.fn(() => mockQuery);
 
       const result = await getInventoryItems('wh1');
 

@@ -89,7 +89,7 @@ export default function StockDetailModal({
         aria-modal="true"
         aria-labelledby="stock-detail-modal-title"
       >
-        <div className="bg-white w-full max-w-lg max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
+        <div className="bg-white w-full max-w-lg max-h-dvh-90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
           {/* Header */}
           <div
             className={`relative h-28 flex items-center justify-center overflow-hidden shrink-0 ${headerGradient}`}
