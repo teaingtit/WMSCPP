@@ -126,6 +126,45 @@ describe('Bulk Import Actions', () => {
   });
 
   describe('importMasterData', () => {
+    it('should reject when file is missing', async () => {
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const formData = createMockFormData({ categoryId: 'cat1' });
+
+      const result = await importMasterData(formData, 'category');
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('ไม่พบไฟล์');
+    });
+
+    it('should reject product import when category not found', async () => {
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+
+      const mockCategoryQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null }),
+      };
+      mockSupabase.from = vi.fn(() => mockCategoryQuery);
+
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const formData = createMockFormData({
+        file: file as any,
+        categoryId: 'nonexistent-cat',
+      });
+
+      const result = await importMasterData(formData, 'product');
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('not found');
+    });
+
     it('should import categories successfully', async () => {
       mockSupabase.auth = {
         getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
@@ -1236,6 +1275,140 @@ describe('Bulk Import Actions', () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('unexpected');
+    });
+
+    it('should return fail when RPC returns success false with error_count and firstError', async () => {
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+      const mockWorksheet = {
+        getRow: vi.fn(() => ({
+          eachCell: vi.fn((callback: (c: { text: string }, n: number) => void) => {
+            callback({ text: 'sku' }, 1);
+            callback({ text: 'qty' }, 2);
+            callback({ text: 'lot' }, 3);
+            callback({ text: 'cart' }, 4);
+            callback({ text: 'level' }, 5);
+          }),
+        })),
+        eachRow: vi.fn((callback: (row: any, rowNum: number) => void) => {
+          const row2 = {
+            getCell: vi.fn((col: number) => {
+              if (col === 1) return { text: 'SKU001', value: 'SKU001' };
+              if (col === 2) return { value: 10 };
+              if (col === 3) return { text: 'L01', value: 'L01' };
+              if (col === 4) return { text: 'P01', value: 'P01' };
+              if (col === 5) return { text: '1', value: 1 };
+              return { text: '', value: null };
+            }),
+          };
+          callback(row2, 2);
+        }),
+        rowCount: 2,
+      };
+      const { parseExcel } = await import('@/lib/utils/excel-utils');
+      vi.mocked(parseExcel).mockResolvedValue(mockWorksheet as any);
+
+      const mockProducts = [{ id: 'prod1', sku: 'SKU001' }];
+      const mockLocations = [
+        { id: 'loc1', code: 'L01-P01-1', lot: 'L01', cart: 'P01', level: '1' },
+      ];
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'products') return chainableBuilder({ data: mockProducts, error: null });
+        if (table === 'locations') return chainableBuilder({ data: mockLocations, error: null });
+        if (table === 'warehouses') return chainableBuilder({ data: {}, error: null });
+        if (table === 'product_categories')
+          return chainableBuilder({ data: { form_schema: [] }, error: null });
+        return chainableBuilder({ data: null, error: null });
+      });
+      mockSupabase.rpc = vi.fn().mockResolvedValue({
+        data: {
+          success: false,
+          error_count: 2,
+          results: [{ success: false, error: 'First RPC error' }],
+        },
+        error: null,
+      });
+
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const formData = createMockFormData({
+        file,
+        warehouseId: 'wh1',
+        categoryId: 'cat1',
+      });
+
+      const result = await importInboundStock(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('2');
+      expect(result.message).toContain('First RPC error');
+      expect(result.report?.failed).toBe(2);
+    });
+
+    it('should return fail when RPC returns success false with no error_count', async () => {
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+      const mockWorksheet = {
+        getRow: vi.fn(() => ({
+          eachCell: vi.fn((callback: (c: { text: string }, n: number) => void) => {
+            callback({ text: 'sku' }, 1);
+            callback({ text: 'qty' }, 2);
+            callback({ text: 'lot' }, 3);
+            callback({ text: 'cart' }, 4);
+            callback({ text: 'level' }, 5);
+          }),
+        })),
+        eachRow: vi.fn((callback: (row: any, rowNum: number) => void) => {
+          const row2 = {
+            getCell: vi.fn((col: number) => {
+              if (col === 1) return { text: 'SKU001', value: 'SKU001' };
+              if (col === 2) return { value: 10 };
+              if (col === 3) return { text: 'L01', value: 'L01' };
+              if (col === 4) return { text: 'P01', value: 'P01' };
+              if (col === 5) return { text: '1', value: 1 };
+              return { text: '', value: null };
+            }),
+          };
+          callback(row2, 2);
+        }),
+        rowCount: 2,
+      };
+      const { parseExcel } = await import('@/lib/utils/excel-utils');
+      vi.mocked(parseExcel).mockResolvedValue(mockWorksheet as any);
+
+      const mockProducts = [{ id: 'prod1', sku: 'SKU001' }];
+      const mockLocations = [
+        { id: 'loc1', code: 'L01-P01-1', lot: 'L01', cart: 'P01', level: '1' },
+      ];
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'products') return chainableBuilder({ data: mockProducts, error: null });
+        if (table === 'locations') return chainableBuilder({ data: mockLocations, error: null });
+        if (table === 'warehouses') return chainableBuilder({ data: {}, error: null });
+        if (table === 'product_categories')
+          return chainableBuilder({ data: { form_schema: [] }, error: null });
+        return chainableBuilder({ data: null, error: null });
+      });
+      mockSupabase.rpc = vi.fn().mockResolvedValue({
+        data: { success: false, error_count: 0 },
+        error: null,
+      });
+
+      const file = new File(['test'], 'test.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const formData = createMockFormData({
+        file,
+        warehouseId: 'wh1',
+        categoryId: 'cat1',
+      });
+
+      const result = await importInboundStock(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('การนำเข้าข้อมูลไม่สำเร็จ');
     });
 
     it('should parse inbound file with Thai headers (รหัสสินค้า, จำนวน, โซน, ตู้)', async () => {

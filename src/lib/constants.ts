@@ -95,6 +95,7 @@ export const RPC = {
   CREATE_WAREHOUSE_XYZ_GRID: 'create_warehouse_xyz_grid',
   GET_NEXT_SCHEMA_VERSION: 'get_next_schema_version',
   PROCESS_AUDIT_ADJUSTMENT: 'process_audit_adjustment',
+  GET_INVENTORY_BY_POSITIONS: 'get_inventory_by_positions',
 } as const;
 
 export const AUDIT_STATUS = {

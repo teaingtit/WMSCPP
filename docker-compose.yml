@@ -1,12 +1,13 @@
 services:
   wmscpp:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/teaingtit/wmscpp:latest
     container_name: wmscpp-app
     restart: unless-stopped
     ports:
       - '3000:3000'
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     env_file:
       - .env
     environment:

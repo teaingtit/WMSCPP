@@ -1,75 +1,40 @@
-# 🚀 Deployment Guide
+# Deployment Guide
 
-This project is configured for **automated deployment** using a PowerShell script that orchestrates the build and release process to a Linux server via Docker.
+This project uses **registry-based deployment**: build a Docker image locally, push to GitHub Container Registry (GHCR), then the server pulls and runs it. No source code or build step runs on the server.
 
-## 📋 Prerequisites
+## Prerequisites
 
-### Local Environment (Your Machine)
+### Local Environment
 
-- **PowerShell**: For running the automation script.
-- **SSH Client**: Configured and working.
-- **Tar**: For archiving the project (available in Git Bash or standard Windows 10+).
+- **PowerShell**: For running the deploy script
+- **Docker Desktop**: Installed and running (for build and push)
+- **SSH Client**: Configured for the target server
 
 ### Server Environment (`home-server`)
 
-- **Docker & Docker Compose**: Installed and running.
-- **Directory**: `/opt/wmscpp` created and writable by your user.
-- **Environment**: `.env` file must exist in `/opt/wmscpp/.env`.
+- **Docker & Docker Compose**: Installed and running
+- **Directory**: `/opt/wmscpp` created and writable
+- **Environment**: `.env` file at `/opt/wmscpp/.env` with production Supabase keys
 
 ---
 
-## ✅ Pre-Deploy Checklist
+## One-Time Setup
 
-Before running `.\deploy.ps1`:
+### 1. GHCR Authentication
 
-1. **Build passes:** `npm run build` completes successfully
-2. **SSH works:** `ssh home-server` connects (VPN on if required)
-3. **Server `.env` exists:** `/opt/wmscpp/.env` has production Supabase keys
-4. **No uncommitted secrets:** Ensure `.env` is in `.gitignore` (it is)
-
----
-
-## 🛠️ Automated Deployment
-
-We use a helper script `deploy.ps1` to handle everything.
-
-### Usage
+To push images to GitHub Container Registry, log in once:
 
 ```powershell
-# Default: update (incremental build)
-.\deploy.ps1
-
-# Full: clean rebuild (no cache)
-.\deploy.ps1 full
+docker login ghcr.io -u YOUR_GITHUB_USERNAME
 ```
 
-| Mode     | Use case                                                   |
-| -------- | ---------------------------------------------------------- |
-| `update` | Normal code updates; faster (reuses Docker cache).         |
-| `full`   | Clean rebuild; use after dependency or Dockerfile changes. |
+Use a GitHub **Personal Access Token** (classic) with scope: `read:packages`, `write:packages`.
 
-### How it Works (Under the Hood)
+Create a token: GitHub → Settings → Developer settings → Personal access tokens.
 
-The script performs the following 6 steps:
+### 2. SSH Config
 
-1.  **Connection Test**: Pings the server via SSH to ensure connectivity.
-2.  **Packaging**: Creates a lightweight `project.tar.gz` archive.
-    - _Excludes_: `node_modules`, `.next`, `.git`, `.env`, `.env.local`, `coverage`, `*.log` to keep uploads fast (~2MB).
-3.  **Upload**: SCPs the archive to `/opt/wmscpp/`.
-4.  **Remote Execution**: Connects via SSH to:
-    - Extract the new code.
-    - Remove the archive.
-    - Run `docker compose up -d --build` (in **full** mode: `docker compose build --no-cache` first).
-5.  **Status Check**: Verifies at least one container is running.
-6.  **Health Check**: Pings `http://100.96.9.50:3000/api/health` and expects JSON `{ "status": "healthy", "service": "WMSCPP", "version": "1.0.0" }`.
-
----
-
-## ⚡ One-Time Setup
-
-### 1. SSH Config
-
-Add this to your `~/.ssh/config` file to create the `home-server` alias:
+Add to `~/.ssh/config`:
 
 ```ssh-config
 Host home-server
@@ -80,77 +45,126 @@ Host home-server
     ServerAliveInterval 60
 ```
 
-### 2. Server Prep
+### 3. Server Prep
 
-Run these commands locally to prepare the remote directory:
-
-```bash
-ssh home-server "sudo mkdir -p /opt/wmscpp && sudo chown -R $USER:$USER /opt/wmscpp"
+```powershell
+ssh home-server "sudo mkdir -p /opt/wmscpp && sudo chown -R `$USER:`$USER /opt/wmscpp"
 ```
 
-### 3. Environment Secrets
+### 4. Server `.env`
 
-**CRITICAL:** You must manually create the `.env` file on the server. The deployment script _intentionally_ does not upload your local secrets for security.
-
-```bash
-# SSH into server and create .env
-ssh home-server
-nano /opt/wmscpp/.env
-```
-
-**Production `.env` template** (paste and fill in your values):
+Create `/opt/wmscpp/.env` on the server (not uploaded by the script):
 
 ```env
-# Supabase (required)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIs...
 ```
 
-> **Note:** `NEXT_PUBLIC_*` values are baked in at Docker build time (see Dockerfile). If you use different Supabase projects per environment, update the Dockerfile `ENV` lines before deploying, or use Docker build args.
-
 ---
 
-## 🐛 Troubleshooting
+## Deployment Flow
 
-### Common Failure Points
+```
+Local: docker build → docker push (ghcr.io)
+Server: docker compose pull → docker compose up -d
+```
 
-#### ❌ "SSH connection failed"
-
-- **Cause:** VPN is down, wrong IP, or SSH key permission issue.
-- **Fix:** Try `ssh home-server` manually. If that fails, the script will fail.
-
-#### ❌ "Upload failed"
-
-- **Cause:** Permission denied on `/opt/wmscpp`.
-- **Fix:** Run `sudo chown -R $USER:$USER /opt/wmscpp` on the server.
-
-#### ❌ "Container(s) running" but App is down
-
-- **Cause:** Runtime error (likely missing env vars).
-- **Fix:** Check container logs:
-  ```powershell
-  ssh home-server "cd /opt/wmscpp && docker compose logs -f"
-  ```
-
-#### ❌ "Health Check Failed"
-
-- **Cause:** The app started but is crashing or slow to initialize.
-- **Fix:** Wait 10s and check logs. If using Supabase, ensure the server can reach Supabase APIs.
-
----
-
-## 📊 Management Commands
-
-Useful shortcuts for managing the production instance:
+### Usage
 
 ```powershell
-# Live logs (from project dir on server)
+# Normal deploy (reuses Docker cache)
+.\deploy.ps1
+
+# Clean rebuild (no cache)
+.\deploy.ps1 full
+```
+
+| Mode     | Use case                                   |
+| -------- | ------------------------------------------ |
+| `update` | Regular deploys; faster (uses build cache) |
+| `full`   | After Dockerfile or dependency changes     |
+
+### Steps (automatic)
+
+1. **Verify Docker** – Ensure Docker is running locally
+2. **Build** – `docker build -t ghcr.io/teaingtit/wmscpp:latest .`
+3. **Push** – `docker push` to GHCR
+4. **SSH test** – Confirm connectivity to server
+5. **Deploy** – Upload `docker-compose.yml`, then `docker compose pull && up -d` on server
+6. **Status & health** – Verify container and `/api/health`
+
+---
+
+## Image Name
+
+Default: `ghcr.io/teaingtit/wmscpp:latest`
+
+Override with:
+
+```powershell
+$env:WMSCPP_IMAGE = "ghcr.io/your-org/wmscpp:v1.0"
+.\deploy.ps1
+```
+
+---
+
+## Database Migrations
+
+After deploying, run any new SQL migrations in Supabase:
+
+1. Open **Supabase Dashboard** → **SQL Editor**
+2. Run the contents of `database/inventory-position-pagination.sql` (for position-aware inventory pagination)
+
+Without this migration, inventory falls back to row-based pagination (items at the same position may appear on separate pages).
+
+---
+
+## Troubleshooting
+
+### "Docker push failed"
+
+- Run `docker login ghcr.io` and use a PAT with `write:packages`
+- Check repo visibility: public images can be pulled without login on the server
+
+### "SSH connection failed"
+
+- Ensure VPN is on if needed
+- Test: `ssh home-server`
+
+### Private repo / image
+
+If the image is private, on the server run:
+
+```bash
+docker login ghcr.io -u USERNAME
+```
+
+Use a PAT with `read:packages`.
+
+### "Container(s) running" but app is down
+
+Check logs:
+
+```powershell
+ssh home-server "cd /opt/wmscpp && docker compose logs -f"
+```
+
+### Health check fails
+
+Wait 10–15 seconds for startup. Confirm Supabase env vars in `.env` and that the server can reach Supabase APIs.
+
+---
+
+## Management Commands
+
+```powershell
+# Live logs
 ssh home-server "cd /opt/wmscpp && docker compose logs -f"
 
-# Restart container
+# Restart
 ssh home-server "cd /opt/wmscpp && docker compose restart"
 
-# Stop system
+# Stop
 ssh home-server "cd /opt/wmscpp && docker compose down"
 ```

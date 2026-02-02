@@ -7,6 +7,10 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
 
+vi.mock('@/lib/utils/db-helpers', () => ({
+  getWarehouseId: vi.fn(),
+}));
+
 describe('Dashboard Actions', () => {
   let mockSupabase: any;
 
@@ -189,6 +193,11 @@ describe('Dashboard Actions', () => {
   });
 
   describe('getDashboardStats', () => {
+    beforeEach(async () => {
+      const { getWarehouseId } = await import('@/lib/utils/db-helpers');
+      vi.mocked(getWarehouseId).mockResolvedValue('wh1');
+    });
+
     it('should fetch dashboard statistics', async () => {
       const mockWarehouse = { id: 'wh1' };
       const mockWarehouseQuery = {
@@ -258,20 +267,79 @@ describe('Dashboard Actions', () => {
       expect(result.recentLogs).toBeDefined();
     });
 
-    it('should return default values on error', async () => {
-      const mockWarehouseQuery = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null }),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
-      };
-      mockSupabase.from = vi.fn(() => mockWarehouseQuery);
+    it('should return default values when warehouse not found', async () => {
+      const { getWarehouseId } = await import('@/lib/utils/db-helpers');
+      vi.mocked(getWarehouseId).mockResolvedValue(null);
 
       const result = await getDashboardStats('INVALID');
 
       expect(result.totalItems).toBe(0);
       expect(result.totalQty).toBe(0);
       expect(result.todayTransactionCount).toBe(0);
+      expect(result.activeAudits).toEqual([]);
+      expect(result.recentLogs).toEqual([]);
+    });
+
+    it('should return default values on error', async () => {
+      const { getWarehouseId } = await import('@/lib/utils/db-helpers');
+      vi.mocked(getWarehouseId).mockRejectedValue(new Error('DB error'));
+
+      const result = await getDashboardStats('WH01');
+
+      expect(result.totalItems).toBe(0);
+      expect(result.totalQty).toBe(0);
+      expect(result.todayTransactionCount).toBe(0);
+    });
+
+    it('should return zero totals when stocks is empty', async () => {
+      const { getWarehouseId } = await import('@/lib/utils/db-helpers');
+      vi.mocked(getWarehouseId).mockResolvedValue('wh1');
+
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { id: 'wh1' } }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'wh1' } }),
+      };
+      const mockStocksQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: [] }),
+      };
+      const mockAuditsQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: [] }),
+      };
+      const mockTransactionsQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue({ data: [] }),
+      };
+      const mockCountQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockResolvedValue({ count: 0 }),
+      };
+      let callCount = 0;
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'stocks') return mockStocksQuery;
+        if (table === 'audit_sessions') return mockAuditsQuery;
+        if (table === 'transactions') {
+          callCount++;
+          return callCount === 1 ? mockTransactionsQuery : mockCountQuery;
+        }
+        return mockWarehouseQuery;
+      });
+
+      const result = await getDashboardStats('WH01');
+
+      expect(result.totalItems).toBe(0);
+      expect(result.totalQty).toBe(0);
+      expect(result.todayTransactionCount).toBe(0);
+      expect(result.activeAudits).toEqual([]);
+      expect(result.recentLogs).toEqual([]);
     });
   });
 });

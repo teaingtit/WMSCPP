@@ -1,15 +1,7 @@
 ---
-description: Run comprehensive quality checks (Types, Lint, Unit Tests)
+description: Run comprehensive quality checks (Types, Lint, Unit Tests, optional E2E)
 ---
 
-1. Run Type Checking
-   // turbo
-2. npx tsc --noEmit
-
-3. Run Linter
-   // turbo
-4. npm run lint
-
-5. Run Unit Tests
-   // turbo
-6. npm run test:unit
+1. **Type check + Lint:** `npm run check` (runs `tsc --noEmit` and `npm run lint`)
+2. **Unit tests:** `npm run test:unit` or `npm run test:unit:run`
+3. **E2E (optional):** `npm run test:e2e` or `.\run-e2e.ps1`

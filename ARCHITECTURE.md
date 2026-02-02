@@ -2,7 +2,7 @@
 
 ## Overview
 
-GemWMS is built on **Next.js 16** using the **App Router** pattern. It leverages **Server Server Components (RSC)** for data fetching and **Server Actions** for mutations, minimizing client-side JavaScript.
+GemWMS is built on **Next.js 16** using the **App Router** pattern. It leverages **Server Components (RSC)** for data fetching and **Server Actions** for mutations, minimizing client-side JavaScript.
 
 ## Core Patterns
 
@@ -39,12 +39,18 @@ src/
 │   ├── db/         # Database helpers (Pool, etc.)
 │   └── supabase/   # Supabase client instantiation
 └── types/          # TypeScript interfaces/types
+
+e2e/                # Playwright E2E tests
+integration/        # Integration tests (playwright.integration.config.ts)
+test/               # Vitest unit tests (actions, utils, components)
+database/           # Schema (schema.sql), functions (functions.sql), migrations
 ```
 
 ## Testing Strategy
 
-- **Unit Tests (Vitest):** Focus on Server Actions, Utility functions, and complex logic free of UI.
-- **E2E Tests (Playwright):** Test critical user flows (Login -> Inbound -> Outbound).
+- **Unit Tests (Vitest):** In `test/`. Focus on Server Actions, utility functions, and complex logic. Run with `npm run test:unit` or `npm run test:unit:run`.
+- **E2E Tests (Playwright):** In `e2e/`. Test critical user flows (auth, inbound, outbound, transfer, audit, mobile). Run with `npm run test:e2e` or `.\run-e2e.ps1`.
+- **Integration Tests:** In `integration/`. Run with `npm run test:integration`.
 
 ## Key Design Decisions
 

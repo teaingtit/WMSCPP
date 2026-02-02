@@ -1187,13 +1187,120 @@ describe('History Actions', () => {
         return mockWarehouseQuery;
       });
 
-      // The client-side filter in history-actions.ts should filter logs by changer email
+      // The client-side filter in history-actions.ts should filter logs by changer email/name
       const result = await getHistory('WH01', 100, 'detailed', { search: 'admin' });
 
       // All SYSTEM entries should have "admin" in their user field
       const systemEntries = result.filter((e) => e.category === 'SYSTEM');
       expect(systemEntries.length).toBe(1);
       expect(systemEntries[0].user).toContain('admin');
+    });
+
+    it('should prefer changer email for user field when present', async () => {
+      const mockWarehouse = { id: 'wh1' };
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+      };
+
+      const mockCategoriesQuery = {
+        select: vi.fn().mockResolvedValue({ data: [] }),
+      };
+
+      const createTransactionsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.eq = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: [], error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        return query;
+      };
+
+      const mockLocations = [{ id: 'loc1' }];
+      const mockLocationQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ data: mockLocations }),
+      };
+
+      const mockStatusLogs = [
+        {
+          id: 'log1',
+          entity_type: 'LOCATION',
+          entity_id: 'loc1',
+          changed_at: '2024-01-01T00:00:00Z',
+          reason: 'Status change',
+          changer: {
+            id: 'user-uuid',
+            email: 'audit@example.com',
+            first_name: 'Audit',
+            last_name: 'User',
+            full_name: 'Audit User',
+          },
+          from_status: { name: 'Available' },
+          to_status: { name: 'Reserved' },
+        },
+      ];
+
+      const createStatusLogsQuery = () => {
+        const query: any = {};
+        query.select = vi.fn(function () {
+          return query;
+        });
+        query.in = vi.fn(function () {
+          return query;
+        });
+        query.order = vi.fn(function () {
+          return query;
+        });
+        query.limit = vi.fn(function () {
+          return query;
+        });
+        const promise = Promise.resolve({ data: mockStatusLogs, error: null });
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
+        return query;
+      };
+
+      const mockLocationDetailsQuery = {
+        select: vi.fn().mockReturnThis(),
+        in: vi.fn().mockResolvedValue({ data: [{ id: 'loc1', code: 'L01' }] }),
+      };
+
+      let locCallCount = 0;
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        if (table === 'transactions') return createTransactionsQuery();
+        if (table === 'locations') {
+          locCallCount++;
+          if (locCallCount === 1) return mockLocationQuery;
+          return mockLocationDetailsQuery;
+        }
+        if (table === 'status_change_logs') return createStatusLogsQuery();
+        return mockWarehouseQuery;
+      });
+
+      const result = await getHistory('WH01', 100, 'detailed');
+
+      const systemEntries = result.filter((e) => e.category === 'SYSTEM');
+      expect(systemEntries.length).toBe(1);
+      expect(systemEntries[0].user).toBe('audit@example.com');
     });
   });
 });

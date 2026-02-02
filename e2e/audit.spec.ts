@@ -129,8 +129,8 @@ test.describe('Stock Audit', () => {
       const helpers = new AuditHelpers(page);
       await helpers.createAndNavigate();
 
-      // Should show OPEN status
-      await expect(page.locator('text=OPEN')).toBeVisible();
+      // Should show OPEN status (page may have multiple OPEN badges; assert at least one visible)
+      await expect(page.getByText('OPEN').first()).toBeVisible();
     });
 
     test('should display counting mode button', async ({ page }) => {

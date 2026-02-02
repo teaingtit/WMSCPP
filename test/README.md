@@ -14,12 +14,19 @@ test/
 │   ├── warehouse-actions.test.ts
 │   ├── audit-actions.test.ts
 │   ├── bulk-import-actions.test.ts
-│   ├── export-actions.test.ts
+│   ├── bulk-import-validation.test.ts
+│   ├── bulk-schema-actions.test.ts
 │   ├── dashboard-actions.test.ts
+│   ├── export-actions.test.ts
 │   ├── history-actions.test.ts
+│   ├── product-search-actions.test.ts
+│   ├── schema-version-actions.test.ts
 │   ├── settings-actions.test.ts
 │   ├── status-actions.test.ts
-│   └── user-actions.test.ts
+│   ├── user-actions.test.ts
+│   └── (inventory-actions: covered via inventory page / e2e as needed)
+├── database/
+│   └── database.test.ts  # DB helpers / queries
 ├── utils/
 │   └── test-helpers.ts   # Test utilities and mocks
 ├── setup.ts              # Test setup configuration
@@ -117,6 +124,20 @@ test/
 - ✅ Warehouse validation
 - ✅ Error handling
 
+### Product Search (`product-search-actions.test.ts`)
+
+- ✅ Search products by query
+- ✅ Warehouse and category filtering
+
+### Schema Version (`schema-version-actions.test.ts`)
+
+- ✅ Get next schema version
+- ✅ Schema version handling for categories
+
+### Bulk Schema (`bulk-schema-actions.test.ts`)
+
+- ✅ Bulk schema operations and validation
+
 ### Settings (`settings-actions.test.ts`)
 
 - ✅ Get warehouses, categories, products
@@ -150,6 +171,10 @@ test/
 - ✅ Permission validation
 - ✅ Self-deletion prevention
 
+### Database (`database/database.test.ts`)
+
+- ✅ DB helpers and query behavior (as applicable)
+
 ## Running Tests
 
 ```bash
@@ -162,7 +187,10 @@ npm run test:unit -- --watch
 # Run tests with coverage
 npm run test:unit:coverage
 
-# Run specific test file
+# Run specific test file (single run)
+npm run test:unit:run -- test/actions/auth-actions.test.ts
+
+# Run in watch mode
 npm run test:unit -- test/actions/auth-actions.test.ts
 ```
 

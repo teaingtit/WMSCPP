@@ -120,7 +120,8 @@ export const StockPositionGroup = React.memo(function StockPositionGroup({
       {/* Loop แสดง Level */}
       <div className="pl-2 md:pl-6 space-y-2">
         {sortedLevels.map((lvl) => {
-          const isCollapsed = collapsedLevels[lvl];
+          // Default: collapsed (closed) to avoid confusion; undefined = collapsed
+          const isCollapsed = collapsedLevels[lvl] !== false;
           const lvlItems = itemsByLevel[lvl] || [];
           const isLevelSelected =
             lvlItems.length > 0 && lvlItems.every((item) => selectedIds.has(item.id));

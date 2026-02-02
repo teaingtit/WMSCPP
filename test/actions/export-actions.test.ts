@@ -336,5 +336,47 @@ describe('Export Actions', () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain('ไม่พบสินค้า');
     });
+
+    it('should export when stock has no locations or attributes (branch coverage)', async () => {
+      const mockWarehouse = { id: 'wh1' };
+      const mockStocks = [
+        {
+          quantity: 5,
+          attributes: null,
+          updated_at: null,
+          products: {
+            sku: 'S1',
+            name: 'N1',
+            uom: 'PCS',
+            category_id: 'cat1',
+            attributes: null,
+          },
+          locations: null,
+        },
+      ];
+      const mockWarehouseQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockWarehouse }),
+      };
+      const mockStocksQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: mockStocks, error: null }),
+      };
+      const mockCategoriesQuery = { select: vi.fn().mockResolvedValue({ data: [] }) };
+      mockSupabase.from = vi.fn((table) => {
+        if (table === 'warehouses') return mockWarehouseQuery;
+        if (table === 'stocks') return mockStocksQuery;
+        if (table === 'product_categories') return mockCategoriesQuery;
+        return mockWarehouseQuery;
+      });
+
+      const result = await exportInventoryToExcel('WH01');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+    });
   });
 });

@@ -5,6 +5,13 @@ import path from 'path';
 // Read from .env file
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
+/**
+ * E2E_USE_PRODUCTION=1: ใช้ production build + start แทน dev server เพื่อลด RAM
+ * (next dev ใช้ ~1–2 GB; next start ใช้ ~200–400 MB)
+ * ใช้เมื่อรัน e2e แล้วแรมไม่พอ: npm run test:e2e:low-memory
+ */
+const useProductionServer = process.env.E2E_USE_PRODUCTION === '1';
+
 export default defineConfig({
   testDir: 'e2e',
   /* Temporarily disabled global setup - seeding happens in fixture */
@@ -27,12 +34,16 @@ export default defineConfig({
     trace: 'on-first-retry',
     /* Screenshot on failure */
     screenshot: 'only-on-failure',
+    /* ลดการใช้ RAM ของ Chromium (headless) */
+    launchOptions: {
+      args: ['--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
+    },
   },
   webServer: {
-    command: 'npm run dev',
+    command: useProductionServer ? 'npm run build && npm run start' : 'npm run dev',
     url: 'http://localhost:3006',
     reuseExistingServer: true,
-    timeout: 120 * 1000,
+    timeout: useProductionServer ? 360 * 1000 : 120 * 1000,
   },
   projects: [
     {

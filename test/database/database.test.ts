@@ -79,8 +79,16 @@ describe('database contract', () => {
   describe('RPC', () => {
     it('should have all public RPC names from functions.sql that the app calls', () => {
       const fnPath = path.join(DATABASE_DIR, 'functions.sql');
-      const content = fs.readFileSync(fnPath, 'utf-8');
-      const allDbRpcs = extractPublicRpcNamesFromFunctions(content);
+      let content = fs.readFileSync(fnPath, 'utf-8');
+      let allDbRpcs = extractPublicRpcNamesFromFunctions(content);
+
+      // Also include RPCs from other SQL files (e.g. inventory-position-pagination.sql)
+      const paginationPath = path.join(DATABASE_DIR, 'inventory-position-pagination.sql');
+      if (fs.existsSync(paginationPath)) {
+        const paginationContent = fs.readFileSync(paginationPath, 'utf-8');
+        const fromPagination = extractPublicRpcNamesFromFunctions(paginationContent);
+        allDbRpcs = [...new Set([...allDbRpcs, ...fromPagination])].sort();
+      }
 
       const appRpcValues = Object.values(RPC) as string[];
       const appRpcs = [...new Set(appRpcValues)].sort();
@@ -99,6 +107,7 @@ describe('database contract', () => {
         'create_warehouse_xyz_grid',
         'get_next_schema_version',
         'process_audit_adjustment',
+        'get_inventory_by_positions',
       ].sort();
       expect(appRpcs).toEqual(expectedAppRpcs);
     });

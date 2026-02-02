@@ -23,9 +23,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* Main Content - Mobile-First padding for bottom nav */}
         <main
           id="main-content"
-          className="flex-1 overflow-auto relative w-full custom-scrollbar pb-20 md:pb-0"
+          className="flex flex-1 flex-col overflow-auto relative w-full custom-scrollbar pb-20 md:pb-0"
         >
-          <div className="min-h-full w-full">{children}</div>
+          <div className="flex-1 min-h-0 w-full">{children}</div>
         </main>
 
         {/* Mobile Bottom Navigation */}

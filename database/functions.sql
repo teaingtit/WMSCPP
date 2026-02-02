@@ -528,12 +528,13 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Create profile
-    INSERT INTO profiles (id, first_name, last_name)
+    -- Create profile (email synced from auth.users for audit/traceability)
+    INSERT INTO profiles (id, first_name, last_name, email)
     VALUES (
         NEW.id,
         COALESCE(NEW.raw_user_meta_data->>'first_name', ''),
-        COALESCE(NEW.raw_user_meta_data->>'last_name', '')
+        COALESCE(NEW.raw_user_meta_data->>'last_name', ''),
+        COALESCE(NEW.email, '')
     );
 
     -- Create user role (default staff)

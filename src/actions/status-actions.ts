@@ -294,7 +294,7 @@ export async function deleteStatusDefinition(formData: FormData): Promise<Action
 // ENTITY STATUS ACTIONS
 // ============================================
 
-const entityStatusSelect = `*, status:status_definitions(*), applied_by_user:profiles!applied_by(id, email, first_name, last_name)`;
+const entityStatusSelect = `*, status:status_definitions(*), applied_by_user:profiles!applied_by(id, email, first_name, last_name, full_name)`;
 const entityStatusSelectSimple = `*, status:status_definitions(*)`;
 
 /** Get status for an entity */
@@ -625,6 +625,8 @@ export async function getEntityNotes(entityType: StatusEntityType, entityId: str
   return data;
 }
 
+const statusChangeHistorySelect = `*, from_status:status_definitions!from_status_id(name, code, color), to_status:status_definitions!to_status_id(name, code, color), changed_by_user:profiles!changed_by(id, email, first_name, last_name, full_name)`;
+
 /** Fetch status change history */
 export async function getStatusChangeHistory(
   entityType: StatusEntityType,
@@ -633,9 +635,10 @@ export async function getStatusChangeHistory(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from(TABLES.STATUS_CHANGE_LOGS)
-    .select('*')
+    .select(statusChangeHistorySelect)
     .eq('entity_type', entityType)
-    .eq('entity_id', entityId);
+    .eq('entity_id', entityId)
+    .order('changed_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching status change history:', error);

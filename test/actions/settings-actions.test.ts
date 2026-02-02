@@ -110,6 +110,19 @@ describe('Settings Actions', () => {
 
       expect(result).toEqual(mockProducts);
     });
+
+    it('should return empty array when data is null', async () => {
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: null }),
+      };
+      mockSupabase.from = vi.fn(() => mockQuery);
+
+      const result = await getProducts();
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('createProduct', () => {
@@ -319,6 +332,85 @@ describe('Settings Actions', () => {
       );
       expect(result.success).toBe(true);
     });
+
+    it('should return fail when insert returns non-duplicate error', async () => {
+      const mockInsertQuery = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: '500', message: 'Constraint violation' },
+        }),
+      };
+      mockSupabase.from = vi.fn(() => mockInsertQuery);
+
+      const formData = createMockFormData({
+        code: 'WH01',
+        name: 'Warehouse 1',
+        axis_x: '5',
+        axis_y: '5',
+        axis_z: '3',
+      });
+
+      const result = await createWarehouse(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Constraint violation');
+    });
+
+    it('should return fail when insert succeeds but warehouse id is missing', async () => {
+      const mockInsertQuery = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: {},
+          error: null,
+        }),
+      };
+      mockSupabase.from = vi.fn(() => mockInsertQuery);
+
+      const formData = createMockFormData({
+        code: 'WH01',
+        name: 'Warehouse 1',
+        axis_x: '5',
+        axis_y: '5',
+        axis_z: '3',
+      });
+
+      const result = await createWarehouse(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('สร้างคลังสินค้าไม่สำเร็จ');
+    });
+
+    it('should return fail when RPC returns success false', async () => {
+      const mockInsertQuery = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: 'wh-123' },
+          error: null,
+        }),
+      };
+      mockSupabase.from = vi.fn(() => mockInsertQuery);
+      mockSupabase.rpc = vi.fn().mockResolvedValue({
+        data: { success: false, error: 'Grid creation failed' },
+        error: null,
+      });
+
+      const formData = createMockFormData({
+        code: 'WH01',
+        name: 'Warehouse 1',
+        axis_x: '5',
+        axis_y: '5',
+        axis_z: '3',
+      });
+
+      const result = await createWarehouse(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Grid creation failed');
+    });
   });
 
   describe('createCategory', () => {
@@ -402,6 +494,24 @@ describe('Settings Actions', () => {
       const result = await updateCategoryUnits(formData);
 
       expect(result.success).toBe(true);
+    });
+
+    it('should return fail when update returns error', async () => {
+      const mockQuery = {
+        update: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockResolvedValue({ error: { message: 'Update failed' } }),
+      };
+      mockSupabase.from = vi.fn(() => mockQuery);
+
+      const formData = createMockFormData({
+        id: 'cat1',
+        units: '["PCS", "BOX"]',
+      });
+
+      const result = await updateCategoryUnits(formData);
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('Update failed');
     });
   });
 

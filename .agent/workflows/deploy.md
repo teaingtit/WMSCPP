@@ -16,7 +16,7 @@ From the project root in PowerShell:
 .\deploy.ps1 full
 ```
 
-The script: tests SSH, creates an archive (excluding `node_modules`, `.next`, `.git`, `.env`, etc.), uploads to `/opt/wmscpp`, extracts, runs `docker compose up -d --build`, and checks container + health endpoint. See [DEPLOYMENT.md](../../DEPLOYMENT.md) for details.
+The script uses **registry-based deployment**: builds the Docker image locally, pushes to GitHub Container Registry (GHCR), then on the server runs `docker compose pull && docker compose up -d`. No source code or build runs on the server. See [DEPLOYMENT.md](../../DEPLOYMENT.md) for prerequisites (Docker, SSH config, server `.env`, GHCR login).
 
 ---
 
@@ -113,81 +113,25 @@ docker compose down
    cd /opt/wmscpp
    ```
 
-3. **เตรียมไฟล์ Environment (.env) บน Server:**
-
-   ```bash
-   nano .env
-   ```
-
-   ใส่ข้อมูลจาก `.env.local` ของคุณ และเปลี่ยน `NEXT_PUBLIC_APP_URL`:
+3. **เตรียมไฟล์ Environment (.env) บน Server** (สร้างที่ `/opt/wmscpp/.env` — script ไม่ upload ไฟล์นี้):
 
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   DATABASE_URL=your-database-url
-
-   # Google AI
-   GOOGLE_API_KEY=your-google-api-key
-
-   # App URL (use your domain or server IP)
-   NEXT_PUBLIC_APP_URL=http://100.96.9.50:3000
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIs...
    ```
 
-### Step 2: Transfer Files to Server (จากเครื่อง Local)
+### Step 2: Deploy on server (registry-based)
 
-// turbo
-
-1. **บีบอัดไฟล์ (ยกเว้นโฟลเดอร์ที่ไม่จำเป็น):**
-
-   ```powershell
-   tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
-   ```
-
-2. **ส่งไฟล์ไปที่ Server:**
-
-```powershell
-scp project.tar.gz home-server:/opt/wmscpp/
-```
-
-3. **แตกไฟล์บน Server (รันผ่าน SSH):**
-
-   ```bash
-   ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz"
-   ```
-
-   หรือแบบแยกคำสั่ง:
-
-   ```bash
-   ssh home-server
-   cd /opt/wmscpp
-   tar -xvzf project.tar.gz
-   rm project.tar.gz
-   ```
-
-### Step 3: Build and Start (รันบน Server)
+The deploy script uploads `docker-compose.yml` to the server and runs:
 
 ```bash
-ssh home-server "cd /opt/wmscpp && docker compose up -d --build"
+docker compose pull && docker compose up -d
 ```
 
-หรือแบบ interactive:
+No tar/archive transfer. The server pulls the image from GHCR (`ghcr.io/teaingtit/wmscpp:latest` by default).
 
-```bash
-ssh home-server
-cd /opt/wmscpp
-
-# Build และ Start
-docker compose up -d --build
-
-# ดูสถานะ
-docker compose ps
-
-# ดู Logs
-docker compose logs -f wmscpp
-```
-
-### Step 4: Verify Deployment
+### Step 3: Verify deployment
 
 เปิด Browser ไปที่: `http://100.96.9.50:3000`
 
@@ -199,27 +143,9 @@ curl http://100.96.9.50:3000/api/health
 
 ---
 
-## Updating the Application (อัปเดตแอป)
+## Updating the application (อัปเดตแอป)
 
-เมื่อมีการแก้ไขโค้ดและต้องการอัปเดต:
-
-1. **บีบอัดไฟล์ใหม่:**
-
-   ```powershell
-   tar --exclude='node_modules' --exclude='.next' --exclude='.git' -cvzf project.tar.gz .
-   ```
-
-2. **ส่งไฟล์ใหม่:**
-
-```powershell
-scp project.tar.gz home-server:/opt/wmscpp/
-```
-
-3. **แตกไฟล์และ Deploy:**
-
-   ```bash
-   ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz && docker compose up -d --build"
-   ```
+เมื่อมีการแก้ไขโค้ดและต้องการอัปเดต: รัน `.\deploy.ps1` อีกครั้ง (build → push → server pull & up). ไม่ต้องส่ง source หรือ tar.
 
 ---
 
@@ -266,26 +192,9 @@ ssh home-server "cd /opt/wmscpp && docker compose down"
 .\deploy.ps1 full   # full rebuild
 ```
 
-### 🚀 Deploy ครั้งแรก (Manual)
+### 🚀 Deploy ครั้งแรก (manual)
 
-```powershell
-# บน Local
-tar --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='.env' -cvzf project.tar.gz .
-scp project.tar.gz home-server:/opt/wmscpp/
-
-# บน Server (SSH)
-ssh home-server
-cd /opt/wmscpp
-tar -xvzf project.tar.gz
-rm project.tar.gz
-docker compose up -d --build
-```
-
-### 🔄 Update แอป (Manual one-liner)
-
-```powershell
-tar --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='.env' -cvzf project.tar.gz . && scp project.tar.gz home-server:/opt/wmscpp/ && ssh home-server "cd /opt/wmscpp && tar -xvzf project.tar.gz && rm project.tar.gz && docker compose up -d --build"
-```
+On the server: create `/opt/wmscpp`, add `.env`, then run deploy from local so the script uploads `docker-compose.yml` and runs `docker compose pull && up -d`. See [DEPLOYMENT.md](../../DEPLOYMENT.md) for one-time GHCR login and server prep.
 
 ### 📊 ตรวจสอบสถานะ
 

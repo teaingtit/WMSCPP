@@ -171,7 +171,7 @@ export async function getHistory(
       .select(
         `
         *,
-        changer:profiles!changed_by(email, first_name, last_name),
+        changer:profiles!changed_by(id, email, first_name, last_name, full_name),
         from_status:status_definitions!from_status_id(name),
         to_status:status_definitions!to_status_id(name)
       `,
@@ -182,7 +182,7 @@ export async function getHistory(
 
     if (filter?.search) {
       logQuery = logQuery.or(`reason.ilike.%${filter.search}%`);
-      // Note: can't easily search 'changer.email' via OR without RPC or embedding
+      // Note: search on changer email/name is applied in JS filter below
     }
 
     if (filter?.type && filter.type !== 'ALL') {
@@ -205,13 +205,23 @@ export async function getHistory(
     if (!logError && statusLogs) {
       logs = statusLogs;
 
-      // Manual filter for Changer Email if search is present
+      // Manual filter for Changer email/name if search is present
       if (filter?.search) {
         const lowerSearch = filter.search.toLowerCase();
+        const changerMatch = (l: any) => {
+          const email = l.changer?.email?.toLowerCase() ?? '';
+          const fn = l.changer?.first_name?.toLowerCase() ?? '';
+          const ln = l.changer?.last_name?.toLowerCase() ?? '';
+          const full = l.changer?.full_name?.toLowerCase() ?? '';
+          return (
+            email.includes(lowerSearch) ||
+            fn.includes(lowerSearch) ||
+            ln.includes(lowerSearch) ||
+            full.includes(lowerSearch)
+          );
+        };
         logs = logs.filter(
-          (l: any) =>
-            l.reason?.toLowerCase().includes(lowerSearch) ||
-            l.changer?.email?.toLowerCase().includes(lowerSearch),
+          (l: any) => l.reason?.toLowerCase().includes(lowerSearch) || changerMatch(l),
         );
       }
     }
@@ -231,7 +241,11 @@ export async function getHistory(
     category: 'SYSTEM',
     type: 'STATUS_CHANGE',
     date: l.changed_at,
-    user: l.changer?.email || 'System',
+    user:
+      l.changer?.email ||
+      l.changer?.full_name?.trim() ||
+      [l.changer?.first_name, l.changer?.last_name].filter(Boolean).join(' ') ||
+      'System',
     entityType: l.entity_type,
     entityName: entityNames[l.entity_id] || 'Unknown Entity',
     entityId: l.entity_id,

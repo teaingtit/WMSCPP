@@ -18,6 +18,8 @@
     "check": "npx tsc --noEmit && npm run lint",
     "test:unit:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:low-memory": "cross-env E2E_USE_PRODUCTION=1 playwright test",
+    "kill-test-processes": "pwsh -File ./kill-test-processes.ps1",
     "predeploy": "npm run build",
     "test:integration": "playwright test -c playwright.integration.config.ts",
     "tsc:strict": "tsc -p tsconfig.strict.json --noEmit",

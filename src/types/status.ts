@@ -175,9 +175,10 @@ export interface EntityStatus {
   status?: StatusDefinition;
   applied_by_user?: {
     id: string;
-    email: string;
+    email?: string;
     first_name?: string;
     last_name?: string;
+    full_name?: string;
   };
 }
 
@@ -222,9 +223,10 @@ export interface StatusChangeLog {
   to_status?: StatusDefinition;
   changed_by_user?: {
     id: string;
-    email: string;
+    email?: string;
     first_name?: string;
     last_name?: string;
+    full_name?: string;
   };
 }
 

@@ -5,6 +5,7 @@ import PaginationControls from '@/components/ui/PaginationControls';
 import { StockWithDetails } from '@/types/inventory';
 import { getProductCategories } from '@/actions/inbound-actions';
 import { getInventoryStatusData, getLotStatuses } from '@/actions/status-actions';
+import { getInventoryByPositions } from '@/actions/inventory-actions';
 import { isValidUUID } from '@/lib/utils';
 import { Category } from '@/components/inbound/DynamicInboundForm';
 import {
@@ -14,7 +15,7 @@ import {
   buildAttributeLabelMap,
 } from '@/lib/inventory-helpers';
 
-const PAGE_SIZE = 50;
+const POSITIONS_PER_PAGE = 15;
 
 export default async function InventoryPage({
   params,
@@ -63,6 +64,7 @@ export default async function InventoryPage({
     null;
   let totalCount = 0;
   let totalPages = 0;
+  let usePositionPagination = false;
 
   try {
     // Fetch product categories and all warehouses (for cross transfer modal)
@@ -74,44 +76,56 @@ export default async function InventoryPage({
     categories = Array.isArray(categoriesRes) ? (categoriesRes as Category[]) : [];
     warehouses = warehousesRes.data || [];
 
-    // Build stocks query: filter by warehouse via locations join (no location-ID cap or sentinel)
-    let baseQuery = supabase
-      .from('stocks')
-      .select(
-        `
-      id, quantity, updated_at, attributes,
-      products!inner(*),
-      locations!inner(*)
-    `,
-        { count: 'exact' },
-      )
-      .eq('locations.warehouse_id', wh.id)
-      .eq('locations.is_active', true)
-      .gt('quantity', 0);
+    // Try position-aware pagination first (requires get_inventory_by_positions RPC)
+    const positionResult = await getInventoryByPositions({
+      warehouseId: wh.id,
+      page: currentPage,
+      positionsPerPage: POSITIONS_PER_PAGE,
+      ...(query?.trim() ? { search: query.trim() } : {}),
+    });
 
-    // Apply server-side search filter if query exists
-    if (query) {
-      const searchPattern = `%${query}%`;
-      baseQuery = baseQuery.or(
-        `products.name.ilike.${searchPattern},products.sku.ilike.${searchPattern}`,
-      );
+    if (positionResult) {
+      stocks = positionResult.stocks;
+      totalCount = positionResult.totalStocks;
+      totalPages = positionResult.totalPages;
+      usePositionPagination = true;
+    } else {
+      // Fallback: row-based pagination (may split positions across pages)
+      const PAGE_SIZE = 50;
+      const offset = (currentPage - 1) * PAGE_SIZE;
+      let baseQuery = supabase
+        .from('stocks')
+        .select(
+          `
+        id, quantity, updated_at, attributes,
+        products!inner(*),
+        locations!inner(*)
+      `,
+          { count: 'exact' },
+        )
+        .eq('locations.warehouse_id', wh.id)
+        .eq('locations.is_active', true)
+        .gt('quantity', 0);
+
+      if (query) {
+        const searchPattern = `%${query}%`;
+        baseQuery = baseQuery.or(
+          `products.name.ilike.${searchPattern},products.sku.ilike.${searchPattern}`,
+        );
+      }
+
+      const result = await baseQuery
+        .order('lot', { foreignTable: 'locations', ascending: true })
+        .order('cart', { foreignTable: 'locations', ascending: true })
+        .order('level', { foreignTable: 'locations', ascending: true })
+        .order('sku', { foreignTable: 'products', ascending: true })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      stocks = result.data ?? [];
+      formattedError = formatSupabaseError(result.error);
+      totalCount = result.count ?? 0;
+      totalPages = Math.ceil(totalCount / PAGE_SIZE);
     }
-
-    // Calculate pagination offset
-    const offset = (currentPage - 1) * PAGE_SIZE;
-
-    // Execute query with pagination and ordering
-    const result = await baseQuery
-      .order('lot', { foreignTable: 'locations', ascending: true })
-      .order('cart', { foreignTable: 'locations', ascending: true })
-      .order('level', { foreignTable: 'locations', ascending: true })
-      .order('sku', { foreignTable: 'products', ascending: true })
-      .range(offset, offset + PAGE_SIZE - 1);
-
-    stocks = result.data ?? [];
-    formattedError = formatSupabaseError(result.error);
-    totalCount = result.count ?? 0;
-    totalPages = Math.ceil(totalCount / PAGE_SIZE);
   } catch (err: unknown) {
     formattedError = formatInventoryError(err);
     console.error('Inventory load error:', formattedError.message, formattedError.details ?? '');
@@ -187,7 +201,7 @@ export default async function InventoryPage({
           warehouses={warehouses}
           totalCount={totalCount}
           currentPage={currentPage}
-          pageSize={PAGE_SIZE}
+          pageSize={usePositionPagination ? POSITIONS_PER_PAGE : 50}
           initialStatusData={initialStatusData}
         />
 

@@ -65,14 +65,14 @@
 - รัน TypeScript และ unit tests:
 
 ```bash
-npx tsc --noEmit
+npm run check
 npm run test:unit
 ```
 
 - ตรวจสอบพฤติกรรมบนมือถือด้วย Playwright หรือ DevTools (responsive emulation):
 
 ```bash
-npx playwright test --project=chromium
+npm run test:e2e
 ```
 
 หรือเปิดหน้าในเบราว์เซอร์แล้วสลับเป็น responsive/mobile ด้วย DevTools

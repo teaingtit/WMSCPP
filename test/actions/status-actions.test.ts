@@ -97,6 +97,19 @@ describe('Status Actions', () => {
 
       expect(result).toEqual(mockStatus);
     });
+
+    it('should return null when error', async () => {
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB error' } }),
+      };
+      mockSupabase.from = vi.fn(() => mockQuery);
+
+      const result = await getDefaultStatus();
+
+      expect(result).toBeNull();
+    });
   });
 
   describe('createStatusDefinition', () => {
@@ -715,6 +728,37 @@ describe('Status Actions', () => {
 
       expect(result).toEqual(mockStatus);
     });
+
+    it('should include applied_by_user with email when returned by API', async () => {
+      const mockStatus = {
+        entity_id: 'stock1',
+        entity_type: 'STOCK',
+        status: { id: 'status1', name: 'Available' },
+        applied_by: 'user-uuid',
+        applied_by_user: {
+          id: 'user-uuid',
+          email: 'audit@example.com',
+          first_name: 'Audit',
+          last_name: 'User',
+          full_name: 'Audit User',
+        },
+      };
+
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockStatus }),
+      };
+      mockSupabase.from = vi.fn(() => mockQuery);
+
+      const result = await (
+        await import('@/actions/status-actions')
+      ).getEntityStatus('STOCK', 'stock1');
+
+      expect(result).not.toBeNull();
+      expect(result?.applied_by_user?.email).toBe('audit@example.com');
+      expect(result?.applied_by_user?.full_name).toBe('Audit User');
+    });
   });
 
   describe('getEntityStatuses', () => {
@@ -1056,8 +1100,11 @@ describe('Status Actions', () => {
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
       };
-
+      const promise = Promise.resolve({ data: mockHistory, error: null });
+      (mockQuery as any).then = promise.then.bind(promise);
+      (mockQuery as any).catch = promise.catch.bind(promise);
       mockSupabase.from = vi.fn(() => mockQuery);
 
       const result = await (
@@ -1065,6 +1112,43 @@ describe('Status Actions', () => {
       ).getStatusChangeHistory('STOCK', 'stock1');
 
       expect(mockSupabase.from).toHaveBeenCalledWith('status_change_logs');
+      expect(result).toEqual(mockHistory);
+    });
+
+    it('should include changed_by_user with email when returned by API', async () => {
+      const mockHistory = [
+        {
+          id: 'log1',
+          from_status_id: 's1',
+          to_status_id: 's2',
+          changed_at: '2024-01-01T00:00:00Z',
+          changed_by_user: {
+            id: 'user-uuid',
+            email: 'changer@example.com',
+            first_name: 'Changer',
+            last_name: 'User',
+            full_name: 'Changer User',
+          },
+        },
+      ];
+
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+      };
+      const promise = Promise.resolve({ data: mockHistory, error: null });
+      (mockQuery as any).then = promise.then.bind(promise);
+      (mockQuery as any).catch = promise.catch.bind(promise);
+      mockSupabase.from = vi.fn(() => mockQuery);
+
+      const result = await (
+        await import('@/actions/status-actions')
+      ).getStatusChangeHistory('STOCK', 'stock1');
+
+      expect(result).toHaveLength(1);
+      expect(result?.[0]?.changed_by_user?.email).toBe('changer@example.com');
+      expect(result?.[0]?.changed_by_user?.full_name).toBe('Changer User');
     });
   });
 
@@ -1454,6 +1538,7 @@ describe('Status Actions', () => {
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
         then: (resolve: any) => resolve({ data: null, error: new Error('DB error') }),
         catch: vi.fn(),
       };
@@ -1471,6 +1556,7 @@ describe('Status Actions', () => {
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
       };
       const promise = Promise.resolve({ data: mockHistory, error: null });
       (mockQuery as any).then = promise.then.bind(promise);

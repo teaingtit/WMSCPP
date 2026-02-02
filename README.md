@@ -37,7 +37,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser.
+Open [http://localhost:3006](http://localhost:3006) with your browser. (Dev server runs on port 3006.)
 
 ### Production Build
 
@@ -69,6 +69,22 @@ npm run test:unit
 
 # Run E2E Tests
 npm run test:e2e
+
+# Run E2E with lower RAM (uses production build instead of dev server)
+npm run test:e2e:low-memory
+
+# Or use the E2E script (PowerShell on Windows)
+.\run-e2e.ps1              # ปกติ
+.\run-e2e.ps1 -LowMemory   # กิน RAM น้อย (production server)
+.\run-e2e.ps1 -ExistingServer  # ใช้ server ที่รันอยู่แล้ว (รัน npm run dev ไว้ก่อน)
+.\run-e2e.ps1 -UnitFirst   # รัน unit test ก่อน แล้วค่อย E2E
+
+# Linux/macOS: ./scripts/run-e2e.sh [--low-memory] [--existing-server] [--unit-first]
+
+# Kill test-related processes (free RAM when processes are left behind)
+npm run kill-test-processes
+# Or: .\kill-test-processes.ps1 [ -DryRun ] [ -IncludeBrowser ]
+# Linux/macOS: ./scripts/kill-test-processes.sh [--dry-run] [--include-browser]
 
 # Run Type Check & Lint
 npm run check
