@@ -732,6 +732,46 @@ html {
     padding-top: 0.5rem;
     padding-bottom: 1rem;
   }
+
+  .landscape-hide-optional {
+    display: none;
+  }
+
+  .landscape-compact-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+  }
+}
+
+/* Horizontal Scroll Indicator */
+.scroll-hint-horizontal {
+  position: relative;
+}
+
+.scroll-hint-horizontal::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.05));
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.scroll-hint-horizontal[data-scrolled-end='true']::after {
+  opacity: 0;
+}
+
+/* Mobile Keyboard Focus Improvements */
+@media (max-width: 768px) {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    scroll-margin-bottom: 120px;
+  }
 }
 
 /* Reduced Motion Support (Accessibility) */

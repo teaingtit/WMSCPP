@@ -117,7 +117,7 @@ export default function UnitsBuilder({ onUnitsChange, initialUnits }: UnitsBuild
               key={unit}
               type="button"
               onClick={() => setUnits([...units, unit])}
-              className="px-2 py-1 text-xs bg-white border border-slate-200 rounded-md hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors"
+              className="px-3 py-2 text-xs bg-white border border-slate-200 rounded-md hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors touch-manipulation active:scale-95 min-h-[44px]"
             >
               + {unit}
             </button>
@@ -141,10 +141,10 @@ export default function UnitsBuilder({ onUnitsChange, initialUnits }: UnitsBuild
               <button
                 type="button"
                 onClick={() => removeUnit(idx)}
-                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title="ลบหน่วยนี้"
               >
-                <Trash2 size={14} />
+                <Trash2 size={16} />
               </button>
             </div>
           ))}

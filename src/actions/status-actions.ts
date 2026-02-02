@@ -62,8 +62,9 @@ export interface LotStatus {
   reason?: string | null;
 }
 
-// Define lotStatusSelect - use explicit relationship syntax for status (lot_statuses has no reason column)
-const lotStatusSelect = 'lot, status_id, status:status_definitions(*), applied_at, applied_by';
+// Define lotStatusSelect - matches lot_statuses columns (incl. reason)
+const lotStatusSelect =
+  'lot, status_id, status:status_definitions(*), applied_at, applied_by, reason';
 
 // Ensure LotStatusSchema is defined
 const LotStatusSchema = z.object({
@@ -489,6 +490,7 @@ export async function getLotStatus(warehouseId: string, lot: string): Promise<Lo
     status: statusDef as StatusDefinition,
     applied_at: data.applied_at,
     applied_by: data.applied_by,
+    reason: data.reason ?? null,
   };
 }
 

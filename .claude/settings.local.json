@@ -39,7 +39,8 @@
       "Bash(taskkill:*)",
       "Bash(killall node:*)",
       "Bash(git diff:*)",
-      "mcp__supabase__get_advisors"
+      "mcp__supabase__get_advisors",
+      "Bash(git log:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: build-main
+  cancel-in-progress: true
+
 jobs:
   build-push:
     name: Build and Push to GHCR

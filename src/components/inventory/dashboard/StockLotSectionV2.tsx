@@ -72,13 +72,6 @@ export const StockLotSectionV2 = React.memo(
       setIsExpanded(!isExpanded);
     };
 
-    const handleHeaderKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        handleToggle();
-      }
-    };
-
     const handleSelectLot = (e: React.MouseEvent) => {
       e.stopPropagation();
       onToggleLot(lot);
@@ -91,29 +84,27 @@ export const StockLotSectionV2 = React.memo(
           'border border-neutral-200/50 dark:border-white/10',
           'shadow-sm hover:shadow-md transition-shadow duration-200',
           'overflow-hidden',
+          'landscape-reduce-spacing',
         )}
       >
-        {/* Header - Full Touch Target (div to allow nested buttons for lot status) */}
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={handleToggle}
-          onKeyDown={handleHeaderKeyDown}
-          className={cn(
-            'flex items-center justify-between w-full p-5',
-            'text-left touch-manipulation cursor-pointer',
-            'transition-colors duration-150',
-            'hover:bg-neutral-50 dark:hover:bg-white/5',
-            'active:bg-neutral-100 dark:active:bg-white/10',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ring-offset-2',
-          )}
-          aria-expanded={isExpanded ? 'true' : 'false'}
-          aria-label={`${lot} - ${totalItems} รายการ${
-            restrictedCount > 0 ? `, มี ${restrictedCount} รายการติดสถานะ` : ''
-          }`}
-        >
-          {/* Left Section: Expand Icon + Checkbox + Info */}
-          <div className="flex items-center gap-4 flex-1 min-w-0">
+        {/* Header - Expand trigger and lot status as siblings (no nested interactive) */}
+        <div className="flex items-center justify-between w-full p-5 gap-2">
+          {/* Expand/Collapse trigger - button for expand, does not wrap lot status */}
+          <button
+            type="button"
+            onClick={handleToggle}
+            className={cn(
+              'flex items-center gap-4 flex-1 min-w-0 text-left touch-manipulation',
+              'transition-colors duration-150',
+              'hover:bg-neutral-50 dark:hover:bg-white/5',
+              'active:bg-neutral-100 dark:active:bg-white/10',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ring-offset-2 rounded-lg -m-1 p-1',
+            )}
+            {...{ 'aria-expanded': isExpanded }}
+            aria-label={`${lot} - ${totalItems} รายการ${
+              restrictedCount > 0 ? `, มี ${restrictedCount} รายการติดสถานะ` : ''
+            }`}
+          >
             {/* Expand/Collapse Icon */}
             <div className="p-2 -m-2 hover:bg-neutral-200 dark:hover:bg-white/10 rounded-full transition-colors touch-48">
               <ChevronDown
@@ -162,51 +153,11 @@ export const StockLotSectionV2 = React.memo(
 
             {/* Text Information */}
             <div className="flex-1 min-w-0">
-              {/* Lot Name + Lot Status Badge */}
+              {/* Lot Name */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-base text-neutral-900 dark:text-white truncate">
                   {lot}
                 </span>
-                {/* Lot Status Badge */}
-                {lotStatus?.status && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isAdmin && onLotStatusClick) onLotStatusClick(lot);
-                    }}
-                    className={cn(
-                      'flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg border transition-all shrink-0',
-                      isAdmin ? 'hover:opacity-80 cursor-pointer' : 'cursor-default',
-                    )}
-                    style={createStatusStyle(lotStatus.status)}
-                    title={
-                      isAdmin ? 'Click to change lot status' : lotStatus.status.description || ''
-                    }
-                    aria-label={
-                      isAdmin ? `Change status for ${lot}` : `Status: ${lotStatus.status.name}`
-                    }
-                  >
-                    <MapPin size={12} aria-hidden />
-                    {lotStatus.status.name}
-                  </button>
-                )}
-                {/* Add Status Button (Admin only, when no status) */}
-                {isAdmin && !lotStatus?.status && onLotStatusClick && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onLotStatusClick(lot);
-                    }}
-                    className="flex items-center gap-1 text-xs font-bold text-neutral-400 hover:text-primary px-2 py-1 rounded-lg border border-dashed border-neutral-300 hover:border-primary transition-all shrink-0"
-                    title="ตั้งค่าสถานะ"
-                    aria-label={`Set status for ${lot}`}
-                  >
-                    <Settings2 size={12} aria-hidden />
-                    ตั้งค่าสถานะ
-                  </button>
-                )}
               </div>
 
               {/* Meta Information */}
@@ -229,17 +180,50 @@ export const StockLotSectionV2 = React.memo(
                 )}
               </div>
             </div>
-          </div>
+          </button>
 
-          {/* Right Section: Expand Icon (Mobile Only - duplicated for balance) */}
-          <div className="md:hidden ml-2">
-            <ChevronDown
-              className={cn(
-                'w-5 h-5 text-neutral-400 transition-transform duration-300 ease-smooth',
-                isExpanded && 'rotate-180',
-              )}
-              aria-hidden="true"
-            />
+          {/* Lot Status Controls (sibling - no nested interactive) */}
+          <div className="flex items-center gap-1 shrink-0">
+            {lotStatus?.status && (
+              <button
+                type="button"
+                onClick={() => isAdmin && onLotStatusClick?.(lot)}
+                disabled={!isAdmin}
+                className={cn(
+                  'flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg border transition-all',
+                  isAdmin ? 'hover:opacity-80 cursor-pointer' : 'cursor-default',
+                )}
+                style={createStatusStyle(lotStatus.status)}
+                title={isAdmin ? 'Click to change lot status' : lotStatus.status.description || ''}
+                aria-label={
+                  isAdmin ? `Change status for ${lot}` : `Status: ${lotStatus.status.name}`
+                }
+              >
+                <MapPin size={12} aria-hidden />
+                {lotStatus.status.name}
+              </button>
+            )}
+            {isAdmin && !lotStatus?.status && onLotStatusClick && (
+              <button
+                type="button"
+                onClick={() => onLotStatusClick(lot)}
+                className="flex items-center gap-1 text-xs font-bold text-neutral-400 hover:text-primary px-2 py-1 rounded-lg border border-dashed border-neutral-300 hover:border-primary transition-all shrink-0"
+                title="ตั้งค่าสถานะ"
+                aria-label={`Set status for ${lot}`}
+              >
+                <Settings2 size={12} aria-hidden />
+                ตั้งค่าสถานะ
+              </button>
+            )}
+            {/* Expand Icon (Mobile Only - visual balance) */}
+            <div className="md:hidden ml-1" aria-hidden="true">
+              <ChevronDown
+                className={cn(
+                  'w-5 h-5 text-neutral-400 transition-transform duration-300 ease-smooth',
+                  isExpanded && 'rotate-180',
+                )}
+              />
+            </div>
           </div>
         </div>
 

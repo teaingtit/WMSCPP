@@ -191,7 +191,7 @@ export default function ProductAutocomplete({
       {showDropdown && searchTerm && (
         <div
           ref={dropdownRef}
-          className="mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-[280px] overflow-y-auto animate-in fade-in slide-in-from-top-2"
+          className="mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden max-h-[280px] overflow-y-auto animate-in fade-in slide-in-from-top-2 overscroll-contain"
         >
           {filteredProducts.length > 0 ? (
             <div>
@@ -205,7 +205,7 @@ export default function ProductAutocomplete({
                   <div
                     key={p.id}
                     onMouseDown={() => handleSelect(p)}
-                    className={`p-4 cursor-pointer border-b border-slate-50 last:border-none transition-all flex justify-between items-center group
+                    className={`py-5 px-4 cursor-pointer border-b border-slate-50 last:border-none transition-all flex justify-between items-center group touch-manipulation active:bg-indigo-100
                       ${isHighlighted ? 'bg-indigo-50 border-indigo-100 pl-6' : 'hover:bg-slate-50'}
                     `}
                   >

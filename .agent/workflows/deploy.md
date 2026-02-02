@@ -175,6 +175,39 @@ ssh home-server "cd /opt/wmscpp && docker compose restart"
 ssh home-server "cd /opt/wmscpp && docker compose down"
 ```
 
+### Server DNS broken (cannot pull from GHCR)
+
+If deploy fails on the server with `lookup ghcr.io ... connection refused` or `no servers could be reached`, the server has no working DNS (e.g. systemd-resolved inactive and `/etc/resolv.conf` missing).
+
+**Fix once on the server (run in an interactive SSH session so you can enter your sudo password):**
+
+```bash
+ssh home-server
+```
+
+Then on the server:
+
+```bash
+# Option A: inline fix
+sudo rm -f /etc/resolv.conf
+echo 'nameserver 8.8.8.8
+nameserver 8.8.4.4' | sudo tee /etc/resolv.conf
+
+# Verify
+nslookup ghcr.io
+
+# Redeploy
+cd /opt/wmscpp && docker compose pull && docker compose up -d
+```
+
+**Option B:** copy the fix script and run it:
+
+```powershell
+scp scripts/fix-dns-server.sh home-server:/tmp/
+ssh home-server "sudo sh /tmp/fix-dns-server.sh"
+ssh home-server "cd /opt/wmscpp && docker compose pull && docker compose up -d"
+```
+
 ### Common Issues
 
 - **กรณีรันไม่ขึ้น:** เช็ค `.env` ว่าค่า Supabase ถูกต้องหรือไม่

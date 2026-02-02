@@ -33,7 +33,7 @@ export default function LotStatusModal({
     if (isOpen) {
       loadStatusDefinitions();
       setSelectedStatusId(currentStatus?.status_id || null);
-      setReason('');
+      setReason(currentStatus?.reason ?? '');
     }
   }, [isOpen, currentStatus]);
 
@@ -97,7 +97,7 @@ export default function LotStatusModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white w-full max-w-md max-h-[min(90vh,36rem)] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
+      <div className="bg-white w-full max-w-md max-h-dvh-90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
         {/* Header */}
         <div className="relative bg-gradient-to-br from-cyan-600 to-cyan-700 p-5 text-white shrink-0">
           <button

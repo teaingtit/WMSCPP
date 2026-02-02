@@ -56,7 +56,7 @@ export default function BottomNav() {
     <nav
       role="navigation"
       aria-label="เมนูนำทางหลัก"
-      className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 md:hidden safe-area-bottom"
+      className="fixed inset-x-0 bottom-0 z-50 glass border-t border-border/50 md:hidden safe-area-bottom landscape-compact-nav"
     >
       <div className="max-w-lg mx-auto px-1">
         <div className="flex items-center justify-around h-14">

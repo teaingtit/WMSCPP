@@ -33,8 +33,8 @@ export default function CategoryForm() {
 
   return (
     <form ref={formRef} action={action} className="space-y-5 animate-in fade-in">
-      <div className="grid grid-cols-4 gap-4">
-        <div className="col-span-1">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="sm:col-span-1">
           <label htmlFor="cat-id" className="text-xs font-bold text-slate-500 mb-1 block">
             ID *
           </label>
@@ -42,11 +42,11 @@ export default function CategoryForm() {
             id="cat-id"
             name="id"
             required
-            className="w-full p-3 border rounded-xl bg-slate-50 uppercase font-bold text-indigo-900 outline-none"
+            className="w-full p-3 border rounded-xl bg-slate-50 uppercase font-bold text-indigo-900 outline-none touch-manipulation"
             placeholder="RAW"
           />
         </div>
-        <div className="col-span-3">
+        <div className="sm:col-span-3">
           <label htmlFor="cat-name" className="text-xs font-bold text-slate-500 mb-1 block">
             ชื่อหมวดหมู่ *
           </label>
@@ -54,7 +54,7 @@ export default function CategoryForm() {
             id="cat-name"
             name="name"
             required
-            className="w-full p-3 border rounded-xl outline-none"
+            className="w-full p-3 border rounded-xl outline-none touch-manipulation"
             placeholder="วัตถุดิบ..."
           />
         </div>

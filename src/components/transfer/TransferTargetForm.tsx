@@ -440,7 +440,7 @@ export default function TransferTargetForm({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 min-h-[400px] max-h-[60vh] custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 min-h-[400px] max-h-[60vh] custom-scrollbar landscape-compact">
         {queue.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-400 py-12">
             <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
@@ -599,16 +599,16 @@ export default function TransferTargetForm({
       {/* Footer Actions */}
       {queue.length > 0 && (
         <div className="p-6 border-t border-slate-200 bg-white space-y-3 z-10">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
             <button
               onClick={() => setIsBulkAssignOpen(true)}
-              className="py-2.5 px-4 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+              className="py-2.5 px-4 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 touch-manipulation active:scale-[0.98] min-h-[48px]"
             >
               <MapPin size={16} /> Set Target All
             </button>
             <button
               onClick={handlePreview}
-              className="py-2.5 px-4 bg-amber-50 text-amber-600 rounded-xl font-bold text-sm hover:bg-amber-100 transition-colors flex items-center justify-center gap-2"
+              className="py-2.5 px-4 bg-amber-50 text-amber-600 rounded-xl font-bold text-sm hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 touch-manipulation active:scale-[0.98] min-h-[48px]"
               title="ตรวจสอบความพร้อมก่อนย้ายจริง (ไม่บันทึกข้อมูล)"
             >
               <Eye size={16} /> ตรวจสอบ (Preview)
@@ -721,6 +721,7 @@ export default function TransferTargetForm({
                     <div className="relative">
                       <input
                         type="number"
+                        inputMode="numeric"
                         min={1}
                         max={item.sourceStock.quantity}
                         value={editingQty === '' ? '' : editingQty}
@@ -728,7 +729,7 @@ export default function TransferTargetForm({
                           setEditingQty(e.target.value === '' ? '' : Number(e.target.value))
                         }
                         aria-label="จำนวนที่จะย้าย"
-                        className="w-full text-3xl font-black text-indigo-600 pl-4 pr-16 py-4 bg-indigo-50/30 border-2 border-indigo-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none"
+                        className="w-full text-3xl font-black text-indigo-600 pl-4 pr-16 py-4 bg-indigo-50/30 border-2 border-indigo-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none touch-manipulation"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
                         / {item.sourceStock.quantity} {item.sourceStock.product?.uom}
@@ -755,12 +756,12 @@ export default function TransferTargetForm({
 
                 {/* Footer */}
                 <div className="p-6 border-t border-slate-100 bg-slate-50/50">
-                  <div className="flex gap-3">
+                  <div className="flex flex-col-reverse sm:flex-row gap-3">
                     <button
                       onClick={() => {
                         saveEditPanel();
                       }}
-                      className="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-base shadow-lg shadow-indigo-200 transition-all active:scale-95"
+                      className="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-base shadow-lg shadow-indigo-200 transition-all active:scale-95 touch-manipulation min-h-[48px]"
                     >
                       บันทึกการเปลี่ยนแปลง
                     </button>
@@ -768,7 +769,7 @@ export default function TransferTargetForm({
                       onClick={() => {
                         closeEditPanel();
                       }}
-                      className="py-3.5 px-6 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all"
+                      className="py-3.5 px-6 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all touch-manipulation active:scale-[0.98] min-h-[48px]"
                     >
                       ยกเลิก
                     </button>

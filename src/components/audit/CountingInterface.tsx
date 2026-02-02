@@ -230,8 +230,8 @@ export default function CountingInterface({
   return (
     <div className="space-y-4 pb-20 animate-in fade-in duration-500">
       {/* Sticky Header for Mobile/Tablet */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b shadow-sm -mx-4 px-4 py-4 sm:mx-0 sm:rounded-2xl sm:border sm:top-4 transition-all">
-        <div className="space-y-3">
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b shadow-sm -mx-4 px-4 py-4 sm:mx-0 sm:rounded-2xl sm:border sm:top-4 transition-all landscape-compact">
+        <div className="space-y-3 landscape-reduce-spacing">
           <div className="flex justify-between items-center">
             <div className="text-xs font-medium text-slate-600">
               Progress:{' '}
@@ -294,7 +294,7 @@ export default function CountingInterface({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 landscape-compact-grid">
         {filteredItems.map((item) => (
           <AuditItemCard key={item.id} item={item} onUpdate={handleItemUpdate} />
         ))}

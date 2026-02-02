@@ -152,8 +152,14 @@ export default function ProductManager({ products, category }: ProductManagerPro
             รายชื่อสินค้าในระบบ ({filtered.length})
           </h3>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleDownload} disabled={importLoading}>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            disabled={importLoading}
+            className="touch-manipulation active:scale-[0.98]"
+          >
             <Download size={16} className="mr-2" /> Template ({category.name})
           </Button>
           <div className="relative">
@@ -169,7 +175,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
             <Button
               size="sm"
               disabled={importLoading}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white touch-manipulation active:scale-[0.98]"
             >
               {importLoading ? (
                 <Loader2 className="animate-spin mr-2" />
@@ -282,7 +288,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
       </div>
 
       {/* Product Table - Virtualized for performance */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm overflow-x-auto scroll-hint-horizontal">
         <div className="p-4 border-b bg-slate-50 flex items-center gap-2">
           <Search size={18} className="text-slate-400" />
           <input

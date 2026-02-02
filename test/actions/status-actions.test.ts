@@ -786,6 +786,7 @@ describe('Status Actions', () => {
         status: { id: 'status1', name: 'Available' },
         applied_at: '2024-01-01',
         applied_by: 'user1',
+        reason: null,
       };
 
       const mockQuery = {
