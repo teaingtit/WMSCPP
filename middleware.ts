@@ -44,7 +44,17 @@ export async function middleware(request: NextRequest) {
   try {
     const {
       data: { user },
+      error,
     } = await supabase.auth.getUser();
+
+    // Handle stale refresh token (getUser returns error in response, not thrown)
+    if (error?.code === 'refresh_token_not_found' || error?.message?.includes('refresh_token')) {
+      const resp = NextResponse.redirect(new URL('/login?error=session', request.url));
+      request.cookies.getAll().forEach(({ name }) => {
+        if (name.startsWith('sb-')) resp.cookies.delete(name);
+      });
+      return resp;
+    }
 
     // Logic การป้องกัน Route
     if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {

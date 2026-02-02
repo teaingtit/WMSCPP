@@ -277,13 +277,33 @@ export async function finalizeAuditSession(sessionId: string, warehouseId: strin
   }
 
   try {
-    const { error } = await supabase.rpc(RPC.PROCESS_AUDIT_ADJUSTMENT, {
+    // Fetch COUNTED items and build p_diff_items for process_audit_adjustment
+    const { data: items, error: fetchError } = await supabase
+      .from('audit_items')
+      .select('product_id, location_id, system_qty, counted_qty')
+      .eq('session_id', sessionId)
+      .eq('status', 'COUNTED');
+
+    if (fetchError) throw fetchError;
+
+    const p_diff_items = (items || [])
+      .map((item) => {
+        const counted = Number(item.counted_qty ?? 0);
+        const system = Number(item.system_qty ?? 0);
+        const diff_qty = counted - system;
+        return { product_id: item.product_id, location_id: item.location_id, diff_qty };
+      })
+      .filter((item) => item.diff_qty !== 0);
+
+    const { data: rpcResult, error } = await supabase.rpc(RPC.PROCESS_AUDIT_ADJUSTMENT, {
       p_session_id: sessionId,
-      p_user_id: user.id,
-      p_user_email: user.email,
+      p_diff_items: p_diff_items,
     });
 
     if (error) throw error;
+    if (rpcResult && !rpcResult.success) {
+      throw new Error(rpcResult.error ?? 'Audit adjustment failed');
+    }
 
     revalidatePath(`/dashboard/${warehouseId}/inventory`); // รีเฟรชหน้า Stock หลัก
     return { success: true, message: 'ปรับยอดสต็อกเรียบร้อยแล้ว' };

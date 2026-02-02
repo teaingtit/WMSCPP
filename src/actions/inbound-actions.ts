@@ -158,7 +158,7 @@ const submitInboundHandler = async (rawData: unknown, { user, supabase }: WithAu
   });
 
   if (rpcError) throw new Error(rpcError.message);
-  if (rpcResult && !rpcResult.success) throw new Error(rpcResult.message);
+  if (rpcResult && !rpcResult.success) throw new Error(rpcResult.error ?? rpcResult.message);
 
   const [{ data: product }, { data: location }] = await Promise.all([
     supabase.from('products').select('name, uom, sku').eq('id', productId).single(),

@@ -707,11 +707,34 @@ describe('Audit Actions', () => {
         getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
       };
 
-      mockSupabase.rpc = vi.fn().mockResolvedValue({ error: null });
+      const auditItemsData = {
+        data: [
+          { product_id: 'p1', location_id: 'l1', system_qty: 10, counted_qty: 12 },
+          { product_id: 'p2', location_id: 'l2', system_qty: 5, counted_qty: 5 },
+        ],
+        error: null,
+      };
+      const auditItemsChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        then: (resolve: (v: typeof auditItemsData) => void) => resolve(auditItemsData),
+      };
+      mockSupabase.from = vi.fn((table: string) =>
+        table === 'audit_items'
+          ? auditItemsChain
+          : { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis() },
+      );
+      mockSupabase.rpc = vi.fn().mockResolvedValue({ data: { success: true }, error: null });
 
       const result = await finalizeAuditSession('session1', 'wh1');
 
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('process_audit_adjustment', expect.any(Object));
+      expect(mockSupabase.rpc).toHaveBeenCalledWith(
+        'process_audit_adjustment',
+        expect.objectContaining({
+          p_session_id: 'session1',
+          p_diff_items: [{ product_id: 'p1', location_id: 'l1', diff_qty: 2 }],
+        }),
+      );
       expect(result.success).toBe(true);
     });
 

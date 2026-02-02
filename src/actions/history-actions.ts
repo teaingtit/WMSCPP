@@ -51,8 +51,8 @@ export async function getHistory(
       `
       *,
       product:products(sku, name, uom),
-      from_loc:locations!from_location_id(code, warehouse:warehouses(name)),
-      to_loc:locations!to_location_id(code, warehouse:warehouses(name))
+      from_loc:locations!transactions_from_location_fkey(code, warehouse:warehouses(name)),
+      to_loc:locations!transactions_to_location_fkey(code, warehouse:warehouses(name))
     `,
     )
     .eq('warehouse_id', whId)

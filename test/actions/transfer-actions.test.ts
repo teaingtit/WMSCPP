@@ -757,6 +757,9 @@ describe('Transfer Actions', () => {
             select: vi.fn().mockReturnThis(),
             eq: vi.fn().mockReturnThis(),
             single: vi.fn().mockResolvedValue({ data: { code: 'L02-P03-Z01' } }),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { id: 'target-loc-id', code: 'L02-P03-Z01' },
+            }),
           } as any;
         return {
           select: vi.fn().mockReturnThis(),

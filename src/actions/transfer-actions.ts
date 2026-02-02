@@ -5,7 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { withAuth, WithAuthContext } from '@/lib/action-utils';
-import { RPC, TABLES } from '@/lib/constants';
+import { RPC } from '@/lib/constants';
 import type { StockRowWithJoins } from '@/types/inventory';
 
 /** Item shape accepted by preflightBulkTransfer (form payload or internal). */
@@ -161,7 +161,7 @@ const submitTransferHandler = async (
   const { data: stockStatus } = await supabase
     .from('entity_statuses')
     .select('status_definitions!inner(effect, name)')
-    .eq('entity_type', 'stock')
+    .eq('entity_type', 'STOCK')
     .eq('entity_id', stockId)
     .maybeSingle();
 
@@ -196,27 +196,18 @@ const submitTransferHandler = async (
     };
   }
 
-  // RPC Transfer
+  // RPC Transfer (DB function logs transaction)
   const { data: result, error: rpcError } = await supabase.rpc(RPC.TRANSFER_STOCK, {
-    p_source_stock_id: stockId,
-    p_target_location_id: targetLocId,
-    p_qty: qty,
+    p_from_location_id: sourceStock.location_id,
+    p_to_location_id: targetLocId,
+    p_product_id: sourceStock.product_id,
+    p_quantity: qty,
+    p_user_id: user.id,
+    p_user_email: user.email,
   });
 
   if (rpcError) throw rpcError;
-  if (!result.success) return { success: false, message: result.message };
-
-  // Log Transaction
-  await supabase.from(TABLES.TRANSACTIONS).insert({
-    type: 'TRANSFER',
-    warehouse_id: whId,
-    product_id: sourceStock.product_id,
-    from_location_id: sourceStock.location_id,
-    to_location_id: targetLocId,
-    quantity: qty,
-    user_id: user.id,
-    user_email: user.email,
-  });
+  if (!result.success) return { success: false, message: result.error ?? result.message };
 
   revalidatePath(`/dashboard/${warehouseId}`);
 
@@ -278,8 +269,10 @@ const submitCrossTransferHandler = async (
     return { success: false, message: 'คลังปลายทางถูกปิดใช้งานแล้ว กรุณาเลือกคลังอื่น' };
   }
 
+  let targetLocId: string;
   let targetCode = '';
   if (targetLocationId) {
+    targetLocId = targetLocationId;
     const { data: loc } = await supabaseAdmin
       .from('locations')
       .select('code')
@@ -292,6 +285,15 @@ const submitCrossTransferHandler = async (
     }
     const locData = generate3DCode(targetLot, targetCart, targetLevel);
     targetCode = locData.code;
+    const { data: targetLoc } = await supabaseAdmin
+      .from('locations')
+      .select('id')
+      .eq('warehouse_id', targetWh.id)
+      .eq('code', targetCode)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (!targetLoc) throw new Error(`ไม่พบตำแหน่งปลายทาง: ${targetCode}`);
+    targetLocId = targetLoc.id;
   }
 
   // Get Source Info
@@ -313,30 +315,19 @@ const submitCrossTransferHandler = async (
     };
   }
 
-  // RPC Cross Transfer
+  // RPC Cross Transfer (DB function logs both TRANSFER_OUT and TRANSFER)
   const { data: result, error: rpcError } = await supabaseAdmin.rpc(RPC.TRANSFER_CROSS_STOCK, {
-    p_stock_id: stockId,
-    p_target_warehouse_id: targetWarehouseId,
-    p_target_code: targetCode,
-    p_qty: qty,
+    p_from_location_id: sourceStock.location_id,
+    p_to_location_id: targetLocId,
+    p_product_id: sourceStock.product_id,
+    p_quantity: qty,
+    p_warehouse_id: targetWh.id,
     p_user_id: user.id,
     p_user_email: user.email,
   });
 
   if (rpcError) throw new Error(rpcError.message);
-  if (!result.success) return { success: false, message: result.message };
-
-  // Log Transaction
-  await supabase.from(TABLES.TRANSACTIONS).insert({
-    type: 'TRANSFER_OUT',
-    warehouse_id: sourceWhId,
-    product_id: sourceStock.product_id,
-    from_location_id: sourceStock.location_id,
-    details: `To: ${targetWh.name} (${targetCode})`,
-    quantity: qty,
-    user_id: user.id,
-    user_email: user.email,
-  });
+  if (!result.success) return { success: false, message: result.error ?? result.message };
 
   revalidatePath(`/dashboard/${sourceWarehouseId}`);
 

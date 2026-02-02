@@ -100,15 +100,15 @@ const submitOutboundHandler = async (
   });
 
   if (error) throw error;
-  if (!result.success) return { success: false, message: result.message };
+  if (!result.success) return { success: false, message: result.error ?? result.message };
 
   revalidatePath(`/dashboard/${warehouseId}/history`);
   revalidatePath(`/dashboard/${warehouseId}/inventory`);
 
-  // ✅ 3. Return Data Structure
+  // ✅ 3. Return Data Structure (deduct_stock returns no message on success)
   return {
     success: true,
-    message: result.message,
+    message: result.message ?? 'เบิกจ่ายสำเร็จ',
     details: {
       type: 'OUTBOUND',
       productName: stockInfo.products.name,

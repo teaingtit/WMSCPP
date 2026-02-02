@@ -68,8 +68,8 @@ export async function getDashboardStats(warehouseCode: string) {
             `
             id, type, quantity, created_at,
             products(name, sku, uom),
-            from_location:locations!transactions_from_location_id_fkey(code),
-            to_location:locations!transactions_to_location_id_fkey(code)
+            from_location:locations!transactions_from_location_fkey(code),
+            to_location:locations!transactions_to_location_fkey(code)
           `,
           )
           .eq('warehouse_id', whId)
