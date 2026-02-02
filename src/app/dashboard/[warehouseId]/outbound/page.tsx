@@ -294,7 +294,7 @@ export default function OutboundPage() {
                     >
                       ยกเลิก
                     </button>
-                    <div className="text-[10px] font-bold text-rose-600 mb-1 uppercase tracking-wide">
+                    <div className="text-xs font-bold text-rose-600 mb-1 uppercase tracking-wide">
                       กำลังทำรายการ:
                     </div>
                     <div className="text-lg font-black text-slate-800">
@@ -306,7 +306,7 @@ export default function OutboundPage() {
                           {Object.entries(selectedStock.attributes).map(([k, v]: any) => (
                             <span
                               key={k}
-                              className="text-[10px] bg-white/50 px-1.5 py-0.5 rounded text-rose-700 border border-rose-100"
+                              className="text-xs bg-white/50 px-1.5 py-0.5 rounded text-rose-700 border border-rose-100"
                             >
                               {k}: {v}
                             </span>
@@ -356,7 +356,7 @@ export default function OutboundPage() {
                               {Object.entries(stock.attributes).map(([k, v]: any) => (
                                 <span
                                   key={k}
-                                  className="text-[10px] bg-slate-100 px-1.5 rounded text-slate-500 border border-slate-200"
+                                  className="text-xs bg-slate-100 px-1.5 rounded text-slate-500 border border-slate-200"
                                 >
                                   {k}:{v}
                                 </span>
@@ -366,7 +366,7 @@ export default function OutboundPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-black text-slate-800">{stock.quantity}</div>
-                          <div className="text-[10px] text-slate-500 uppercase">
+                          <div className="text-xs text-slate-500 uppercase">
                             {stock.products.uom}
                           </div>
                         </div>

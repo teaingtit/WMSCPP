@@ -162,17 +162,17 @@ export default function ProductAutocomplete({
               <Package size={20} />
             </div>
             <div>
-              <div className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">
+              <div className="text-xs font-bold text-indigo-500 uppercase tracking-wide">
                 กำลังเพิ่ม:
               </div>
               <div className="font-bold text-slate-800 text-base leading-tight">
                 {selectedProduct.name}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[10px] font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
+                <span className="text-xs font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
                   {selectedProduct.sku}
                 </span>
-                <span className="text-[10px] text-slate-400">{selectedProduct.uom || 'Unit'}</span>
+                <span className="text-xs text-slate-400">{selectedProduct.uom || 'Unit'}</span>
               </div>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function ProductAutocomplete({
         >
           {filteredProducts.length > 0 ? (
             <div>
-              <div className="px-4 py-2 bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50 flex justify-between sticky top-0 backdrop-blur-sm">
+              <div className="px-4 py-2 bg-slate-50/50 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50 flex justify-between sticky top-0 backdrop-blur-sm">
                 <span>Found {filteredProducts.length} items</span>
                 <span className="hidden sm:inline">Use ↑↓ to navigate, Enter to select</span>
               </div>

@@ -108,7 +108,7 @@ export default function BottomNavV2({ warehouseId }: BottomNavV2Props) {
 
                   {/* Badge (optional) */}
                   {item.badge !== undefined && item.badge > 0 && (
-                    <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                    <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-destructive text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
                       {item.badge > 99 ? '99+' : item.badge}
                     </div>
                   )}

@@ -37,7 +37,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
       {/* Header: Category & Location */}
       <div className="flex justify-between items-start mb-3 relative z-10">
         <span
-          className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider border ${
+          className={`text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider border ${
             item.product?.category_id === 'CHEMICAL'
               ? 'bg-amber-50 text-amber-700 border-amber-100'
               : 'bg-indigo-50 text-indigo-700 border-indigo-100'
@@ -46,11 +46,11 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
           {item.product?.category_id || 'GEN'}
         </span>
         <div className="flex flex-col items-end gap-1">
-          <span className="flex items-center gap-1 text-[10px] font-bold bg-slate-800 text-white px-2 py-1 rounded">
+          <span className="flex items-center gap-1 text-xs font-bold bg-slate-800 text-white px-2 py-1 rounded">
             <MapPin size={10} /> {item.location?.code || 'N/A'}
           </span>
           {item.level && (
-            <span className="flex items-center gap-1 text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded border border-indigo-100">
+            <span className="flex items-center gap-1 text-xs font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded border border-indigo-100">
               <Layers size={10} /> Lv.{item.level}
             </span>
           )}
@@ -89,14 +89,14 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
               .map(([key, value]) => (
                 <span
                   key={key}
-                  className="text-[10px] px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium"
+                  className="text-xs px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium"
                 >
                   {getAttributeLabel(key)}:{' '}
                   <span className="font-bold">{formatAttributeValue(value)}</span>
                 </span>
               ))}
             {Object.keys(item.attributes || {}).length > 3 && (
-              <span className="text-[9px] text-slate-400 px-1 py-0.5">...</span>
+              <span className="text-xs text-slate-400 px-1 py-0.5">...</span>
             )}
           </div>
         )}
@@ -104,7 +104,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
 
       {/* Quantity Breakdown Section */}
       <div className="pt-3 border-t border-slate-100 relative z-10 mt-auto">
-        <div className="flex items-center justify-between text-[10px] text-slate-400 mb-2">
+        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
           <span className="font-bold uppercase tracking-wide flex items-center gap-1">
             <Box size={10} /> สถานะจำนวน
           </span>
@@ -143,7 +143,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
           </span>
         </div>
 
-        <div className="mt-2 text-[10px] text-slate-300 flex items-center gap-1 justify-end">
+        <div className="mt-2 text-xs text-slate-300 flex items-center gap-1 justify-end">
           <Calendar size={10} /> {new Date(item.updated_at).toLocaleDateString('th-TH')}
         </div>
       </div>

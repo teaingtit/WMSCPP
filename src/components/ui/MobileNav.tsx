@@ -51,7 +51,7 @@ export default function MobileNav() {
           </div>
           <div>
             <span className="font-bold text-white text-lg tracking-tight">{APP_CONFIG.name}</span>
-            <span className="text-[10px] text-slate-400 block -mt-0.5">v{APP_CONFIG.version}</span>
+            <span className="text-xs text-slate-400 block -mt-0.5">v{APP_CONFIG.version}</span>
           </div>
         </Link>
 

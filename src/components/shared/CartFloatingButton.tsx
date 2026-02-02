@@ -22,7 +22,7 @@ export const CartFloatingButton = ({
     >
       <div className="relative">
         <ShoppingCart size={24} />
-        <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-indigo-600">
+        <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-bold h-5 w-5 flex items-center justify-center rounded-full border-2 border-indigo-600">
           {itemCount}
         </span>
       </div>

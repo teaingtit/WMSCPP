@@ -144,7 +144,7 @@ export default function LocationSelector({
     <div className={`grid grid-cols-3 gap-3 ${className}`}>
       {/* LOT */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ล็อต (LOT)</label>
+        <label className="text-label text-slate-400 mb-1 block">ล็อต (LOT)</label>
         <div className="relative">
           <select
             aria-label="เลือก Lot" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
@@ -168,9 +168,7 @@ export default function LocationSelector({
 
       {/* POSITION */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">
-          ตำแหน่ง (POSITION)
-        </label>
+        <label className="text-label text-slate-400 mb-1 block">ตำแหน่ง (POSITION)</label>
         <div className="relative">
           <select
             aria-label="เลือก Position" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
@@ -194,7 +192,7 @@ export default function LocationSelector({
 
       {/* LEVEL */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 mb-1 block">ชั้น (LEVEL)</label>
+        <label className="text-label text-slate-400 mb-1 block">ชั้น (LEVEL)</label>
         <div className="relative">
           <select
             aria-label="เลือก Level" // ✅ เพิ่ม aria-label แก้ปัญหา a11y

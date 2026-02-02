@@ -78,6 +78,7 @@ interface InventorySelectionContextType {
   selectedIds: Set<string>;
   selectedItems: StockWithDetails[]; // ✅ Provide full objects
   hierarchy: Record<string, Record<string, StockWithDetails[]>>;
+  categories: Category[];
   categoryFormSchemas: Record<string, any[]>;
   toggleLot: (lot: string) => void;
   togglePos: (lot: string, pos: string) => void;
@@ -225,6 +226,7 @@ export const InventorySelectionProvider = ({
       selectedIds,
       selectedItems,
       hierarchy,
+      categories,
       categoryFormSchemas,
       toggleLot,
       togglePos,
@@ -239,6 +241,7 @@ export const InventorySelectionProvider = ({
       selectedIds,
       selectedItems,
       hierarchy,
+      categories,
       categoryFormSchemas,
       toggleLot,
       togglePos,
@@ -304,6 +307,7 @@ const InventoryDashboardContent = ({
     hierarchy,
     selectedIds,
     selectedItems,
+    categories,
     categoryFormSchemas,
     toggleLot,
     togglePos,
@@ -532,6 +536,7 @@ const InventoryDashboardContent = ({
         onClose={() => setDetailModalItem(null)}
         item={detailModalItem}
         warehouseId={warehouseId}
+        categories={categories}
         categoryFormSchemas={categoryFormSchemas}
       />
 

@@ -122,7 +122,7 @@ export default function TopNav() {
               {APP_CONFIG.name}
               <Sparkles size={14} className="text-primary" />
             </h1>
-            <span className="text-[10px] text-slate-500 font-medium">v{APP_CONFIG.version}</span>
+            <span className="text-xs text-slate-500 font-medium">v{APP_CONFIG.version}</span>
           </div>
         </Link>
 
@@ -208,7 +208,7 @@ export default function TopNav() {
               <div className="text-sm font-semibold text-white">{user.email.split('@')[0]}</div>
               <div
                 className={cn(
-                  'text-[10px] font-bold uppercase tracking-wide',
+                  'text-xs font-bold uppercase tracking-wide',
                   isAdmin ? 'text-primary' : 'text-emerald-400',
                 )}
               >

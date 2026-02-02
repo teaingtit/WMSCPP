@@ -45,7 +45,7 @@ export default function TerminalLogView({ logs }: TerminalLogViewProps) {
             System Activity Log
           </span>
         </div>
-        <div className="text-[10px] text-slate-500">Live View</div>
+        <div className="text-xs text-slate-500">Live View</div>
       </div>
 
       <div className="p-4 space-y-3 max-h-[800px] overflow-y-auto custom-scrollbar">
@@ -109,7 +109,7 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
       <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
         <div className="flex items-center gap-2">
           <span
-            className={`uppercase font-bold text-[10px] px-1.5 py-0.5 rounded ${getTypeColor(
+            className={`uppercase font-bold text-xs px-1.5 py-0.5 rounded ${getTypeColor(
               entry.type,
             )}`}
           >
@@ -135,7 +135,7 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
         </div>
 
         {entry.details && entry.details !== entry.from && entry.details !== entry.to && (
-          <span className="text-slate-600 text-[10px] italic">"{entry.details}"</span>
+          <span className="text-slate-600 text-xs italic">"{entry.details}"</span>
         )}
       </div>
 
@@ -144,7 +144,7 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
           {Object.entries(entry.attributes || {}).map(([key, value]) => (
             <span
               key={key}
-              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700"
+              className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700"
             >
               <span className="text-slate-500 mr-1">{formatAttributeKey(key)}:</span>
               <span className="text-amber-200/80">{formatAttributeValue(value)}</span>
@@ -162,7 +162,7 @@ function SystemLine({ entry }: { entry: SystemLogEntry }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <span className="uppercase font-bold text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+        <span className="uppercase font-bold text-xs px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
           {entry.type}
         </span>
         <span className="text-purple-200 font-medium">{entry.entityName}</span>

@@ -305,7 +305,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
                           return value ? (
                             <span
                               key={field.key}
-                              className="bg-slate-100 text-slate-500 text-[10px] px-1.5 py-0.5 rounded border border-slate-200"
+                              className="bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded border border-slate-200"
                             >
                               {field.label}: {value}
                             </span>

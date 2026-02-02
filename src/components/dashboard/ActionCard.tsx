@@ -82,7 +82,7 @@ export function ActionCard({ href, icon, tag, title, description }: ActionCardPr
           {/* Tag Badge */}
           <span
             className={cn(
-              'inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 border',
+              'inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider mb-2 border',
               styles.badge,
             )}
           >

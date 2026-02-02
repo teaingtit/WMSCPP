@@ -265,7 +265,7 @@ export default function StatusTab({
                     <Package size={12} className="text-violet-500 flex-shrink-0" />
                   )}
                 </div>
-                <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                <div className="text-xs text-slate-500 flex items-center gap-1">
                   {effectOption?.icon} {effectOption?.label}
                 </div>
               </button>

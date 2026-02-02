@@ -172,7 +172,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                         {data.type === 'CROSS_TRANSFER' ? data.toWarehouse : data.toLocation}
                       </div>
                       {data.type === 'CROSS_TRANSFER' && (
-                        <div className="text-[10px] text-slate-400 mt-0.5">{data.toLocation}</div>
+                        <div className="text-xs text-slate-400 mt-0.5">{data.toLocation}</div>
                       )}
                     </>
                   )}

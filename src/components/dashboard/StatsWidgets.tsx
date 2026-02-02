@@ -67,7 +67,7 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
           <Clock size={18} className="text-blue-400" />
           รายการเคลื่อนไหวล่าสุด
         </h3>
-        <span className="text-[10px] font-bold bg-blue-900/30 text-blue-400 px-3 py-1 rounded-full border border-blue-800">
+        <span className="text-xs font-bold bg-blue-900/30 text-blue-400 px-3 py-1 rounded-full border border-blue-800">
           ล่าสุด
         </span>
       </div>
@@ -112,7 +112,7 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
                     <h4 className="font-bold text-slate-200 text-sm truncate pr-2 group-hover:text-blue-400 transition-colors">
                       {log.products?.name || 'ไม่ระบุสินค้า'}
                     </h4>
-                    <span className="text-[10px] text-slate-500 flex-shrink-0 whitespace-nowrap bg-slate-900/50 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-slate-500 flex-shrink-0 whitespace-nowrap bg-slate-900/50 px-2 py-0.5 rounded-full">
                       {format(new Date(log.created_at), 'HH:mm', { locale: th })}
                     </span>
                   </div>
@@ -122,7 +122,7 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
                       <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono mr-2 border border-slate-600">
                         {log.type === 'INBOUND' ? log.to_location?.code : log.from_location?.code}
                       </span>
-                      <span className="text-[10px] text-slate-500">{log.products?.sku}</span>
+                      <span className="text-xs text-slate-500">{log.products?.sku}</span>
                     </div>
                     <div
                       className={`text-sm font-bold ${
@@ -135,7 +135,7 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
                     >
                       {log.type === 'OUTBOUND' ? '-' : '+'}
                       {Number(log.quantity).toLocaleString()}{' '}
-                      <span className="text-[10px] font-medium text-slate-600">
+                      <span className="text-xs font-medium text-slate-600">
                         {log.products?.uom}
                       </span>
                     </div>

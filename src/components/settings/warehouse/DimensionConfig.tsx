@@ -58,6 +58,6 @@ const AxisInput = ({ label, name, def, max, desc, color = 'slate', isHighlight }
           : `focus-visible:ring-${color}-500/30 focus-visible:border-${color}-500`
       }`}
     />
-    <p className="text-[10px] text-slate-400 text-center mt-1">{desc}</p>
+    <p className="text-xs text-slate-400 text-center mt-1">{desc}</p>
   </div>
 );

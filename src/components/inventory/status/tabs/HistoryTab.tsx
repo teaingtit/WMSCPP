@@ -73,7 +73,7 @@ export default function HistoryTab({ history }: HistoryTabProps) {
               )}
 
               {log.reason && <p className="text-xs text-slate-600 mt-1 italic">"{log.reason}"</p>}
-              <div className="text-[10px] text-slate-400 mt-1">
+              <div className="text-xs text-slate-400 mt-1">
                 {new Date(log.changed_at).toLocaleString('th-TH')} •{' '}
                 {log.changed_by_user?.email ||
                   log.changed_by_user?.full_name?.trim() ||

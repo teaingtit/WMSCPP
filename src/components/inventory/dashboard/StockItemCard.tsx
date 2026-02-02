@@ -115,7 +115,7 @@ export const StockItemCard = ({
             {item.product?.sku || 'Unknown SKU'}
           </div>
           {item.level && (
-            <span className="flex items-center gap-0.5 text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
+            <span className="flex items-center gap-0.5 text-xs font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
               <Layers size={10} /> {item.level}
             </span>
           )}
@@ -134,7 +134,7 @@ export const StockItemCard = ({
                   e.stopPropagation();
                   onStatusClick?.(item);
                 }}
-                className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border transition-all hover:opacity-80 active:scale-95 status-badge-dynamic"
+                className="inline-flex items-center gap-1 text-xs font-bold px-1.5 py-0.5 rounded border transition-all hover:opacity-80 active:scale-95 status-badge-dynamic"
               >
                 {restricted ? (
                   <Lock size={10} />
@@ -152,7 +152,7 @@ export const StockItemCard = ({
                   e.stopPropagation();
                   onStatusClick?.(item);
                 }}
-                className="inline-flex items-center gap-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200 hover:bg-amber-200 transition-all active:scale-95"
+                className="inline-flex items-center gap-0.5 text-xs font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200 hover:bg-amber-200 transition-all active:scale-95"
               >
                 <StickyNote size={10} />
                 {noteCount}
@@ -169,7 +169,7 @@ export const StockItemCard = ({
           {totalQty.toLocaleString()}
         </div>
         {status?.status && affectedQty > 0 && (
-          <div className="text-[10px] text-slate-500 mt-0.5">
+          <div className="text-xs text-slate-500 mt-0.5">
             {affectedQty.toLocaleString()} affected
           </div>
         )}

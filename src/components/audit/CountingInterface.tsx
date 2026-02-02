@@ -100,7 +100,7 @@ function AuditItemCard({
       </div>
       <div className="grid grid-cols-2 gap-3 items-end">
         <div className="space-y-1.5">
-          <label className="text-[10px] uppercase tracking-wider font-semibold text-slate-400">
+          <label className="text-xs uppercase tracking-wider font-semibold text-slate-400">
             System
           </label>
           <div className="font-mono font-bold text-lg h-12 flex items-center justify-center bg-slate-100 rounded-lg text-slate-500">
@@ -109,7 +109,7 @@ function AuditItemCard({
         </div>
         <div className="space-y-1.5">
           <label
-            className={`text-[10px] uppercase tracking-wider font-semibold ${
+            className={`text-xs uppercase tracking-wider font-semibold ${
               isCounted ? 'text-emerald-600' : 'text-slate-100'
             }`}
           >

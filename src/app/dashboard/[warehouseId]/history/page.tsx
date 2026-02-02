@@ -106,7 +106,7 @@ export default async function HistoryPage({
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
                                 tx.type === 'INBOUND'
                                   ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                   : tx.type === 'OUTBOUND'
@@ -137,7 +137,7 @@ export default async function HistoryPage({
                                 Object.entries(tx.attributes).map(([key, value]) => (
                                   <div
                                     key={key}
-                                    className="text-[10px] font-mono px-1 rounded bg-amber-50 text-amber-700 border border-amber-100 flex items-center"
+                                    className="text-xs font-mono px-1 rounded bg-amber-50 text-amber-700 border border-amber-100 flex items-center"
                                   >
                                     <span className="opacity-70 mr-1">
                                       {formatAttributeKey(key)}:
@@ -175,7 +175,7 @@ export default async function HistoryPage({
                               tx.details &&
                               tx.details !== tx.from &&
                               tx.details !== tx.to && (
-                                <div className="text-[10px] text-slate-400 mt-1 max-w-[200px] truncate">
+                                <div className="text-xs text-slate-400 mt-1 max-w-[200px] truncate">
                                   {tx.details}
                                 </div>
                               )}

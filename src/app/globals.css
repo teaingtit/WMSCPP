@@ -503,6 +503,41 @@ html {
   .max-h-dvh-80 {
     max-height: min(80vh, 80dvh);
   }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     📝 MOBILE-FIRST READABLE TEXT SCALE
+     Minimum 12px for Thai text readability on mobile devices
+  ═══════════════════════════════════════════════════════════════════ */
+
+  /* Caption: Default readable text for labels and metadata */
+  .text-caption {
+    @apply text-xs font-medium;
+    letter-spacing: 0.01em;
+  }
+
+  /* Label: Section headers and form labels */
+  .text-label {
+    @apply text-xs font-bold uppercase tracking-wider;
+  }
+
+  /* Caption Subtle: Muted helper text */
+  .text-caption-subtle {
+    @apply text-xs text-muted-foreground;
+  }
+
+  /* Caption Strong: Emphasized small text */
+  .text-caption-strong {
+    @apply text-xs font-bold;
+  }
+
+  /* Thai-optimized line heights for better readability */
+  .leading-thai {
+    line-height: 1.75;
+  }
+
+  .leading-thai-tight {
+    line-height: 1.5;
+  }
 }
 
 /* Animations */

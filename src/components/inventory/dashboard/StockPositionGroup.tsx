@@ -156,7 +156,7 @@ export const StockPositionGroup = React.memo(function StockPositionGroup({
                 <div className="flex-1 h-px bg-slate-100 group-hover:bg-slate-200 transition-colors mx-2"></div>
 
                 <span
-                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm ${styles.badge}`}
+                  className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-sm ${styles.badge}`}
                 >
                   {lvlItems.length}
                 </span>

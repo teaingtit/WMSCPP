@@ -44,7 +44,7 @@ const getEffectIcon = (effect: StatusEffect, iconSize: number = 12): React.React
 };
 
 const sizeClasses = {
-  sm: 'text-[10px] px-1.5 py-0.5 gap-1',
+  sm: 'text-xs px-1.5 py-0.5 gap-1',
   md: 'text-xs px-2 py-1 gap-1.5',
   lg: 'text-sm px-3 py-1.5 gap-2',
 };
@@ -78,7 +78,7 @@ export const StatusBadge = ({
         ) : (
           <Package size={size === 'lg' ? 14 : 10} className="opacity-70" />
         ))}
-      {showEffect && <span className="opacity-70 text-[10px] font-normal">({status.effect})</span>}
+      {showEffect && <span className="opacity-70 text-xs font-normal">({status.effect})</span>}
     </span>
   );
 };
@@ -149,7 +149,7 @@ export const StatusIndicator = ({
     >
       {status && (
         <span
-          className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+          className={`inline-flex items-center gap-1 text-xs font-bold px-1.5 py-0.5 rounded border ${
             styles['statusIndicatorBadge']
           } ${isRestricted ? 'animate-pulse' : ''}`}
           style={
@@ -166,7 +166,7 @@ export const StatusIndicator = ({
         </span>
       )}
       {hasNotes && (
-        <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full border border-amber-200">
+        <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] text-xs font-bold bg-amber-100 text-amber-700 rounded-full border border-amber-200">
           📝{noteCount > 0 && noteCount}
         </span>
       )}

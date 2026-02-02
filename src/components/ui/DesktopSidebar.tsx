@@ -73,7 +73,7 @@ export default function DesktopSidebar() {
           <h1 className="font-bold text-lg tracking-tight leading-none text-slate-100">
             {APP_CONFIG.name}
           </h1>
-          <span className="text-[10px] text-slate-500 font-mono tracking-wider">ENTERPRISE</span>
+          <span className="text-xs text-slate-500 font-mono tracking-wider">ENTERPRISE</span>
         </div>
       </div>
 
@@ -138,13 +138,13 @@ export default function DesktopSidebar() {
                 <div className="text-xs font-bold text-slate-200 truncate w-28" title={user.email}>
                   {user.email.split('@')[0]}
                 </div>
-                <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono uppercase">
+                <div className="flex items-center gap-1 text-xs text-slate-500 font-mono uppercase">
                   {user.role}
                 </div>
               </div>
             </div>
             {!isAdmin && (
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 bg-slate-900/50 px-2 py-1 rounded border border-slate-800">
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900/50 px-2 py-1 rounded border border-slate-800">
                 <Warehouse size={10} />
                 <span>เข้าถึง: {user.allowed_warehouses?.length || 0} คลัง</span>
               </div>

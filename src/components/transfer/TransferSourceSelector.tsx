@@ -129,7 +129,7 @@ export default function TransferSourceSelector({
                 ยกเลิก
               </button>
               <div
-                className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${themeColors.text}`}
+                className={`text-xs font-bold uppercase tracking-wider mb-1 ${themeColors.text}`}
               >
                 กำลังทำรายการ:
               </div>
@@ -191,13 +191,13 @@ export default function TransferSourceSelector({
                     {stock.product?.name || 'Unknown Product'}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">
+                    <span className="text-xs font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">
                       {stock.product?.sku || 'NO SKU'}
                     </span>
-                    <span className="text-[10px] font-medium text-slate-400 flex items-center gap-1">
+                    <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
                       <MapPin size={10} /> {stock.location?.code || '?'}
                     </span>
-                    <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-auto">
+                    <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-auto">
                       Qty: {stock.quantity} {stock.product?.uom}
                     </span>
                   </div>

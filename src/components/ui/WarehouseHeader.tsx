@@ -40,7 +40,7 @@ export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProp
         {/* 2. Logo/Title */}
         <div className="flex flex-col">
           <h2 className="text-xl font-bold text-slate-800 leading-none mb-1">{warehouse.name}</h2>
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
             <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
               {warehouse.code}
             </span>
@@ -66,7 +66,7 @@ export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProp
         <div className="text-right hidden md:block">
           <div className="text-xs font-bold text-slate-700">{user?.email || 'Guest'}</div>
           <div
-            className={`text-[10px] font-bold uppercase tracking-wider ${
+            className={`text-xs font-bold uppercase tracking-wider ${
               isAdmin ? 'text-purple-600' : 'text-slate-400'
             }`}
           >

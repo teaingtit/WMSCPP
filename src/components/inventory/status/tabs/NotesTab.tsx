@@ -80,12 +80,12 @@ export default function NotesTab({
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   {note.is_pinned && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full mb-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full mb-2">
                       <Pin size={10} /> ปักหมุด
                     </span>
                   )}
                   <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.content}</p>
-                  <div className="mt-2 text-[10px] text-slate-400">
+                  <div className="mt-2 text-xs text-slate-400">
                     {new Date(note.created_at).toLocaleString('th-TH')} •{' '}
                     {note.created_by_user?.email || 'Unknown'}
                   </div>

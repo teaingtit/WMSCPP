@@ -343,7 +343,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                           {Object.entries(p.attributes).map(([key, val]) => (
                             <span
                               key={key}
-                              className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium"
+                              className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium"
                             >
                               {getAttrLabel(key)}:{' '}
                               <span className="text-slate-600 font-normal">{String(val)}</span>

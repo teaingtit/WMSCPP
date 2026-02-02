@@ -20,12 +20,15 @@ import { getEntityStatus, getEntityNotes } from '@/actions/status-actions';
 import StatusAndNotesModal from './status/StatusAndNotesModal';
 import { isRestricted, calculateQuantityBreakdown, getStatusGradient } from './utils';
 
+import { Category } from '@/components/inbound/DynamicInboundForm';
+
 interface StockDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: StockWithDetails | null;
-  warehouseId?: string; // Kept for compatibility but no longer used
-  categoryFormSchemas?: Record<string, any[]>; // NEW: Map of category_id -> form_schema
+  warehouseId?: string;
+  categoryFormSchemas?: Record<string, any[]>;
+  categories?: Category[]; // NEW: Categories list for lookup
 }
 
 export default function StockDetailModal({
@@ -34,6 +37,7 @@ export default function StockDetailModal({
   item,
   warehouseId: _warehouseId,
   categoryFormSchemas,
+  categories,
 }: StockDetailModalProps) {
   const [status, setStatus] = useState<EntityStatus | null>(null);
   const [notes, setNotes] = useState<EntityNote[]>([]);
@@ -45,6 +49,13 @@ export default function StockDetailModal({
     const schema = categoryFormSchemas?.[categoryId] || [];
     const field = schema.find((f) => f.key === key && (!scope || f.scope === scope));
     return field?.label || key;
+  };
+
+  // Helper: Get category name
+  const getCategoryName = (id: string) => {
+    if (!categories) return id;
+    const cat = categories.find((c) => c.id === id);
+    return cat ? cat.name : id;
   };
 
   useEffect(() => {
@@ -80,6 +91,35 @@ export default function StockDetailModal({
     normal: normalQuantity,
   } = calculateQuantityBreakdown(item.quantity, status);
   const headerGradient = getStatusGradient(status);
+
+  // Style helpers to avoid inline style warnings
+  const bannerStyle = status?.status
+    ? {
+        backgroundColor: status.status.bg_color,
+        borderColor: status.status.color + '40',
+      }
+    : undefined;
+
+  const statusColorStyle = status?.status ? { color: status.status.color } : undefined;
+  const statusTextStyle = status?.status ? { color: status.status.text_color } : undefined;
+  const statusDotStyle = status?.status
+    ? { backgroundColor: status.status.color }
+    : { backgroundColor: '#e2e8f0' };
+
+  const affectedQtyStyle = status?.status
+    ? {
+        backgroundColor: status.status.bg_color,
+        borderColor: status.status.color + '40',
+      }
+    : undefined;
+
+  const affectedLabelStyle = status?.status
+    ? { color: status.status.text_color }
+    : { color: '#64748b' };
+
+  const affectedValueStyle = status?.status
+    ? { color: status.status.text_color }
+    : { color: '#94a3b8' };
 
   return (
     <>
@@ -117,36 +157,27 @@ export default function StockDetailModal({
           {status?.status && (
             <div
               className="flex items-center gap-3 px-4 py-2.5 border-b shrink-0"
-              style={{
-                backgroundColor: status.status.bg_color,
-                borderColor: status.status.color + '40',
-              }}
+              style={bannerStyle}
             >
               {restricted ? (
-                <AlertTriangle size={18} style={{ color: status.status.color }} />
+                <AlertTriangle size={18} style={statusColorStyle} />
               ) : (
-                <Shield size={18} style={{ color: status.status.color }} />
+                <Shield size={18} style={statusColorStyle} />
               )}
               <div className="flex-1 min-w-0">
-                <div
-                  className="font-bold text-sm truncate"
-                  style={{ color: status.status.text_color }}
-                >
+                <div className="font-bold text-sm truncate" style={statusTextStyle}>
                   {status.status.name}
                 </div>
                 {status.status.description && (
-                  <div
-                    className="text-[10px] opacity-80 truncate"
-                    style={{ color: status.status.text_color }}
-                  >
+                  <div className="text-xs opacity-90 truncate" style={statusTextStyle}>
                     {status.status.description}
                   </div>
                 )}
               </div>
               <button
                 onClick={() => setShowStatusModal(true)}
-                className="text-[10px] font-bold px-2 py-1 rounded-md bg-white/50 hover:bg-white/80 transition-colors"
-                style={{ color: status.status.text_color }}
+                className="text-xs font-bold px-2 py-1 rounded-md bg-white/50 hover:bg-white/80 transition-colors"
+                style={statusTextStyle}
               >
                 จัดการ
               </button>
@@ -157,30 +188,30 @@ export default function StockDetailModal({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Product Details Card */}
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <div className="text-label text-slate-400 mb-3 flex items-center gap-1.5">
                 <Box size={12} /> ข้อมูลสินค้า
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-[10px] text-slate-400 block">SKU</span>
+                  <span className="text-caption-subtle block">SKU</span>
                   <span className="font-mono font-bold text-slate-700 text-sm">
                     {item.product?.sku || '-'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">หมวดหมู่</span>
+                  <span className="text-caption-subtle block">หมวดหมู่</span>
                   <span className="font-bold text-slate-700 text-sm">
-                    {item.product?.category_id || '-'}
+                    {item.product?.category_id ? getCategoryName(item.product.category_id) : '-'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">หน่วย</span>
+                  <span className="text-caption-subtle block">หน่วย</span>
                   <span className="font-bold text-slate-700 text-sm">
                     {item.product?.uom || '-'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">อัปเดตล่าสุด</span>
+                  <span className="text-caption-subtle block">อัปเดตล่าสุด</span>
                   <span className="font-bold text-slate-700 text-sm flex items-center gap-1">
                     <Clock size={10} className="text-slate-400" />
                     {new Date(item.updated_at).toLocaleDateString('th-TH')}
@@ -191,25 +222,25 @@ export default function StockDetailModal({
 
             {/* Location Details */}
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <div className="text-label text-slate-400 mb-3 flex items-center gap-1.5">
                 <MapPin size={12} /> ข้อมูลตำแหน่ง
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4.5rem]">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">ตำแหน่ง</span>
+                  <span className="text-label text-slate-400">ตำแหน่ง</span>
                   <span className="font-bold text-slate-700">{item.location?.code || '-'}</span>
                 </div>
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">Lot</span>
+                  <span className="text-label text-slate-400">Lot</span>
                   <span className="font-bold text-slate-700">{item.lot || '-'}</span>
                 </div>
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase">Position</span>
+                  <span className="text-label text-slate-400">Position</span>
                   <span className="font-bold text-slate-700">{item.cart || '-'}</span>
                 </div>
                 {item.level && (
                   <div className="px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-200 flex flex-col items-center min-w-[4rem]">
-                    <span className="text-[9px] font-bold text-indigo-400 uppercase flex items-center gap-0.5">
+                    <span className="text-label text-indigo-400 flex items-center gap-0.5">
                       <Layers size={9} /> ชั้น
                     </span>
                     <span className="font-bold text-indigo-700">{item.level}</span>
@@ -220,7 +251,7 @@ export default function StockDetailModal({
 
             {/* Quantity Status Breakdown */}
             <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <div className="text-label text-slate-400 mb-3 flex items-center gap-1.5">
                 <Tag size={12} /> รายละเอียดจำนวน
               </div>
 
@@ -277,31 +308,15 @@ export default function StockDetailModal({
                   className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
                     status?.status ? 'border' : 'bg-slate-50 border border-slate-100'
                   }`}
-                  style={
-                    status?.status
-                      ? {
-                          backgroundColor: status.status.bg_color,
-                          borderColor: status.status.color + '40',
-                        }
-                      : undefined
-                  }
+                  style={affectedQtyStyle}
                 >
                   <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: status?.status?.color || '#e2e8f0' }}
-                    ></div>
-                    <span
-                      className="text-sm font-medium"
-                      style={{ color: status?.status?.text_color || '#64748b' }}
-                    >
+                    <div className="w-3 h-3 rounded-full" style={statusDotStyle}></div>
+                    <span className="text-sm font-medium" style={affectedLabelStyle}>
                       {status?.status?.name || 'ไม่มีสถานะ'}
                     </span>
                   </div>
-                  <span
-                    className="font-bold text-lg"
-                    style={{ color: status?.status?.text_color || '#94a3b8' }}
-                  >
+                  <span className="font-bold text-lg" style={affectedValueStyle}>
                     {affectedQuantity.toLocaleString()}
                   </span>
                 </div>
@@ -320,7 +335,7 @@ export default function StockDetailModal({
             {/* Product Specifications (PRODUCT Scope) */}
             {item.product?.attributes && Object.keys(item.product.attributes).length > 0 && (
               <div className="bg-indigo-50 rounded-xl border border-indigo-100 p-4">
-                <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <div className="text-label text-indigo-600 mb-3 flex items-center gap-1.5">
                   <Tag size={12} /> สเปคสินค้า (Product Spec)
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -342,7 +357,7 @@ export default function StockDetailModal({
             {/* Lot Attributes (LOT Scope) */}
             {item.attributes && Object.keys(item.attributes).length > 0 && (
               <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-4">
-                <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <div className="text-label text-emerald-600 mb-3 flex items-center gap-1.5">
                   <Layers size={12} /> ข้อมูลล็อต (Lot Details)
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -365,12 +380,12 @@ export default function StockDetailModal({
             {notes.length > 0 && (
               <div className="bg-amber-50 rounded-xl border border-amber-200 p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="text-label text-amber-600 flex items-center gap-1.5">
                     <StickyNote size={12} /> หมายเหตุ ({notes.length})
                   </div>
                   <button
                     onClick={() => setShowStatusModal(true)}
-                    className="text-[10px] font-bold text-amber-600 hover:text-amber-700 hover:underline"
+                    className="text-xs font-bold text-amber-600 hover:text-amber-700 hover:underline"
                   >
                     ดูทั้งหมด
                   </button>

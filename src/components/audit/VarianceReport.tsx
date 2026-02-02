@@ -120,15 +120,15 @@ export default function VarianceReport({ items }: VarianceReportProps) {
 
                 <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-50 text-sm">
                   <div>
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">System</div>
+                    <div className="text-xs text-slate-400 uppercase font-bold">System</div>
                     <div className="font-mono text-slate-600">{item.system_qty}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Counted</div>
+                    <div className="text-xs text-slate-400 uppercase font-bold">Counted</div>
                     <div className="font-mono font-bold text-slate-800">{item.counted_qty}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Diff</div>
+                    <div className="text-xs text-slate-400 uppercase font-bold">Diff</div>
                     <div
                       className={`font-mono font-bold ${
                         (item.counted_qty ?? 0) > (item.system_qty ?? 0)

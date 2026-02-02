@@ -479,7 +479,7 @@ export default function TransferTargetForm({
                 <div className="flex justify-between items-start gap-3 pl-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-xs font-bold text-slate-500">
                         {idx + 1}
                       </span>
                       <h4 className="font-bold text-slate-800 truncate text-sm">
@@ -489,7 +489,7 @@ export default function TransferTargetForm({
 
                     <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium mt-2">
                       <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                        <span className="text-slate-400 text-[10px] uppercase">From</span>
+                        <span className="text-slate-400 text-xs uppercase">From</span>
                         <span className="font-mono font-bold text-slate-700">
                           {item.sourceStock.location?.code}
                         </span>
@@ -503,7 +503,7 @@ export default function TransferTargetForm({
                         }`}
                       >
                         <span
-                          className={`text-[10px] uppercase ${
+                          className={`text-xs uppercase ${
                             item.targetLocation ? 'text-indigo-400' : 'text-rose-400'
                           }`}
                         >
@@ -521,7 +521,7 @@ export default function TransferTargetForm({
                       <span className="block text-xl font-black text-indigo-600 leading-none">
                         {item.qty}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium">
+                      <span className="text-xs text-slate-400 font-medium">
                         {item.sourceStock.product?.uom || 'Unit'}
                       </span>
                     </div>
@@ -532,7 +532,7 @@ export default function TransferTargetForm({
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50 pl-3">
                   <div className="flex items-center gap-2">
                     {itemError && (
-                      <span className="flex items-center gap-1 text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full font-bold border border-rose-100">
+                      <span className="flex items-center gap-1 text-xs bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full font-bold border border-rose-100">
                         Incomplete
                       </span>
                     )}
@@ -546,7 +546,7 @@ export default function TransferTargetForm({
                       return (
                         <>
                           <span
-                            className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                            className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-bold border ${
                               !hasError
                                 ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                 : 'bg-rose-50 text-rose-600 border-rose-100'
@@ -556,7 +556,7 @@ export default function TransferTargetForm({
                           </span>
                           {hasError && errorReason && (
                             <span
-                              className="text-[10px] text-rose-500 font-medium truncate max-w-[150px]"
+                              className="text-xs text-rose-500 font-medium truncate max-w-[150px]"
                               title={errorReason}
                             >
                               {errorReason}
@@ -702,9 +702,7 @@ export default function TransferTargetForm({
                 <div className="p-6 flex-1 overflow-y-auto space-y-6">
                   {/* Product Card */}
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      สินค้าที่เลือก
-                    </div>
+                    <div className="text-label text-slate-400 mb-2">สินค้าที่เลือก</div>
                     <div className="font-bold text-slate-800 text-lg leading-tight mb-1">
                       {item.sourceStock.name || item.sourceStock.product?.name}
                     </div>

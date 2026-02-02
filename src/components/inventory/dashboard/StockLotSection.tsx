@@ -124,7 +124,7 @@ export const StockLotSection = ({
 
         <div className="flex items-center gap-2">
           {restrictedCount > 0 && (
-            <span className="flex items-center gap-1 text-[10px] font-bold bg-red-100 text-red-700 px-2 py-1 rounded-full border border-red-200">
+            <span className="flex items-center gap-1 text-xs font-bold bg-red-100 text-red-700 px-2 py-1 rounded-full border border-red-200">
               <AlertTriangle size={12} /> {restrictedCount} รายการติดสถานะ
             </span>
           )}

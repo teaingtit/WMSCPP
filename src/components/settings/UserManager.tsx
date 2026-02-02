@@ -169,7 +169,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
                   className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
                   placeholder="ตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร..."
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   * หากไม่เลือกส่งอีเมล Admin ต้องแจ้งรหัสผ่านนี้ให้ผู้ใช้ทราบ
                 </p>
               </div>

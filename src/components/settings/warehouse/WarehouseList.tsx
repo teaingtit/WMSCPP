@@ -34,7 +34,7 @@ export const WarehouseList = ({ warehouses, deleteAction }: WarehouseListProps) 
                     {wh.code}
                   </span>
                   {wh.config && (
-                    <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
+                    <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
                       <span title="X Axis">X:{wh.config.axis_x}</span>
                       <span className="w-px h-3 bg-slate-200" />
                       <span title="Y Axis">Y:{wh.config.axis_y}</span>

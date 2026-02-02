@@ -194,12 +194,12 @@ export default function LotStatusModal({
                             />
                             <span className="font-bold text-sm break-words">{status.name}</span>
                             {isCurrent && (
-                              <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full shrink-0">
+                              <span className="text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full shrink-0">
                                 Current
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 flex items-center gap-1 ml-5 break-words">
+                          <div className="text-xs text-slate-500 flex items-center gap-1 ml-5 break-words">
                             {effectOption?.icon} {effectOption?.label}
                           </div>
                         </button>

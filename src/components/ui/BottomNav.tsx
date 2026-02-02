@@ -94,7 +94,7 @@ export default function BottomNav() {
                 </div>
                 <span
                   className={cn(
-                    'text-[10px] font-medium mt-0.5 transition-colors leading-tight',
+                    'text-xs font-medium mt-0.5 transition-colors leading-tight',
                     isActive ? 'text-primary font-semibold' : '',
                   )}
                 >

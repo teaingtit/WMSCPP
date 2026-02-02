@@ -335,7 +335,7 @@ export default function AuditDetailPage() {
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
+                    className={`px-2 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
                       item.status === 'COUNTED'
                         ? 'bg-emerald-100 text-emerald-700'
                         : 'bg-amber-100 text-amber-700'
