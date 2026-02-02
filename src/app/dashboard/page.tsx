@@ -57,7 +57,7 @@ export default async function DashboardPage() {
           </div>
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-white">คลังสินค้าของคุณ</h2>
-            <p className="text-sm text-slate-400">{warehouses.length} คลังสินค้า</p>
+            <p className="text-sm text-slate-500">{warehouses.length} คลังสินค้า</p>
           </div>
         </div>
       </div>
@@ -72,11 +72,11 @@ export default async function DashboardPage() {
             style={{ animationDelay: `${index * 80}ms` }}
           >
             {/* Hover Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-blue-600/5 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* Header */}
             <div className="flex justify-between items-start mb-5 relative z-10">
-              <div className="p-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-primary/25">
+              <div className="p-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-500 rounded-2xl group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-primary/25">
                 <Building2 size={24} />
               </div>
               {wh.is_active && (
@@ -116,11 +116,11 @@ export default async function DashboardPage() {
         {warehouses.length === 0 && (
           <div className="col-span-full">
             <div className="flex flex-col items-center justify-center py-16 px-6 bg-slate-800/50 rounded-2xl border-2 border-dashed border-slate-700 text-center">
-              <div className="w-20 h-20 bg-slate-700/50 rounded-2xl flex items-center justify-center mb-5 text-slate-400">
+              <div className="w-20 h-20 bg-slate-700/50 rounded-2xl flex items-center justify-center mb-5 text-slate-500">
                 <Boxes size={36} />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">ไม่มีคลังสินค้า</h3>
-              <p className="text-slate-400 text-sm max-w-sm">
+              <p className="text-slate-500 text-sm max-w-sm">
                 คุณยังไม่มีสิทธิ์เข้าถึงคลังสินค้าใดๆ กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์การเข้าถึง
               </p>
             </div>

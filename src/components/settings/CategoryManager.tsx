@@ -212,7 +212,7 @@ export default function CategoryManager({
                 <div className="font-bold text-slate-800 text-lg group-hover:text-indigo-700 transition-colors">
                   {cat.name}
                 </div>
-                <div className="text-xs text-slate-400 font-mono mt-1 flex items-center gap-3">
+                <div className="text-xs text-slate-500 font-mono mt-1 flex items-center gap-3">
                   <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                     ID: {cat.id}
                   </span>
@@ -254,7 +254,7 @@ export default function CategoryManager({
               >
                 <input type="hidden" name="id" value={cat.id} />
                 <SubmitButton
-                  className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                   title={`ลบหมวดหมู่ ${cat.name}`}
                 >
                   <Trash2 size={18} />

@@ -436,7 +436,7 @@ const InventoryDashboardContent = ({
         {lotKeys.length === 0 && (
           <div className="text-center py-12 px-4">
             <p className="text-slate-500 mb-4">ไม่พบรายการสินค้า</p>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
+            <p className="text-sm text-slate-500 max-w-md mx-auto">
               ยังไม่มีสต็อกในคลังนี้ — รับสินค้าเข้าจากเมนู Inbound หรือเพิ่มตำแหน่ง (Lot/Position)
               ในตั้งค่าระบบ
             </p>

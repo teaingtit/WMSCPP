@@ -236,7 +236,7 @@ export default function BulkSchemaEditor({ categories, onClose }: BulkSchemaEdit
                     {item.changed ? (
                       <CheckCircle2 size={16} className="text-emerald-600" />
                     ) : (
-                      <XCircle size={16} className="text-slate-400" />
+                      <XCircle size={16} className="text-slate-500" />
                     )}
                     <span className="font-bold text-sm">{item.categoryName}</span>
                   </div>

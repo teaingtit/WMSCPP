@@ -59,7 +59,7 @@ export const BaseCartDrawer = ({
             <button
               onClick={onClose}
               aria-label="Close cart"
-              className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400 hover:text-slate-600"
+              className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500 hover:text-slate-600"
             >
               <X size={20} />
             </button>
@@ -69,7 +69,7 @@ export const BaseCartDrawer = ({
         {/* Content - List of Items */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
           {itemCount === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
+            <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-4">
               <Package size={48} className="opacity-20" />
               <p>No items in queue</p>
             </div>

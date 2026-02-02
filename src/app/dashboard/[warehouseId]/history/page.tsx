@@ -50,7 +50,7 @@ export default async function HistoryPage({
           </p>
         </div>
         <div className="text-right">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
             Entries Found
           </div>
           <div className="text-3xl font-black text-slate-800">{logs.length}</div>
@@ -80,7 +80,7 @@ export default async function HistoryPage({
               <tbody className="divide-y divide-slate-100">
                 {logs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center">
                           <History size={24} className="opacity-30" />
@@ -100,7 +100,7 @@ export default async function HistoryPage({
                             <div className="font-medium text-slate-700">
                               {format(new Date(tx.date), 'dd MMM yyyy', { locale: th })}
                             </div>
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-slate-500">
                               {format(new Date(tx.date), 'HH:mm:ss')}
                             </div>
                           </td>
@@ -130,7 +130,7 @@ export default async function HistoryPage({
                           <td className="px-6 py-4">
                             <div className="font-bold text-slate-700">{tx.product}</div>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              <div className="font-mono text-xs text-slate-400 bg-slate-100 inline-block px-1 rounded">
+                              <div className="font-mono text-xs text-slate-500 bg-slate-100 inline-block px-1 rounded">
                                 {tx.sku}
                               </div>
                               {tx.attributes &&
@@ -153,12 +153,12 @@ export default async function HistoryPage({
                             <span className="font-bold text-slate-800 text-base">
                               {Number(tx.quantity).toLocaleString()}
                             </span>
-                            <span className="text-xs text-slate-400 ml-1">{tx.uom}</span>
+                            <span className="text-xs text-slate-500 ml-1">{tx.uom}</span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2 text-xs font-mono">
                               <span
-                                className="text-slate-400 max-w-[120px] truncate"
+                                className="text-slate-500 max-w-[120px] truncate"
                                 title={tx.from}
                               >
                                 {tx.from}
@@ -175,14 +175,14 @@ export default async function HistoryPage({
                               tx.details &&
                               tx.details !== tx.from &&
                               tx.details !== tx.to && (
-                                <div className="text-xs text-slate-400 mt-1 max-w-[200px] truncate">
+                                <div className="text-xs text-slate-500 mt-1 max-w-[200px] truncate">
                                   {tx.details}
                                 </div>
                               )}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                              <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                                 <User size={12} />
                               </div>
                               <span

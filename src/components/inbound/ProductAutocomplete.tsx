@@ -124,7 +124,7 @@ export default function ProductAutocomplete({
 
       {/* Search Input - Always visible */}
       <div className="relative transition-all duration-200 transform focus-within:scale-[1.01]">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-500 transition-colors">
           {isSearching ? <Loader2 size={22} className="animate-spin" /> : <Search size={22} />}
         </div>
         <input
@@ -172,14 +172,14 @@ export default function ProductAutocomplete({
                 <span className="text-xs font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-200">
                   {selectedProduct.sku}
                 </span>
-                <span className="text-xs text-slate-400">{selectedProduct.uom || 'Unit'}</span>
+                <span className="text-xs text-slate-500">{selectedProduct.uom || 'Unit'}</span>
               </div>
             </div>
           </div>
           <button
             type="button"
             onClick={handleClearSelection}
-            className="p-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl text-slate-400 hover:text-rose-500 transition-all shadow-sm group"
+            className="p-2 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl text-slate-500 hover:text-rose-500 transition-all shadow-sm group"
             aria-label="Remove product"
           >
             <X size={16} className="group-hover:rotate-90 transition-transform" />
@@ -195,7 +195,7 @@ export default function ProductAutocomplete({
         >
           {filteredProducts.length > 0 ? (
             <div>
-              <div className="px-4 py-2 bg-slate-50/50 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50 flex justify-between sticky top-0 backdrop-blur-sm">
+              <div className="px-4 py-2 bg-slate-50/50 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-50 flex justify-between sticky top-0 backdrop-blur-sm">
                 <span>Found {filteredProducts.length} items</span>
                 <span className="hidden sm:inline">Use ↑↓ to navigate, Enter to select</span>
               </div>

@@ -29,7 +29,7 @@ export default async function InboundMenuPage({ params }: PageProps) {
 
       <div className="relative flex items-center py-8">
         <div className="flex-grow border-t border-slate-200"></div>
-        <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-bold uppercase tracking-wider">
+        <span className="flex-shrink-0 mx-4 text-slate-500 text-xs font-bold uppercase tracking-wider">
           หรือรับเข้าทีละรายการ (Manual)
         </span>
         <div className="flex-grow border-t border-slate-200"></div>
@@ -58,7 +58,7 @@ export default async function InboundMenuPage({ params }: PageProps) {
                 <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
                   {cat.name}
                 </h3>
-                <p className="text-sm text-slate-400">Manual Entry</p>
+                <p className="text-sm text-slate-500">Manual Entry</p>
               </div>
 
               <ArrowRight className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
@@ -66,7 +66,7 @@ export default async function InboundMenuPage({ params }: PageProps) {
           ))
         ) : (
           <div className="col-span-2 p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-            <p className="text-slate-400">ยังไม่มีหมวดหมู่สินค้าในระบบ</p>
+            <p className="text-slate-500">ยังไม่มีหมวดหมู่สินค้าในระบบ</p>
           </div>
         )}
       </div>

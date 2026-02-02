@@ -278,7 +278,7 @@ export default function OutboundPage() {
                   />
                 ) : (
                   <Search
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
                     size={24}
                   />
                 )}
@@ -290,7 +290,7 @@ export default function OutboundPage() {
                   <div className="bg-rose-50 p-4 rounded-2xl border border-rose-200 relative">
                     <button
                       onClick={() => setSelectedStock(null)}
-                      className="absolute top-3 right-3 text-slate-400 hover:text-rose-600 text-xs font-bold underline"
+                      className="absolute top-3 right-3 text-slate-500 hover:text-rose-600 text-xs font-bold underline"
                     >
                       ยกเลิก
                     </button>
@@ -315,13 +315,13 @@ export default function OutboundPage() {
                       )}
                     <div className="flex gap-3 mt-3">
                       <div className="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-rose-100 text-xs">
-                        <span className="text-slate-400">พิกัด:</span>{' '}
+                        <span className="text-slate-500">พิกัด:</span>{' '}
                         <span className="font-bold text-slate-700">
                           {selectedStock.locations.code}
                         </span>
                       </div>
                       <div className="bg-white px-3 py-1.5 rounded-lg shadow-sm border border-rose-100 text-xs">
-                        <span className="text-slate-400">คงเหลือ:</span>{' '}
+                        <span className="text-slate-500">คงเหลือ:</span>{' '}
                         <span className="font-bold text-slate-700">
                           {selectedStock.quantity} {selectedStock.products.uom}
                         </span>
@@ -334,7 +334,7 @@ export default function OutboundPage() {
               {/* Result List - Always visible when there are results */}
               {searchResults.length > 0 && (
                 <div className="mt-4 space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     พบ {searchResults.length} ตำแหน่งจัดเก็บ
                   </p>
                   {searchResults.map((stock) => (
@@ -348,7 +348,7 @@ export default function OutboundPage() {
                           <div className="font-bold text-slate-800 group-hover:text-rose-700">
                             {stock.products.name}
                           </div>
-                          <div className="text-xs font-mono text-slate-400 mt-1">
+                          <div className="text-xs font-mono text-slate-500 mt-1">
                             {stock.products.sku}
                           </div>
                           {stock.attributes && Object.keys(stock.attributes).length > 0 && (
@@ -380,7 +380,7 @@ export default function OutboundPage() {
               )}
 
               {searchTerm && searchResults.length === 0 && !isSearching && (
-                <div className="mt-8 text-center text-slate-400">
+                <div className="mt-8 text-center text-slate-500">
                   {queuedStockIds.size > 0 &&
                   queue.some((q) =>
                     q.stock.products.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -418,7 +418,7 @@ export default function OutboundPage() {
                     onChange={(e) => setPickQty(e.target.value)}
                     max={selectedStock?.quantity}
                   />
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold bg-white px-3 py-1 rounded-lg border border-slate-100 text-sm uppercase">
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 font-bold bg-white px-3 py-1 rounded-lg border border-slate-100 text-sm uppercase">
                     {selectedStock?.products.uom}
                   </span>
                 </div>
@@ -471,7 +471,7 @@ export default function OutboundPage() {
         <div className="flex flex-col gap-3">
           <div className="flex-1 overflow-y-auto p-2 space-y-3 bg-slate-50/30 min-h-[200px] max-h-[60vh] custom-scrollbar">
             {queue.length === 0 ? (
-              <div className="text-sm text-slate-400 text-center py-6">ยังไม่มีรายการ</div>
+              <div className="text-sm text-slate-500 text-center py-6">ยังไม่มีรายการ</div>
             ) : (
               queue.map((item, idx) => (
                 <div
@@ -495,7 +495,7 @@ export default function OutboundPage() {
                       {item.stock.locations.code}
                     </div>
                     {item.note && (
-                      <div className="text-xs text-slate-400 mt-1 italic">Note: {item.note}</div>
+                      <div className="text-xs text-slate-500 mt-1 italic">Note: {item.note}</div>
                     )}
                     <div className="flex justify-end mt-2">
                       <span className="text-rose-600 font-black text-lg">-{item.qty}</span>

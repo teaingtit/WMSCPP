@@ -227,7 +227,7 @@ export default function StatusTab({
             )}
           </div>
         ) : (
-          <span className="text-slate-400 text-sm">ปกติ (ไม่มีสถานะ)</span>
+          <span className="text-slate-500 text-sm">ปกติ (ไม่มีสถานะ)</span>
         )}
       </div>
 

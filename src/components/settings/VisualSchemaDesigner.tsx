@@ -143,7 +143,7 @@ export default function VisualSchemaDesigner({
             `}
           >
             {productFields.length === 0 ? (
-              <div className="text-center text-slate-400 py-8">
+              <div className="text-center text-slate-500 py-8">
                 <Package size={32} className="mx-auto mb-2 opacity-50" />
                 <p className="text-sm">ลากฟิลด์มาวางที่นี่...</p>
               </div>
@@ -187,7 +187,7 @@ export default function VisualSchemaDesigner({
             `}
           >
             {lotFields.length === 0 ? (
-              <div className="text-center text-slate-400 py-8">
+              <div className="text-center text-slate-500 py-8">
                 <Layers size={32} className="mx-auto mb-2 opacity-50" />
                 <p className="text-sm">ลากฟิลด์มาวางที่นี่...</p>
               </div>

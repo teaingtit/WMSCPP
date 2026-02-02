@@ -3,6 +3,45 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Scale, Info } from 'lucide-react';
 
+// Tooltip wrapper with tap-to-show and click-outside
+function InfoTooltip({ content }: { content: string }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setShowTooltip(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTooltip]);
+
+  return (
+    <div className="group relative" ref={tooltipRef}>
+      <button
+        type="button"
+        onClick={() => setShowTooltip((s) => !s)}
+        className="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-primary/20"
+        aria-expanded={showTooltip ? 'true' : 'false'}
+        aria-label="ข้อมูลเพิ่มเติม"
+      >
+        <Info size={14} className="text-slate-500 cursor-help" />
+      </button>
+      <div
+        className={`absolute left-0 bottom-full mb-2 w-64 bg-slate-800 text-white text-xs p-2 rounded z-10 ${
+          showTooltip ? 'block' : 'hidden'
+        } md:group-hover:block`}
+        role="tooltip"
+      >
+        {content}
+      </div>
+    </div>
+  );
+}
+
 interface UnitsBuilderProps {
   onUnitsChange: (json: string) => void;
   initialUnits?: string;
@@ -79,12 +118,7 @@ export default function UnitsBuilder({ onUnitsChange, initialUnits }: UnitsBuild
         <div className="flex items-center gap-2">
           <Scale size={16} className="text-emerald-600" />
           <h4 className="text-sm font-bold text-slate-700">หน่วยนับ (Units of Measure)</h4>
-          <div className="group relative">
-            <Info size={14} className="text-slate-400 cursor-help" />
-            <div className="absolute left-0 bottom-full mb-2 w-64 bg-slate-800 text-white text-xs p-2 rounded hidden group-hover:block z-10">
-              กำหนดหน่วยนับที่ใช้สำหรับสินค้าในหมวดหมู่นี้ เช่น PCS, KG, BOX
-            </div>
-          </div>
+          <InfoTooltip content="กำหนดหน่วยนับที่ใช้สำหรับสินค้าในหมวดหมู่นี้ เช่น PCS, KG, BOX" />
         </div>
       </div>
 
@@ -127,7 +161,7 @@ export default function UnitsBuilder({ onUnitsChange, initialUnits }: UnitsBuild
 
       {/* Units List */}
       {units.length === 0 ? (
-        <div className="text-center py-6 text-slate-400 text-xs border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+        <div className="text-center py-6 text-slate-500 text-xs border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50">
           ยังไม่มีหน่วยนับ - สินค้าจะใช้หน่วยเริ่มต้น "UNIT"
         </div>
       ) : (
@@ -141,7 +175,7 @@ export default function UnitsBuilder({ onUnitsChange, initialUnits }: UnitsBuild
               <button
                 type="button"
                 onClick={() => removeUnit(idx)}
-                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors touch-manipulation active:scale-95 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 title="ลบหน่วยนี้"
               >
                 <Trash2 size={16} />

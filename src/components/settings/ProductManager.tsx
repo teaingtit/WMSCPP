@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useActionState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { createProduct, deleteProduct } from '@/actions/settings-actions';
 import { downloadMasterTemplate, importMasterData } from '@/actions/bulk-import-actions';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { SubmitButton } from '@/components/ui/submit-button';
 import {
   Trash2,
   Search,
@@ -17,7 +19,9 @@ import {
 } from 'lucide-react';
 import { notify } from '@/lib/ui-helpers';
 import { useGlobalLoading } from '@/components/providers/GlobalLoadingProvider';
+import { useFormErrors } from '@/hooks/useFormErrors';
 import type { FormSchemaField } from '@/types/settings';
+import type { ActionResponse } from '@/types/action-response';
 
 /** Extended FormSchemaField with optional label for display purposes. */
 interface FormSchemaFieldWithLabel extends FormSchemaField {
@@ -34,10 +38,31 @@ interface ProductManagerProps {
   };
 }
 
+const createProductInitialState: ActionResponse = { success: false, message: '' };
+
 export default function ProductManager({ products, category }: ProductManagerProps) {
   const { setIsLoading } = useGlobalLoading();
-  const [loading, setLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
+  const createFormRef = useRef<HTMLFormElement>(null);
+
+  const createProductWithCategory = (_prev: ActionResponse, formData: FormData) => {
+    formData.append('category_id', category.id);
+    return createProduct(formData);
+  };
+  const [createState, createAction] = useActionState(
+    createProductWithCategory,
+    createProductInitialState,
+  );
+  const { getError } = useFormErrors(createState);
+
+  useEffect(() => {
+    if (createState?.message) {
+      notify.ok(createState);
+      if (createState.success && createFormRef.current) {
+        createFormRef.current.reset();
+      }
+    }
+  }, [createState]);
 
   if (!category) {
     return (
@@ -75,22 +100,6 @@ export default function ProductManager({ products, category }: ProductManagerPro
     const field = (category.form_schema || []).find((f: FormSchemaFieldWithLabel) => f.key === key);
     return field?.label ?? key; // ถ้าเจอให้ใช้ Label, ถ้าไม่เจอใช้ Key เดิม
   };
-
-  async function handleCreate(formData: FormData) {
-    setIsLoading(true);
-    setLoading(true);
-    try {
-      formData.append('category_id', category.id);
-
-      const res = await createProduct(formData);
-      setLoading(false);
-      notify.ok(res);
-      if (res.success) (document.getElementById('create-product-form') as HTMLFormElement).reset();
-    } finally {
-      setIsLoading(false);
-      setLoading(false);
-    }
-  }
 
   async function handleDelete(id: string) {
     if (!confirm('ยืนยันลบสินค้า?')) return;
@@ -191,26 +200,35 @@ export default function ProductManager({ products, category }: ProductManagerPro
       {/* Create Form */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-in fade-in">
         <form
+          ref={createFormRef}
           id="create-product-form"
-          action={handleCreate}
+          action={createAction}
           className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end"
         >
           <div className="md:col-span-3">
-            <label className="text-xs font-bold text-slate-500 mb-1 block">SKU *</label>
-            <input
+            <label htmlFor="create-sku" className="text-xs font-bold text-slate-500 mb-1 block">
+              SKU *
+            </label>
+            <Input
+              id="create-sku"
               name="sku"
               required
               placeholder="A001"
-              className="w-full border border-slate-200 p-2.5 rounded-lg uppercase font-mono text-sm outline-none"
+              className="uppercase font-mono text-sm border-slate-200"
+              errorMessage={getError('sku')}
             />
           </div>
           <div className="md:col-span-6">
-            <label className="text-xs font-bold text-slate-500 mb-1 block">ชื่อสินค้า *</label>
-            <input
+            <label htmlFor="create-name" className="text-xs font-bold text-slate-500 mb-1 block">
+              ชื่อสินค้า *
+            </label>
+            <Input
+              id="create-name"
               name="name"
               required
               placeholder="ระบุชื่อสินค้า..."
-              className="w-full border border-slate-200 p-2.5 rounded-lg text-sm outline-none"
+              className="text-sm border-slate-200"
+              errorMessage={getError('name')}
             />
           </div>
           <div className="md:col-span-3">
@@ -256,14 +274,15 @@ export default function ProductManager({ products, category }: ProductManagerPro
                     >
                       {field.label}
                     </label>
-                    <input
+                    <Input
                       id={field.key}
                       name={field.key}
                       type={
                         field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'
                       }
-                      className="w-full border border-indigo-200 p-2.5 rounded-lg text-sm bg-white outline-none focus:ring-2 ring-indigo-500/20"
+                      className="text-sm bg-white border-indigo-200 focus:ring-2 focus:ring-indigo-500/20"
                       placeholder={field.label}
+                      errorMessage={getError(field.key)}
                     />
                   </div>
                 ))}
@@ -272,17 +291,10 @@ export default function ProductManager({ products, category }: ProductManagerPro
           )}
 
           <div className="md:col-span-12 flex justify-end pt-2">
-            <Button
-              disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 min-w-[140px] shadow-lg shadow-indigo-200"
-            >
-              {loading ? (
-                <Loader2 className="animate-spin mr-2" size={18} />
-              ) : (
-                <Save className="mr-2" size={18} />
-              )}
+            <SubmitButton className="bg-indigo-600 hover:bg-indigo-700 min-w-[140px] shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+              <Save className="mr-2" size={18} />
               บันทึกสินค้า
-            </Button>
+            </SubmitButton>
           </div>
         </form>
       </div>
@@ -290,7 +302,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
       {/* Product Table - Virtualized for performance */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm overflow-x-auto scroll-hint-horizontal">
         <div className="p-4 border-b bg-slate-50 flex items-center gap-2">
-          <Search size={18} className="text-slate-400" />
+          <Search size={18} className="text-slate-500" />
           <input
             placeholder="ค้นหา SKU หรือ ชื่อสินค้า..."
             className="bg-transparent outline-none w-full text-sm"
@@ -311,7 +323,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
         {/* Virtualized Table Body */}
         <div ref={parentRef} className="h-[500px] overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-slate-400">ยังไม่มีสินค้าในหมวดนี้</div>
+            <div className="p-8 text-center text-slate-500">ยังไม่มีสินค้าในหมวดนี้</div>
           ) : (
             <div
               style={{
@@ -358,10 +370,10 @@ export default function ProductManager({ products, category }: ProductManagerPro
                       <button
                         type="button"
                         onClick={() => handleDelete(p.id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                        className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg md:opacity-0 md:group-hover:opacity-100 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-95"
                         aria-label="Delete product"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>

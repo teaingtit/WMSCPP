@@ -39,7 +39,7 @@ const AxisInput = ({ label, name, def, max, desc, color = 'slate', isHighlight }
     <label
       htmlFor={name}
       className={`block text-xs font-bold mb-1 text-center ${
-        isHighlight ? 'text-indigo-500' : 'text-slate-400'
+        isHighlight ? 'text-indigo-500' : 'text-slate-500'
       }`}
     >
       {label}
@@ -58,6 +58,6 @@ const AxisInput = ({ label, name, def, max, desc, color = 'slate', isHighlight }
           : `focus-visible:ring-${color}-500/30 focus-visible:border-${color}-500`
       }`}
     />
-    <p className="text-xs text-slate-400 text-center mt-1">{desc}</p>
+    <p className="text-xs text-slate-500 text-center mt-1">{desc}</p>
   </div>
 );

@@ -175,16 +175,21 @@ export function StatusSelector({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {compact ? (
-          <button className="flex items-center gap-1 hover:opacity-80 transition-opacity">
+          <button
+            className="flex items-center gap-1.5 p-2 min-h-[44px] rounded-lg
+                           transition-colors touch-manipulation
+                           hover:bg-slate-100 active:bg-slate-200
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
             {currentStatus?.status ? (
               <StatusBadge status={currentStatus.status} size="sm" />
             ) : (
-              <span className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1">
-                <Tag size={12} />
+              <span className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1.5">
+                <Tag size={14} />
                 ตั้งสถานะ
               </span>
             )}
-            <ChevronDown size={12} className="text-slate-400" />
+            <ChevronDown size={14} className="text-slate-500" />
           </button>
         ) : (
           <Button variant="outline" size="sm" className="gap-2">
@@ -299,9 +304,9 @@ export function StatusSelector({
             )}
 
             {/* Status Options */}
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
               {activeStatuses.length === 0 ? (
-                <p className="text-center text-slate-500 py-4">
+                <p className="text-center text-slate-600 py-4">
                   ไม่พบสถานะที่กำหนดไว้ กรุณาสร้างสถานะในหน้าตั้งค่า
                 </p>
               ) : (
@@ -315,11 +320,13 @@ export function StatusSelector({
                       type="button"
                       onClick={() => handleSelectStatus(status)}
                       disabled={isCurrentStatus}
-                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
-                        isCurrentStatus
-                          ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
-                          : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50'
-                      }`}
+                      className={`w-full p-4 min-h-[56px] rounded-xl border-2 text-left transition-all
+                                  touch-manipulation active:scale-[0.98]
+                                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                    isCurrentStatus
+                                      ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
+                                      : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50 active:bg-amber-100'
+                                  }`}
                       style={
                         {
                           ...(!isCurrentStatus && {
@@ -331,9 +338,9 @@ export function StatusSelector({
                       }
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5">
                           <span
-                            className="w-3 h-3 rounded-full"
+                            className="w-3.5 h-3.5 rounded-full flex-shrink-0"
                             style={
                               {
                                 ['--status-color' as string]: status.color,
@@ -341,11 +348,11 @@ export function StatusSelector({
                               } as React.CSSProperties
                             }
                           />
-                          <span className="font-medium text-slate-800">{status.name}</span>
-                          {isCurrentStatus && <Check size={14} className="text-green-600" />}
+                          <span className="font-semibold text-slate-800">{status.name}</span>
+                          {isCurrentStatus && <Check size={16} className="text-green-600" />}
                         </div>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded ${getEffectBadgeClasses(
+                          className={`text-xs px-2.5 py-1 rounded-lg font-medium ${getEffectBadgeClasses(
                             status.effect,
                           )}`}
                         >
@@ -353,7 +360,7 @@ export function StatusSelector({
                         </span>
                       </div>
                       {status.description && (
-                        <p className="text-xs text-slate-500 mt-1 ml-5">{status.description}</p>
+                        <p className="text-sm text-slate-600 mt-1.5 ml-6">{status.description}</p>
                       )}
                     </button>
                   );

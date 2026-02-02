@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Layers, Tag, Info } from 'lucide-react';
 
 interface SchemaField {
@@ -18,6 +18,19 @@ interface SchemaBuilderProps {
 
 export default function SchemaBuilder({ onSchemaChange, initialSchema }: SchemaBuilderProps) {
   const [fields, setFields] = useState<SchemaField[]>([]);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setShowTooltip(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTooltip]);
 
   // Init Data
   useEffect(() => {
@@ -85,9 +98,22 @@ export default function SchemaBuilder({ onSchemaChange, initialSchema }: SchemaB
           <h4 className="text-sm font-bold text-slate-700">
             ออกแบบโครงสร้างข้อมูล (Dynamic Fields)
           </h4>
-          <div className="group relative">
-            <Info size={14} className="text-slate-400 cursor-help" />
-            <div className="absolute left-0 bottom-full mb-2 w-64 bg-slate-800 text-white text-xs p-2 rounded hidden group-hover:block z-10">
+          <div className="group relative" ref={tooltipRef}>
+            <button
+              type="button"
+              onClick={() => setShowTooltip((s) => !s)}
+              className="p-0.5 rounded focus:outline-none focus:ring-2 focus:ring-primary/20"
+              aria-expanded={showTooltip ? 'true' : 'false'}
+              aria-label="ข้อมูลเพิ่มเติม"
+            >
+              <Info size={14} className="text-slate-500 cursor-help" />
+            </button>
+            <div
+              className={`absolute left-0 bottom-full mb-2 w-64 bg-slate-800 text-white text-xs p-2 rounded z-10 ${
+                showTooltip ? 'block' : 'hidden'
+              } md:group-hover:block`}
+              role="tooltip"
+            >
               กำหนดช่องกรอกข้อมูลพิเศษสำหรับหมวดหมู่นี้
             </div>
           </div>
@@ -102,7 +128,7 @@ export default function SchemaBuilder({ onSchemaChange, initialSchema }: SchemaB
       </div>
 
       {fields.length === 0 && (
-        <div className="text-center py-8 text-slate-400 text-xs border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50">
+        <div className="text-center py-8 text-slate-500 text-xs border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50">
           ยังไม่มีข้อมูลจำเพาะ
         </div>
       )}
@@ -144,7 +170,7 @@ export default function SchemaBuilder({ onSchemaChange, initialSchema }: SchemaB
             <button
               type="button"
               onClick={() => removeField(idx)}
-              className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+              className="p-2.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
               title="ลบรายการนี้"
             >
               <Trash2 size={18} />

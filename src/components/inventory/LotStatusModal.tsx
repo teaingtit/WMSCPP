@@ -160,7 +160,7 @@ export default function LotStatusModal({
                   <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                     <MapPin size={32} className="mx-auto text-slate-300 mb-2" />
                     <p className="text-sm text-slate-500">No location status types defined</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-500 mt-1">
                       Create location statuses in Settings → Status
                     </p>
                   </div>

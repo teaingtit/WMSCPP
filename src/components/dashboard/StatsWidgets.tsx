@@ -39,8 +39,8 @@ export function ActiveAuditList({
               <div className="font-bold text-slate-200 text-sm group-hover/item:text-amber-400 transition-colors">
                 {session.name}
               </div>
-              <div className="text-xs text-slate-400 flex items-center gap-1 mt-1.5">
-                <Clock size={12} className="text-slate-400" />
+              <div className="text-xs text-slate-500 flex items-center gap-1 mt-1.5">
+                <Clock size={12} className="text-slate-500" />
                 <span className="opacity-80">
                   เริ่มเมื่อ:{' '}
                   {format(new Date(session.created_at), 'dd MMM yyyy HH:mm', { locale: th })}
@@ -76,7 +76,7 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
         {logs.length === 0 ? (
           <div className="h-40 flex flex-col items-center justify-center text-slate-500 text-xs gap-3 opacity-70">
             <div className="w-12 h-12 bg-slate-700/50 rounded-xl flex items-center justify-center border border-slate-700">
-              <Package size={20} className="text-slate-400" />
+              <Package size={20} className="text-slate-500" />
             </div>
             ยังไม่มีรายการเคลื่อนไหว
           </div>
@@ -118,8 +118,8 @@ export function DairyActivityFeed({ logs }: { logs: any[] }) {
                   </div>
 
                   <div className="flex justify-between items-end mt-2">
-                    <div className="text-xs text-slate-400">
-                      <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono mr-2 border border-slate-600">
+                    <div className="text-xs text-slate-500">
+                      <span className="bg-slate-800 px-2 py-0.5 rounded text-slate-500 font-mono mr-2 border border-slate-600">
                         {log.type === 'INBOUND' ? log.to_location?.code : log.from_location?.code}
                       </span>
                       <span className="text-xs text-slate-500">{log.products?.sku}</span>

@@ -100,7 +100,7 @@ function AuditItemCard({
       </div>
       <div className="grid grid-cols-2 gap-3 items-end">
         <div className="space-y-1.5">
-          <label className="text-xs uppercase tracking-wider font-semibold text-slate-400">
+          <label className="text-xs uppercase tracking-wider font-semibold text-slate-500">
             System
           </label>
           <div className="font-mono font-bold text-lg h-12 flex items-center justify-center bg-slate-100 rounded-lg text-slate-500">
@@ -155,7 +155,7 @@ function AuditItemCard({
               <button
                 onClick={() => setIsEditing(true)}
                 data-testid={`edit-qty-btn-${item.id}`}
-                className="h-12 w-12 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                className="h-12 w-12 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
                 aria-label="แก้ไข"
               >
                 <Pencil className="w-5 h-5" />
@@ -256,7 +256,7 @@ export default function CountingInterface({
 
           <div className="flex flex-col sm:flex-row gap-3 pt-1">
             <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <Input
                 name="searchItems"
                 placeholder="ค้นหา SKU, ชื่อสินค้า, Location..."
@@ -299,7 +299,7 @@ export default function CountingInterface({
           <AuditItemCard key={item.id} item={item} onUpdate={handleItemUpdate} />
         ))}
         {filteredItems.length === 0 && (
-          <div className="col-span-full py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
             <Search className="w-10 h-10 mx-auto mb-3 opacity-20" />
             <p>ไม่พบรายการสินค้าที่ค้นหา</p>
           </div>

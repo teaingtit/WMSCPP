@@ -442,7 +442,7 @@ export default function TransferTargetForm({
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 min-h-[400px] max-h-[60vh] custom-scrollbar landscape-compact">
         {queue.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 py-12">
+          <div className="flex flex-col items-center justify-center h-full text-slate-500 py-12">
             <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
               <Box size={32} className="opacity-50" />
             </div>
@@ -489,7 +489,7 @@ export default function TransferTargetForm({
 
                     <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium mt-2">
                       <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                        <span className="text-slate-400 text-xs uppercase">From</span>
+                        <span className="text-slate-500 text-xs uppercase">From</span>
                         <span className="font-mono font-bold text-slate-700">
                           {item.sourceStock.location?.code}
                         </span>
@@ -521,7 +521,7 @@ export default function TransferTargetForm({
                       <span className="block text-xl font-black text-indigo-600 leading-none">
                         {item.qty}
                       </span>
-                      <span className="text-xs text-slate-400 font-medium">
+                      <span className="text-xs text-slate-500 font-medium">
                         {item.sourceStock.product?.uom || 'Unit'}
                       </span>
                     </div>
@@ -567,26 +567,28 @@ export default function TransferTargetForm({
                     })()}
                   </div>
 
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors touch-manipulation active:scale-95"
                       onClick={(e) => {
                         e.stopPropagation();
                         openEditPanel(item.id);
                       }}
                       title="แก้ไข"
+                      aria-label="แก้ไขรายการ"
                     >
-                      <ListChecks size={16} />
+                      <ListChecks size={18} />
                     </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         removeFromQueue(item.id);
                       }}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors touch-manipulation active:scale-95"
                       title="ลบรายการ"
+                      aria-label="ลบรายการ"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
@@ -616,7 +618,7 @@ export default function TransferTargetForm({
           </div>
 
           {previewSummary && (
-            <div className="text-xs text-center text-slate-400 font-bold">
+            <div className="text-xs text-center text-slate-500 font-bold">
               ผลการตรวจสอบ: <span className="text-emerald-500">{previewSummary.ok}</span> /{' '}
               {previewSummary.total}
             </div>
@@ -624,7 +626,7 @@ export default function TransferTargetForm({
 
           {/* Help text for Preview */}
           {!previewSummary && queue.length > 0 && (
-            <div className="text-xs text-center text-slate-400 italic">
+            <div className="text-xs text-center text-slate-500 italic">
               💡 แนะนำ: คลิก "ตรวจสอบ (Preview)" เพื่อตรวจสอบความพร้อมก่อนย้ายจริง
             </div>
           )}
@@ -687,12 +689,12 @@ export default function TransferTargetForm({
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                   <div>
                     <h4 className="font-black text-slate-800 text-lg">แก้ไขรายการ</h4>
-                    <p className="text-xs text-slate-400 font-medium">ปรับปรุงจำนวนหรือปลายทาง</p>
+                    <p className="text-xs text-slate-500 font-medium">ปรับปรุงจำนวนหรือปลายทาง</p>
                   </div>
                   <button
                     onClick={closeEditPanel}
                     title="ปิด"
-                    className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all"
+                    className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all"
                   >
                     <X size={20} />
                   </button>
@@ -702,7 +704,7 @@ export default function TransferTargetForm({
                 <div className="p-6 flex-1 overflow-y-auto space-y-6">
                   {/* Product Card */}
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="text-label text-slate-400 mb-2">สินค้าที่เลือก</div>
+                    <div className="text-label text-slate-500 mb-2">สินค้าที่เลือก</div>
                     <div className="font-bold text-slate-800 text-lg leading-tight mb-1">
                       {item.sourceStock.name || item.sourceStock.product?.name}
                     </div>
@@ -729,7 +731,7 @@ export default function TransferTargetForm({
                         aria-label="จำนวนที่จะย้าย"
                         className="w-full text-3xl font-black text-indigo-600 pl-4 pr-16 py-4 bg-indigo-50/30 border-2 border-indigo-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none touch-manipulation"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">
                         / {item.sourceStock.quantity} {item.sourceStock.product?.uom}
                       </span>
                     </div>
@@ -789,7 +791,7 @@ export default function TransferTargetForm({
                   setIsBulkAssignOpen(false);
                 }}
                 title="ปิด"
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-500 hover:text-slate-600"
               >
                 <X size={20} />
               </button>

@@ -100,7 +100,7 @@ export default function TransferSourceSelector({
       {/* Search Input - Always visible */}
       <div className="relative group z-10">
         <div className="relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-slate-600">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-slate-600">
             {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
           </div>
           <input
@@ -124,7 +124,7 @@ export default function TransferSourceSelector({
                   onSelect(null);
                   setTimeout(() => inputRef.current?.focus(), 100);
                 }}
-                className="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-xs font-bold underline"
+                className="absolute top-2 right-2 text-slate-500 hover:text-red-500 text-xs font-bold underline"
               >
                 ยกเลิก
               </button>
@@ -171,7 +171,7 @@ export default function TransferSourceSelector({
         {/* Search Results - Always visible when there are results */}
         {searchResults.length > 0 && (
           <div className="mt-3 max-h-[280px] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-100 custom-scrollbar animate-in fade-in slide-in-from-top-2 ring-1 ring-slate-900/5">
-            <div className="px-4 py-3 text-[11px] font-bold text-slate-400 uppercase bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 sticky top-0">
+            <div className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 sticky top-0">
               ผลการค้นหา ({searchResults.length})
             </div>
             {searchResults.map((stock) => (
@@ -183,7 +183,7 @@ export default function TransferSourceSelector({
                 }}
                 className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer group transition-colors flex items-center gap-3"
               >
-                <div className="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                <div className="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
                   <Box size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -194,7 +194,7 @@ export default function TransferSourceSelector({
                     <span className="text-xs font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">
                       {stock.product?.sku || 'NO SKU'}
                     </span>
-                    <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
+                    <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                       <MapPin size={10} /> {stock.location?.code || '?'}
                     </span>
                     <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-auto">
@@ -208,7 +208,7 @@ export default function TransferSourceSelector({
         )}
 
         {searchTerm && searchResults.length === 0 && !isSearching && (
-          <div className="mt-4 text-center text-slate-400 text-sm">
+          <div className="mt-4 text-center text-slate-500 text-sm">
             {queuedStockIds.size > 0
               ? 'รายการที่ตรงกันอยู่ในคิวแล้ว หรือไม่พบสินค้า'
               : 'ไม่พบสินค้าที่มีสต็อก'}

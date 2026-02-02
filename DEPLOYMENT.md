@@ -147,7 +147,7 @@ Use a PAT with `read:packages`.
 Check logs:
 
 ```powershell
-ssh home-server "cd /opt/wmscpp && docker compose logs -f"
+ssh home-server "cd /opt/wmscpp && docker compose logs -f wmscpp"
 ```
 
 ### Health check fails
@@ -160,7 +160,7 @@ Wait 10–15 seconds for startup. Confirm Supabase env vars in `.env` and that t
 
 ```powershell
 # Live logs
-ssh home-server "cd /opt/wmscpp && docker compose logs -f"
+ssh home-server "cd /opt/wmscpp && docker compose logs -f wmscpp"
 
 # Restart
 ssh home-server "cd /opt/wmscpp && docker compose restart"

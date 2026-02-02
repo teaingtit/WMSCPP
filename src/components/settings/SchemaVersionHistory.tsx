@@ -94,7 +94,7 @@ export default function SchemaVersionHistory({
 
   if (versions.length === 0) {
     return (
-      <div className="text-center p-8 text-slate-400">
+      <div className="text-center p-8 text-slate-500">
         <FileText size={48} className="mx-auto mb-4 opacity-50" />
         <p>ยังไม่มีประวัติการเปลี่ยนแปลง Schema</p>
       </div>
@@ -178,7 +178,7 @@ export default function SchemaVersionHistory({
                       locale: th,
                     })}
                   </span>
-                  <span className="text-slate-400">
+                  <span className="text-slate-500">
                     ({new Date(version.created_at).toLocaleString('th-TH')})
                   </span>
                 </div>

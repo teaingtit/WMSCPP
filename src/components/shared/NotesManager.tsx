@@ -166,17 +166,18 @@ export function NotesManager({
               {note.is_pinned && <Pin size={14} className="text-amber-600 shrink-0" />}
             </div>
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <Clock size={10} />
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <Clock size={12} />
                 {formatDate(note.created_at)}
                 {note.created_by_user && (
                   <>
-                    <User size={10} />
+                    <User size={12} />
                     {note.created_by_user.first_name || note.created_by_user.email}
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Actions - always visible on mobile, hover reveal on desktop */}
+              <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                 {/* Toggle Pin */}
                 <form action={updateAction}>
                   <input type="hidden" name="id" value={note.id} />
@@ -186,13 +187,13 @@ export function NotesManager({
                     type="submit"
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0"
+                    className="h-9 w-9 p-0 touch-manipulation active:scale-95"
                     title={note.is_pinned ? 'Unpin' : 'Pin'}
                   >
                     {note.is_pinned ? (
-                      <PinOff size={12} className="text-amber-600" />
+                      <PinOff size={16} className="text-amber-600" />
                     ) : (
-                      <Pin size={12} className="text-slate-400" />
+                      <Pin size={16} className="text-slate-500" />
                     )}
                   </Button>
                 </form>
@@ -201,13 +202,13 @@ export function NotesManager({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0"
+                  className="h-9 w-9 p-0 touch-manipulation active:scale-95"
                   onClick={() => {
                     setEditingNoteId(note.id);
                     setEditContent(note.content);
                   }}
                 >
-                  <Edit2 size={12} className="text-slate-400" />
+                  <Edit2 size={16} className="text-slate-500" />
                 </Button>
 
                 {/* Delete */}
@@ -219,28 +220,28 @@ export function NotesManager({
                         type="submit"
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 text-red-600 hover:bg-red-50"
+                        className="h-9 w-9 p-0 text-red-600 hover:bg-red-50 touch-manipulation active:scale-95"
                       >
-                        <Check size={12} />
+                        <Check size={16} />
                       </Button>
                     </form>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0"
+                      className="h-9 w-9 p-0 touch-manipulation active:scale-95"
                       onClick={() => setShowDeleteConfirm(false)}
                     >
-                      <X size={12} />
+                      <X size={16} />
                     </Button>
                   </div>
                 ) : (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
+                    className="h-9 w-9 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 touch-manipulation active:scale-95"
                     onClick={() => setShowDeleteConfirm(true)}
                   >
-                    <Trash2 size={12} />
+                    <Trash2 size={16} />
                   </Button>
                 )}
               </div>
@@ -310,15 +311,17 @@ export function NotesManager({
               />
 
               <div className="flex items-center justify-between mt-3">
-                <label className="flex items-center gap-2 cursor-pointer text-sm">
+                <label className="flex items-center gap-3 cursor-pointer text-sm min-h-[44px] touch-manipulation">
                   <input
                     type="checkbox"
                     checked={newNotePinned}
                     onChange={(e) => setNewNotePinned(e.target.checked)}
-                    className="w-4 h-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="w-5 h-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                   />
-                  <Pin size={14} className="text-amber-600" />
-                  Pin this note
+                  <span className="flex items-center gap-2">
+                    <Pin size={16} className="text-amber-600" />
+                    Pin this note
+                  </span>
                 </label>
 
                 <div className="flex gap-2">
@@ -345,9 +348,9 @@ export function NotesManager({
           {/* Notes List */}
           {notes.length === 0 && !isAddingNote ? (
             <div className="text-center py-8">
-              <MessageSquare size={48} className="mx-auto text-slate-200 mb-3" />
-              <p className="text-slate-500">No notes yet</p>
-              <p className="text-sm text-slate-400">
+              <MessageSquare size={48} className="mx-auto text-slate-300 mb-3" />
+              <p className="text-slate-600 font-medium">No notes yet</p>
+              <p className="text-sm text-slate-500">
                 Add a note to keep track of important information
               </p>
             </div>

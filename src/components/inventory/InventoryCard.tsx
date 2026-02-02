@@ -77,7 +77,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
         <h3 className="font-bold text-slate-800 text-base leading-snug mb-1 group-hover:text-indigo-600 transition-colors line-clamp-2 text-center">
           {item.product?.name || 'Unknown Product'}
         </h3>
-        <div className="flex items-center justify-center gap-1 text-xs text-slate-400 font-mono mb-2">
+        <div className="flex items-center justify-center gap-1 text-xs text-slate-500 font-mono mb-2">
           <Hash size={12} /> {item.product?.sku || '-'}
         </div>
 
@@ -96,7 +96,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
                 </span>
               ))}
             {Object.keys(item.attributes || {}).length > 3 && (
-              <span className="text-xs text-slate-400 px-1 py-0.5">...</span>
+              <span className="text-xs text-slate-500 px-1 py-0.5">...</span>
             )}
           </div>
         )}
@@ -104,7 +104,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
 
       {/* Quantity Breakdown Section */}
       <div className="pt-3 border-t border-slate-100 relative z-10 mt-auto">
-        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+        <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
           <span className="font-bold uppercase tracking-wide flex items-center gap-1">
             <Box size={10} /> สถานะจำนวน
           </span>
@@ -127,9 +127,9 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
             <div className="flex items-center gap-1.5">
               <Shield size={12} className="text-slate-300" />
-              <span className="text-xs font-medium text-slate-400">ติดสถานะ</span>
+              <span className="text-xs font-medium text-slate-500">ติดสถานะ</span>
             </div>
-            <span className="text-sm font-bold text-slate-400">
+            <span className="text-sm font-bold text-slate-500">
               {affectedQuantity.toLocaleString()}
             </span>
           </div>

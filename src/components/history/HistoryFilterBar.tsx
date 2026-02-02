@@ -55,7 +55,7 @@ export default function HistoryFilterBar() {
         {/* Left: Search & Type */}
         <div className="flex flex-1 gap-2">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input
               type="text"
               placeholder="Search SKU, Product, User, Details..."
@@ -66,7 +66,7 @@ export default function HistoryFilterBar() {
             {text && (
               <button
                 onClick={() => setText('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
                 aria-label="Clear search"
               >
                 <X size={14} />

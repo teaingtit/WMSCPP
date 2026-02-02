@@ -55,7 +55,7 @@ export default function BottomNavV2({ warehouseId }: BottomNavV2Props) {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 md:hidden" aria-label="เมนูหลัก">
+    <nav className="fixed inset-x-0 bottom-0 z-50 tablet:hidden" aria-label="เมนูหลัก">
       {/* Backdrop Blur Layer */}
       <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-neutral-200/50 dark:border-white/10 shadow-lg" />
 

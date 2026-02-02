@@ -73,7 +73,7 @@ export default function SchemaFieldCard({
     >
       <div className="flex items-center gap-2">
         {/* Drag Handle */}
-        <div className="cursor-move text-slate-400 hover:text-slate-600">
+        <div className="cursor-move text-slate-500 hover:text-slate-600">
           <GripVertical size={16} />
         </div>
 
@@ -125,14 +125,15 @@ export default function SchemaFieldCard({
             e.stopPropagation();
             onDelete(field.id);
           }}
-          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-opacity"
+          className="md:opacity-0 md:group-hover:opacity-100 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all touch-manipulation active:scale-95"
+          aria-label="Delete field"
         >
-          <Trash2 size={14} />
+          <Trash2 size={16} />
         </button>
       </div>
 
       {/* Key Display */}
-      <div className="mt-1 ml-8 text-xs text-slate-400 font-mono">key: {field.key}</div>
+      <div className="mt-1 ml-8 text-xs text-slate-500 font-mono">key: {field.key}</div>
     </div>
   );
 }

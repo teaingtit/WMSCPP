@@ -20,10 +20,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {/* Top Nav (Visible only on desktop) */}
         <TopNav />
 
-        {/* Main Content - Mobile-First padding for bottom nav */}
+        {/* Main Content - Mobile-First padding for bottom nav (shows up to tablet breakpoint 900px) */}
         <main
           id="main-content"
-          className="flex flex-1 flex-col overflow-auto relative w-full custom-scrollbar pb-20 md:pb-0"
+          className="flex flex-1 flex-col overflow-auto relative w-full custom-scrollbar pb-20 tablet:pb-0"
         >
           <div className="flex-1 min-h-0 w-full">{children}</div>
         </main>

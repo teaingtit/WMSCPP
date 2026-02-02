@@ -154,7 +154,7 @@ curl http://100.96.9.50:3000/api/health
 ### ดู Logs แบบ Real-time
 
 ```bash
-ssh home-server "cd /opt/wmscpp && docker compose logs -f"
+ssh home-server "cd /opt/wmscpp && docker compose logs -f wmscpp"
 ```
 
 ### เช็ค Resource Usage
@@ -233,7 +233,7 @@ On the server: create `/opt/wmscpp`, add `.env`, then run deploy from local so t
 
 ```bash
 # ดู logs
-ssh home-server "cd /opt/wmscpp && docker compose logs -f"
+ssh home-server "cd /opt/wmscpp && docker compose logs -f wmscpp"
 
 # เช็คสถานะ container
 ssh home-server "cd /opt/wmscpp && docker compose ps"

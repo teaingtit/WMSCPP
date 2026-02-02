@@ -56,13 +56,21 @@ export default function AsyncSelect<T extends any>({
         value={value ? (getLabel ? getLabel(value) : String(value)) : term}
         onChange={(e) => setTerm(e.target.value)}
         placeholder={placeholder}
-        className="w-full p-2 border rounded-md"
+        className="w-full p-3 min-h-[48px] border border-slate-200 rounded-xl
+                   text-base bg-white
+                   focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none
+                   transition-all duration-200"
       />
 
-      {loading && <div className="absolute right-2 top-2 text-xs text-slate-500">กำลังโหลด...</div>}
+      {loading && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 text-sm text-slate-500">
+          <div className="w-4 h-4 border-2 border-slate-300 border-t-primary rounded-full animate-spin" />
+          <span className="hidden sm:inline">กำลังโหลด...</span>
+        </div>
+      )}
 
       {options.length > 0 && (
-        <div className="absolute z-20 left-0 right-0 bg-white border rounded-md mt-1 max-h-60 overflow-y-auto shadow-lg">
+        <div className="absolute z-20 left-0 right-0 bg-white border border-slate-200 rounded-xl mt-1 max-h-60 overflow-y-auto shadow-xl">
           {options.map((opt, i) => (
             <div
               key={i}
@@ -71,7 +79,10 @@ export default function AsyncSelect<T extends any>({
                 setTerm('');
                 setOptions([]);
               }}
-              className="px-3 py-2 hover:bg-slate-100 cursor-pointer text-sm"
+              className="px-4 py-3 min-h-[48px] flex items-center
+                         hover:bg-slate-50 active:bg-slate-100 cursor-pointer text-sm
+                         transition-colors touch-manipulation
+                         first:rounded-t-xl last:rounded-b-xl"
             >
               {getLabel ? getLabel(opt) : String(opt)}
             </div>

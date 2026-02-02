@@ -88,7 +88,7 @@ export default function VarianceReport({ items }: VarianceReportProps) {
       </div>
 
       {varianceItems.length === 0 ? (
-        <div className="text-center p-8 border-2 border-dashed rounded-lg text-slate-400 flex flex-col items-center gap-2">
+        <div className="text-center p-8 border-2 border-dashed rounded-lg text-slate-500 flex flex-col items-center gap-2">
           <CheckCircle className="w-8 h-8 text-green-500" />
           <p>ไม่พบผลต่างของสต็อก หรือยังไม่มีการนับ</p>
         </div>
@@ -105,7 +105,7 @@ export default function VarianceReport({ items }: VarianceReportProps) {
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
+                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500 shrink-0">
                       <Box size={20} />
                     </div>
                     <div>
@@ -120,15 +120,15 @@ export default function VarianceReport({ items }: VarianceReportProps) {
 
                 <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-50 text-sm">
                   <div>
-                    <div className="text-xs text-slate-400 uppercase font-bold">System</div>
+                    <div className="text-xs text-slate-500 uppercase font-bold">System</div>
                     <div className="font-mono text-slate-600">{item.system_qty}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-slate-400 uppercase font-bold">Counted</div>
+                    <div className="text-xs text-slate-500 uppercase font-bold">Counted</div>
                     <div className="font-mono font-bold text-slate-800">{item.counted_qty}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-400 uppercase font-bold">Diff</div>
+                    <div className="text-xs text-slate-500 uppercase font-bold">Diff</div>
                     <div
                       className={`font-mono font-bold ${
                         (item.counted_qty ?? 0) > (item.system_qty ?? 0)

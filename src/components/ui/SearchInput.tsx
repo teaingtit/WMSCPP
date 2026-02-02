@@ -70,7 +70,7 @@ export default function SearchInput({ className }: SearchInputProps) {
           // Base styles
           'w-full h-12 pl-11 pr-10 rounded-xl',
           'bg-slate-50 border border-slate-200',
-          'text-slate-900 placeholder:text-slate-400',
+          'text-slate-900 placeholder:text-slate-500',
           'text-sm font-medium',
 
           // Focus states
@@ -96,7 +96,7 @@ export default function SearchInput({ className }: SearchInputProps) {
           className={cn(
             'absolute right-3 top-1/2 -translate-y-1/2',
             'p-1 rounded-lg',
-            'text-slate-400 hover:text-slate-700',
+            'text-slate-500 hover:text-slate-700',
             'hover:bg-slate-100 transition-all duration-200',
             'active:scale-95',
           )}

@@ -59,7 +59,7 @@ export const StockQuantityList = ({
 
           {/* Quantity Input */}
           <div className="shrink-0 text-right">
-            <div className="text-xs text-slate-400 mb-1">Max: {item.quantity.toLocaleString()}</div>
+            <div className="text-xs text-slate-500 mb-1">Max: {item.quantity.toLocaleString()}</div>
             <div className="flex items-center gap-1">
               <input
                 type="number"

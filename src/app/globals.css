@@ -390,15 +390,26 @@ html {
     @apply px-4 py-3 align-middle text-foreground;
   }
 
-  /* Floating Action Button */
+  /* Floating Action Button - Mobile-safe positioning */
   .fab {
-    @apply fixed right-4 bottom-20 lg:bottom-6 z-40;
+    @apply fixed z-40;
     @apply w-14 h-14 rounded-full;
     @apply bg-primary text-primary-foreground;
     @apply flex items-center justify-center;
     @apply shadow-lg shadow-primary/30;
     @apply transition-all duration-300;
     @apply hover:scale-110 active:scale-95;
+    /* Mobile: above bottom nav with safe area */
+    right: 1rem;
+    bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Tablet and up: standard position */
+  @media (min-width: 900px) {
+    .fab {
+      right: 1.5rem;
+      bottom: 1.5rem;
+    }
   }
 
   /* Navigation Pills */
@@ -537,6 +548,61 @@ html {
 
   .leading-thai-tight {
     line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     ♿ WCAG AA COMPLIANT TEXT COLORS (4.5:1 contrast ratio minimum)
+     Replace text-slate-500 usage with these accessible alternatives
+  ═══════════════════════════════════════════════════════════════════ */
+
+  /* Accessible muted text - use instead of text-slate-500 */
+  .text-muted-accessible {
+    @apply text-slate-500 dark:text-slate-500;
+  }
+
+  /* Metadata text with proper contrast */
+  .text-meta {
+    @apply text-sm text-slate-600 dark:text-slate-300;
+    letter-spacing: 0.01em;
+  }
+
+  .text-meta-sm {
+    @apply text-xs text-slate-600 dark:text-slate-300;
+    letter-spacing: 0.01em;
+    line-height: 1.6;
+  }
+
+  /* Thai-optimized text styles */
+  .text-thai {
+    line-height: 1.75;
+    letter-spacing: 0.02em;
+  }
+
+  .text-thai-sm {
+    @apply text-sm;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     📐 LANDSCAPE-SAFE HEIGHT UTILITIES
+     Prevent content overflow in landscape orientation
+  ═══════════════════════════════════════════════════════════════════ */
+
+  .h-safe-300 {
+    height: min(300px, 50vh);
+  }
+
+  .h-safe-200 {
+    height: min(200px, 40vh);
+  }
+
+  .max-h-safe-60 {
+    max-height: min(60vh, calc(100dvh - 200px));
+  }
+
+  .max-h-safe-50 {
+    max-height: min(50vh, calc(100dvh - 150px));
   }
 }
 

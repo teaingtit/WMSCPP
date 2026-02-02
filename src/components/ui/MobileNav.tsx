@@ -51,7 +51,7 @@ export default function MobileNav() {
           </div>
           <div>
             <span className="font-bold text-white text-lg tracking-tight">{APP_CONFIG.name}</span>
-            <span className="text-xs text-slate-400 block -mt-0.5">v{APP_CONFIG.version}</span>
+            <span className="text-xs text-slate-500 block -mt-0.5">v{APP_CONFIG.version}</span>
           </div>
         </Link>
 
@@ -89,7 +89,7 @@ export default function MobileNav() {
           <button
             onClick={() => setIsOpen(false)}
             aria-label="ปิดเมนู"
-            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
+            className="p-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-xl transition-all active:scale-95"
           >
             <X size={22} />
           </button>
@@ -125,7 +125,7 @@ export default function MobileNav() {
               </div>
 
               {!isAdmin && (
-                <div className="flex items-center gap-2.5 text-sm text-slate-400 bg-white/5 p-3 rounded-xl border border-white/5">
+                <div className="flex items-center gap-2.5 text-sm text-slate-500 bg-white/5 p-3 rounded-xl border border-white/5">
                   <Warehouse size={16} className="text-slate-500 flex-shrink-0" />
                   <span>
                     สิทธิ์เข้าถึง:{' '}
@@ -178,7 +178,7 @@ export default function MobileNav() {
                   {!isActive && (
                     <ChevronRight
                       size={16}
-                      className="text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="text-slate-600 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                     />
                   )}
                 </Link>

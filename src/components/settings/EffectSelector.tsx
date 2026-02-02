@@ -126,11 +126,11 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
             </div>
           </div>
         ) : (
-          <span className="text-slate-400">Select or type effect...</span>
+          <span className="text-slate-500">Select or type effect...</span>
         )}
         <ChevronDown
           size={18}
-          className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -145,7 +145,7 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
             <div className="relative">
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
               />
               <input
                 ref={inputRef}
@@ -216,7 +216,7 @@ export function EffectSelector({ value, onChange, error }: EffectSelectorProps) 
 
             {/* No Results */}
             {filteredOptions.length === 0 && !showCreateOption && (
-              <div className="p-4 text-center text-slate-400 text-sm">
+              <div className="p-4 text-center text-slate-500 text-sm">
                 No effects found. Type to create a custom one.
               </div>
             )}

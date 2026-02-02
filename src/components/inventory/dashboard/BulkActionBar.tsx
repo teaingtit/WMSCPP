@@ -31,7 +31,7 @@ export const BulkActionBar = ({ selectedCount, onOpenCart, onClear }: BulkAction
             e.stopPropagation();
             onClear();
           }}
-          className="text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase"
+          className="text-slate-500 hover:text-white transition-colors text-xs font-bold uppercase"
         >
           ล้าง
         </button>

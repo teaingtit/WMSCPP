@@ -47,7 +47,7 @@ export function StockItemCard({
                 className="w-full h-full object-cover rounded-md"
               />
             ) : (
-              <Package size={14} className="text-slate-400" />
+              <Package size={14} className="text-slate-500" />
             )}
           </div>
           <div className="min-w-0">
@@ -101,7 +101,7 @@ export function StockItemCard({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <Package size={16} className="text-slate-400" />
+                <Package size={16} className="text-slate-500" />
               )}
             </div>
             <div>
@@ -118,7 +118,7 @@ export function StockItemCard({
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-1.5 text-sm text-slate-600">
-            <MapPin size={12} className="text-slate-400" />
+            <MapPin size={12} className="text-slate-500" />
             {stock.location.code}
           </div>
         </td>
@@ -128,7 +128,7 @@ export function StockItemCard({
         </td>
         {showActions && (
           <td className="px-4 py-3">
-            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
               <StatusSelector
                 entityType={entityType}
                 entityId={entityId}

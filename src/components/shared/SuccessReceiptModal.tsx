@@ -53,7 +53,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors z-10"
+          className="absolute top-4 right-4 p-2 bg-slate-100 rounded-full text-slate-500 hover:text-slate-600 hover:bg-slate-200 transition-colors z-10"
           aria-label="Close"
         >
           <X size={18} />
@@ -86,14 +86,14 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
               {/* Product Info */}
               {data.type !== 'AUDIT' && (
                 <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                     สินค้า
                   </div>
                   <div className="font-bold text-slate-800 text-lg leading-tight">
                     {data.productName || '-'}
                   </div>
                   {data.sku && (
-                    <div className="text-xs font-mono text-slate-400 mt-1">{data.sku}</div>
+                    <div className="text-xs font-mono text-slate-500 mt-1">{data.sku}</div>
                   )}
                 </div>
               )}
@@ -101,7 +101,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
               {/* Audit Info */}
               {data.type === 'AUDIT' && (
                 <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                     รอบการนับ (Session)
                   </div>
                   <div className="font-bold text-slate-800 text-lg leading-tight">
@@ -117,7 +117,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                 {/* QUANTITY (For Inventory Ops) */}
                 {data.type !== 'AUDIT' && (
                   <div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                       จำนวน
                     </div>
                     <div className="text-2xl font-black text-emerald-600">
@@ -131,18 +131,18 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                 {data.type === 'AUDIT' && (
                   <>
                     <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                         ความแม่นยำ (Accuracy)
                       </div>
                       <div className="text-2xl font-black text-emerald-600">{data.accuracy}</div>
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                         ผลต่าง (Variance)
                       </div>
                       <div className="text-2xl font-black text-amber-500">
                         {data.varianceCount}{' '}
-                        <span className="text-sm text-slate-400 font-bold">รายการ</span>
+                        <span className="text-sm text-slate-500 font-bold">รายการ</span>
                       </div>
                     </div>
                   </>
@@ -153,7 +153,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                   {/* Case 1: Inbound / Outbound */}
                   {(data.type === 'INBOUND' || data.type === 'OUTBOUND') && (
                     <>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                         {data.type === 'INBOUND' ? 'จัดเก็บที่' : 'เบิกจ่ายจาก'}
                       </div>
                       <div className="flex items-center gap-1 font-bold text-slate-700 bg-white border border-slate-200 px-2 py-1 rounded-lg w-fit">
@@ -165,14 +165,14 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
                   {/* Case 2: Transfer */}
                   {(data.type === 'TRANSFER' || data.type === 'CROSS_TRANSFER') && (
                     <>
-                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                         ปลายทาง
                       </div>
                       <div className="font-bold text-slate-700 leading-tight">
                         {data.type === 'CROSS_TRANSFER' ? data.toWarehouse : data.toLocation}
                       </div>
                       {data.type === 'CROSS_TRANSFER' && (
-                        <div className="text-xs text-slate-400 mt-0.5">{data.toLocation}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{data.toLocation}</div>
                       )}
                     </>
                   )}
@@ -181,7 +181,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
 
               {/* Transfer Source Info (Optional) */}
               {(data.type === 'TRANSFER' || data.type === 'CROSS_TRANSFER') && (
-                <div className="pt-2 flex items-center gap-2 text-xs text-slate-400 justify-center bg-slate-100 rounded-lg py-2 mt-2">
+                <div className="pt-2 flex items-center gap-2 text-xs text-slate-500 justify-center bg-slate-100 rounded-lg py-2 mt-2">
                   <span>{data.fromLocation}</span>
                   <ArrowRight size={12} />
                   <span className="text-emerald-600 font-bold">
@@ -201,7 +201,7 @@ export default function SuccessReceiptModal({ isOpen, onClose, data }: SuccessRe
               {/* Note (Optional) */}
               {data.note && data.note !== '-' && (
                 <div className="pt-3">
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
                     หมายเหตุ
                   </div>
                   <p className="text-sm text-slate-600 bg-slate-100 p-2 rounded-lg">{data.note}</p>

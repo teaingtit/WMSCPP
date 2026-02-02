@@ -6,11 +6,10 @@ import { useFormStatus } from 'react-dom';
 import { login } from '@/actions/auth-actions';
 import { KeyRound, Loader2 } from 'lucide-react';
 import { notify } from '@/lib/ui-helpers';
-// 1. กำหนดค่าเริ่มต้นให้ตรงกับ Type (LoginState)
-const initialState = {
-  success: false,
-  message: '',
-};
+import { Input } from '@/components/ui/input';
+import { useFormErrors } from '@/hooks/useFormErrors';
+
+const initialState = { success: false, message: '' };
 
 const SubmitButton = () => {
   const { pending } = useFormStatus();
@@ -28,7 +27,8 @@ const SubmitButton = () => {
 
 export default function LoginForm() {
   const [state, formAction] = useActionState(login, initialState);
-  // ✅ ใช้ useEffect ดักจับ state เพื่อแสดง Toast
+  const { getError } = useFormErrors(state ?? initialState);
+
   useEffect(() => {
     if (state?.message) {
       notify.ok(state);
@@ -37,37 +37,45 @@ export default function LoginForm() {
 
   return (
     <form action={formAction} className="space-y-4 relative z-10">
-      {/* ลบ Error Box เดิมออก เพราะเราใช้ Toast แล้ว */}
-
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">
+        <label
+          htmlFor="email"
+          className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider"
+        >
           อีเมล (Email)
         </label>
-        <input
+        <Input
+          id="email"
           name="email"
           type="email"
           required
           placeholder="admin@wms.com"
-          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium text-slate-800"
+          className="bg-slate-50 border-slate-200 font-medium text-slate-800"
+          errorMessage={getError('email')}
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">
+        <label
+          htmlFor="password"
+          className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider"
+        >
           รหัสผ่าน (Password)
         </label>
-        <input
+        <Input
+          id="password"
           name="password"
           type="password"
           required
           placeholder="••••••••"
-          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium text-slate-800"
+          className="bg-slate-50 border-slate-200 font-medium text-slate-800"
+          errorMessage={getError('password')}
         />
       </div>
 
       <SubmitButton />
 
-      <p className="text-xs text-center text-slate-400 mt-4">
+      <p className="text-xs text-center text-slate-500 mt-4">
         (ยังไม่มีบัญชี? กรุณาติดต่อ Admin เพื่อสร้าง User ใน Supabase)
       </p>
     </form>

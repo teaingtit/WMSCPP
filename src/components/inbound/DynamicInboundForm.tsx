@@ -245,7 +245,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
                     className="w-full text-3xl font-black text-slate-900 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl"
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">
                     {selectedProduct?.uom || 'UNIT'}
                   </span>
                 </div>
@@ -275,7 +275,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
         <div className="flex flex-col gap-3">
           <div className="flex-1 overflow-y-auto p-2 space-y-3 bg-slate-50/30 min-h-[200px] max-h-[60vh] custom-scrollbar">
             {queue.length === 0 ? (
-              <div className="text-sm text-slate-400 text-center py-6">ยังไม่มีรายการ</div>
+              <div className="text-sm text-slate-500 text-center py-6">ยังไม่มีรายการ</div>
             ) : (
               queue.map((item, idx) => (
                 <div

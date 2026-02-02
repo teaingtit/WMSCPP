@@ -35,10 +35,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 export default function AuditDetailPage() {
   const params = useParams();
   const router = useTransitionRouter();
+  const warehouseId = params['warehouseId'] as string;
   const sessionId = params['sessionId'] as string;
   const user = useUser();
   const isManager = user?.role === 'admin' || user?.role === 'manager';
@@ -230,6 +232,14 @@ export default function AuditDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto pb-20 p-4 sm:p-6 animate-in fade-in duration-500">
+      <Breadcrumb
+        items={[
+          { label: 'หน้าหลัก', href: '/dashboard' },
+          { label: 'ตรวจนับสต็อก', href: `/dashboard/${warehouseId}/audit` },
+          { label: session.name },
+        ]}
+        className="mb-4"
+      />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
@@ -270,7 +280,7 @@ export default function AuditDetailPage() {
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <div className="relative flex-1 w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
           <input
             type="text"
             name="searchAuditItems"
@@ -312,7 +322,7 @@ export default function AuditDetailPage() {
         {/* Mobile Card View */}
         <div className="block md:hidden space-y-3">
           {currentList.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+            <div className="p-12 text-center text-slate-500 bg-white rounded-2xl border border-dashed border-slate-200">
               <div className="flex flex-col items-center gap-2">
                 <Box className="w-10 h-10 opacity-20" />
                 <span>ไม่พบรายการสินค้า</span>
@@ -326,7 +336,7 @@ export default function AuditDetailPage() {
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
+                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500 shrink-0">
                       <Box size={20} />
                     </div>
                     <div>
@@ -349,7 +359,7 @@ export default function AuditDetailPage() {
                     <MapPin size={12} /> {item.location?.code}
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-slate-400 mr-2">Counted:</span>
+                    <span className="text-xs text-slate-500 mr-2">Counted:</span>
                     {item.status === 'COUNTED' ? (
                       <span className="font-bold text-emerald-600 text-lg">{item.counted_qty}</span>
                     ) : (
@@ -377,7 +387,7 @@ export default function AuditDetailPage() {
               <tbody className="divide-y divide-slate-100">
                 {currentList.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-12 text-center text-slate-400">
+                    <td colSpan={4} className="p-12 text-center text-slate-500">
                       <div className="flex flex-col items-center gap-2">
                         <Box className="w-10 h-10 opacity-20" />
                         <span>ไม่พบรายการสินค้าในหมวดหมู่นี้</span>
@@ -389,7 +399,7 @@ export default function AuditDetailPage() {
                     <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 shrink-0">
+                          <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 shrink-0">
                             <Box size={20} />
                           </div>
                           <div>

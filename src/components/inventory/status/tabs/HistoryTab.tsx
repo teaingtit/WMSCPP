@@ -11,7 +11,7 @@ interface HistoryTabProps {
 export default function HistoryTab({ history }: HistoryTabProps) {
   if (history.length === 0) {
     return (
-      <div className="text-center py-8 text-slate-400">
+      <div className="text-center py-8 text-slate-500">
         <History size={32} className="mx-auto mb-2 opacity-50" />
         <p>No status changes recorded</p>
       </div>
@@ -33,7 +33,7 @@ export default function HistoryTab({ history }: HistoryTabProps) {
               className={`w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold ${
                 isRemoval
                   ? 'bg-red-50 border-red-200 text-red-500'
-                  : 'bg-white border-slate-200 text-slate-400'
+                  : 'bg-white border-slate-200 text-slate-500'
               }`}
             >
               {isRemoval ? <Trash2 size={14} /> : history.length - index}
@@ -43,7 +43,7 @@ export default function HistoryTab({ history }: HistoryTabProps) {
                 {log.from_status && (
                   <>
                     <StatusBadge status={log.from_status} size="sm" />
-                    <span className="text-slate-400">→</span>
+                    <span className="text-slate-500">→</span>
                   </>
                 )}
                 {log.to_status ? (
@@ -73,7 +73,7 @@ export default function HistoryTab({ history }: HistoryTabProps) {
               )}
 
               {log.reason && <p className="text-xs text-slate-600 mt-1 italic">"{log.reason}"</p>}
-              <div className="text-xs text-slate-400 mt-1">
+              <div className="text-xs text-slate-500 mt-1">
                 {new Date(log.changed_at).toLocaleString('th-TH')} •{' '}
                 {log.changed_by_user?.email ||
                   log.changed_by_user?.full_name?.trim() ||

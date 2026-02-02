@@ -263,7 +263,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                   />
 
                   <div className="flex items-center gap-2 border rounded-md px-3 py-2">
-                    <Search className="w-4 h-4 text-slate-400" />
+                    <Search className="w-4 h-4 text-slate-500" />
                     <input
                       className="flex-1 outline-none text-sm bg-transparent"
                       name="searchInventory"
@@ -306,7 +306,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                           ))}
                         </div>
                       ) : filteredItems.length === 0 ? (
-                        <div className="text-center py-8 text-slate-400 text-sm">ไม่พบสินค้า</div>
+                        <div className="text-center py-8 text-slate-500 text-sm">ไม่พบสินค้า</div>
                       ) : (
                         filteredItems.map((item) => (
                           <div
@@ -388,7 +388,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
 
       <div className="grid gap-4">
         {filteredSessions.length === 0 ? (
-          <div className="text-center p-8 border-2 border-dashed rounded-lg text-slate-400">
+          <div className="text-center p-8 border-2 border-dashed rounded-lg text-slate-500">
             {viewMode === 'ACTIVE' ? 'ไม่มีรายการที่กำลังดำเนินการ' : 'ยังไม่มีประวัติการนับสต็อก'}
           </div>
         ) : (

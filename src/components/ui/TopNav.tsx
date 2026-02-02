@@ -13,6 +13,7 @@ import {
   ClipboardList,
   ChevronDown,
   Sparkles,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants';
 import { logout } from '@/actions/auth-actions';
@@ -52,7 +53,7 @@ function NavDropdown({
           'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
           isActive || isOpen
             ? 'bg-white/10 text-white shadow-sm'
-            : 'text-slate-400 hover:bg-white/5 hover:text-white',
+            : 'text-slate-300 hover:bg-white/5 hover:text-white',
         )}
       >
         <Icon size={18} />
@@ -96,7 +97,7 @@ export default function TopNav() {
           'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
           isActive
             ? 'bg-primary/20 text-white'
-            : 'text-slate-400 hover:bg-white/5 hover:text-white',
+            : 'text-slate-300 hover:bg-white/5 hover:text-white',
         )}
       >
         <item.icon size={16} />
@@ -135,7 +136,7 @@ export default function TopNav() {
               'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
               pathname === '/dashboard'
                 ? 'bg-white/10 text-white shadow-sm'
-                : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                : 'text-slate-300 hover:bg-white/5 hover:text-white',
             )}
           >
             <LayoutGrid size={18} />
@@ -150,11 +151,27 @@ export default function TopNav() {
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 pathname.includes('/audit')
                   ? 'bg-white/10 text-white shadow-sm'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white',
               )}
             >
               <ClipboardList size={18} />
               <span>ตรวจนับสต็อก</span>
+            </Link>
+          )}
+
+          {/* Transfer - Direct link for feature parity with mobile */}
+          {warehouseId && (
+            <Link
+              href={`/dashboard/${warehouseId}/transfer`}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
+                pathname.includes('/transfer')
+                  ? 'bg-white/10 text-white shadow-sm'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white',
+              )}
+            >
+              <ArrowLeftRight size={18} />
+              <span>โอนย้าย</span>
             </Link>
           )}
 
@@ -190,7 +207,7 @@ export default function TopNav() {
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 pathname.includes('/settings')
                   ? 'bg-white/10 text-white shadow-sm'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white',
               )}
             >
               <Settings size={18} />
@@ -231,7 +248,7 @@ export default function TopNav() {
         <form action={logout}>
           <button
             type="submit"
-            className="p-2.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all duration-200 active:scale-95"
+            className="p-2.5 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all duration-200 active:scale-95"
             title="Sign Out"
           >
             <LogOut size={20} />

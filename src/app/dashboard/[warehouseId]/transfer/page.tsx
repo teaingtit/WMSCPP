@@ -136,7 +136,7 @@ export default function TransferPage() {
                 <Building2 className="text-orange-600" size={24} />
               </div>
               <div>
-                <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">
+                <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">
                   From (ต้นทาง)
                 </div>
                 <div className="font-bold text-slate-800 text-lg">Current Warehouse</div>
@@ -160,7 +160,7 @@ export default function TransferPage() {
             {/* Target */}
             <div className="flex items-center gap-4 w-full sm:w-auto justify-end text-right">
               <div>
-                <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">
+                <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">
                   To (ปลายทาง)
                 </div>
                 <div className="font-bold text-slate-800 text-lg">

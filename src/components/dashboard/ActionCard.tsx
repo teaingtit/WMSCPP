@@ -99,7 +99,7 @@ export function ActionCard({ href, icon, tag, title, description }: ActionCardPr
         </div>
 
         {/* Arrow Indicator */}
-        <div className="relative z-10 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1">
+        <div className="relative z-10 flex-shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 md:group-hover:translate-x-1">
           <ArrowRight size={20} className="text-white/60" />
         </div>
       </div>

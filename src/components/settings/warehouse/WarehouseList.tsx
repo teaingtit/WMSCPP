@@ -47,7 +47,7 @@ export const WarehouseList = ({ warehouses, deleteAction }: WarehouseListProps) 
             </div>
             <form action={deleteAction} className="flex sm:block shrink-0">
               <input type="hidden" name="id" value={wh.id} />
-              <SubmitButton className="w-full sm:w-auto p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all flex items-center justify-center gap-2">
+              <SubmitButton className="w-full sm:w-auto p-2.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all flex items-center justify-center gap-2">
                 <Trash2 size={18} />
                 <span className="sm:hidden text-sm font-medium">ลบรายการ</span>
               </SubmitButton>
@@ -55,7 +55,7 @@ export const WarehouseList = ({ warehouses, deleteAction }: WarehouseListProps) 
           </div>
         ))}
         {warehouses.length === 0 && (
-          <div className="text-center py-8 text-slate-400 text-sm bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <div className="text-center py-8 text-slate-500 text-sm bg-slate-50 rounded-xl border border-dashed border-slate-200">
             ยังไม่มีคลังสินค้า
           </div>
         )}

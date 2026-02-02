@@ -59,7 +59,7 @@ const getLevelStyles = (level: string) => {
     text: 'text-slate-600',
     icon: 'text-indigo-400',
     hoverBg: 'hover:bg-slate-50',
-    badge: 'bg-slate-50 text-slate-400 border border-slate-200',
+    badge: 'bg-slate-50 text-slate-500 border border-slate-200',
   };
 };
 
@@ -114,7 +114,7 @@ export const StockPositionGroup = React.memo(function StockPositionGroup({
           <Grid3X3 size={16} className="text-indigo-500" />
           <span className="font-bold text-indigo-700">{pos}</span>
         </div>
-        <span className="text-xs text-slate-400">({items.length} items)</span>
+        <span className="text-xs text-slate-500">({items.length} items)</span>
       </div>
 
       {/* Loop แสดง Level */}
@@ -136,7 +136,7 @@ export const StockPositionGroup = React.memo(function StockPositionGroup({
               >
                 <ChevronDown
                   size={18}
-                  className={`text-slate-400 transition-transform duration-300 ${
+                  className={`text-slate-500 transition-transform duration-300 ${
                     isCollapsed ? '-rotate-90' : ''
                   }`}
                 />

@@ -141,14 +141,20 @@ export default function LocationSelector({
   };
 
   return (
-    <div className={`grid grid-cols-3 gap-3 ${className}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${className}`}>
       {/* LOT */}
       <div>
-        <label className="text-label text-slate-400 mb-1 block">ล็อต (LOT)</label>
+        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wide">
+          ล็อต (LOT)
+        </label>
         <div className="relative">
           <select
-            aria-label="เลือก Lot" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
-            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-indigo-500 disabled:opacity-50"
+            aria-label="เลือก Lot"
+            className="w-full p-3 min-h-[48px] bg-slate-50 border border-slate-200 rounded-xl
+                       font-bold text-sm outline-none
+                       focus:border-primary focus:ring-2 focus:ring-primary/20
+                       disabled:opacity-50 touch-manipulation
+                       transition-all duration-200"
             value={selectedLot}
             onChange={(e) => setSelectedLot(e.target.value)}
             disabled={disabled || loadingLots || !warehouseId}
@@ -161,18 +167,27 @@ export default function LocationSelector({
             ))}
           </select>
           {loadingLots && (
-            <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
+            <Loader2
+              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-500"
+              size={16}
+            />
           )}
         </div>
       </div>
 
       {/* POSITION */}
       <div>
-        <label className="text-label text-slate-400 mb-1 block">ตำแหน่ง (POSITION)</label>
+        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wide">
+          ตำแหน่ง (POSITION)
+        </label>
         <div className="relative">
           <select
-            aria-label="เลือก Position" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
-            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold text-sm outline-none focus:border-indigo-500 disabled:opacity-50"
+            aria-label="เลือก Position"
+            className="w-full p-3 min-h-[48px] bg-slate-50 border border-slate-200 rounded-xl
+                       font-bold text-sm outline-none
+                       focus:border-primary focus:ring-2 focus:ring-primary/20
+                       disabled:opacity-50 touch-manipulation
+                       transition-all duration-200"
             value={selectedPos}
             onChange={(e) => setSelectedPos(e.target.value)}
             disabled={disabled || !selectedLot}
@@ -185,22 +200,28 @@ export default function LocationSelector({
             ))}
           </select>
           {loadingPos && (
-            <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
+            <Loader2
+              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-500"
+              size={16}
+            />
           )}
         </div>
       </div>
 
       {/* LEVEL */}
       <div>
-        <label className="text-label text-slate-400 mb-1 block">ชั้น (LEVEL)</label>
+        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wide">
+          ชั้น (LEVEL)
+        </label>
         <div className="relative">
           <select
-            aria-label="เลือก Level" // ✅ เพิ่ม aria-label แก้ปัญหา a11y
-            className={`w-full p-2.5 border-2 rounded-lg font-black text-sm outline-none transition-colors disabled:opacity-50
+            aria-label="เลือก Level"
+            className={`w-full p-3 min-h-[48px] border-2 rounded-xl font-black text-sm outline-none
+                        transition-all duration-200 disabled:opacity-50 touch-manipulation
               ${
                 selectedLevelId
                   ? 'bg-emerald-50 border-emerald-400 text-emerald-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-700'
+                  : 'bg-slate-50 border-slate-200 text-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20'
               }`}
             value={selectedLevelId}
             onChange={(e) => handleLevelChange(e.target.value)}
@@ -214,11 +235,14 @@ export default function LocationSelector({
             ))}
           </select>
           {loadingLevels && (
-            <Loader2 className="absolute right-2 top-3 animate-spin text-slate-400" size={14} />
+            <Loader2
+              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-500"
+              size={16}
+            />
           )}
           {selectedLevelId && !loadingLevels && (
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none">
-              <CheckCircle2 className="text-emerald-500" size={16} />
+            <div className="absolute right-10 top-1/2 -translate-y-1/2 pointer-events-none">
+              <CheckCircle2 className="text-emerald-500" size={18} />
             </div>
           )}
         </div>

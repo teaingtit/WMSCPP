@@ -291,7 +291,7 @@ function StatusList({
       <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
         <div className="mx-auto mb-4 flex justify-center">{emptyIcon}</div>
         <p className="text-slate-500 font-medium">{emptyMessage}</p>
-        <p className="text-sm text-slate-400">Create a new status to get started</p>
+        <p className="text-sm text-slate-500">Create a new status to get started</p>
       </div>
     );
   }
@@ -382,9 +382,14 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="ghost" size="sm" onClick={onEdit} className="h-8 w-8 p-0">
-            <Edit2 size={14} className="text-slate-500" />
+        <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onEdit}
+            className="h-10 w-10 p-0 min-w-[44px] min-h-[44px] touch-manipulation active:scale-95"
+          >
+            <Edit2 size={16} className="text-slate-500" />
           </Button>
           {showDeleteConfirm ? (
             <div className="flex items-center gap-1">
@@ -412,10 +417,10 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
+              className="h-10 w-10 p-0 min-w-[44px] min-h-[44px] text-red-500 hover:bg-red-50 touch-manipulation active:scale-95"
               onClick={() => setShowDeleteConfirm(true)}
             >
-              <Trash2 size={14} />
+              <Trash2 size={16} />
             </Button>
           )}
         </div>

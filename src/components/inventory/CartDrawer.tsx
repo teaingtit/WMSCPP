@@ -39,7 +39,7 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
           <button
             onClick={onClose}
             aria-label="Close cart"
-            className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400 hover:text-slate-600"
+            className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500 hover:text-slate-600"
           >
             <X size={20} />
           </button>
@@ -48,7 +48,7 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
         {/* Content - List of Items */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
           {items.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
+            <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-4">
               <Package size={48} className="opacity-20" />
               <p>ไม่มีสินค้าในตะกร้า</p>
             </div>
@@ -93,7 +93,7 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
                     <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 font-mono font-bold">
                       {item.location?.code}
                     </span>
-                    <span className="text-slate-400">|</span>
+                    <span className="text-slate-500">|</span>
                     <span className="font-bold text-slate-700">
                       {item.quantity.toLocaleString()} {item.product?.uom}
                     </span>

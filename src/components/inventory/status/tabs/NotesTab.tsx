@@ -65,7 +65,7 @@ export default function NotesTab({
       {/* Notes List */}
       <div className="space-y-3">
         {notes.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-slate-500">
             <StickyNote size={32} className="mx-auto mb-2 opacity-50" />
             <p>ยังไม่มีบันทึก</p>
           </div>
@@ -85,7 +85,7 @@ export default function NotesTab({
                     </span>
                   )}
                   <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.content}</p>
-                  <div className="mt-2 text-xs text-slate-400">
+                  <div className="mt-2 text-xs text-slate-500">
                     {new Date(note.created_at).toLocaleString('th-TH')} •{' '}
                     {note.created_by_user?.email || 'Unknown'}
                   </div>
@@ -93,14 +93,14 @@ export default function NotesTab({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleTogglePin(note.id, note.is_pinned)}
-                    className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                    className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
                     title={note.is_pinned ? 'เลิกปักหมุด' : 'ปักหมุด'}
                   >
                     {note.is_pinned ? <PinOff size={16} /> : <Pin size={16} />}
                   </button>
                   <button
                     onClick={() => handleDeleteNote(note.id)}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                     title="ลบ"
                   >
                     <Trash2 size={16} />

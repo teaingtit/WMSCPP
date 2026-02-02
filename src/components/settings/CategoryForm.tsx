@@ -6,11 +6,13 @@ import SchemaBuilder from './SchemaBuilder';
 import VisualSchemaDesigner from './VisualSchemaDesigner';
 import UnitsBuilder from './UnitsBuilder';
 import { SubmitButton } from '@/components/ui/submit-button';
+import { Input } from '@/components/ui/input';
 import { useState, useRef, useEffect, useActionState } from 'react';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
+import { useFormErrors } from '@/hooks/useFormErrors';
 
-// Use helper wrapper for `useActionState` signature
 const createCategoryWrapper = wrapFormAction(createCategory);
+const initialState = { success: false, message: '' };
 
 export default function CategoryForm() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -18,7 +20,8 @@ export default function CategoryForm() {
   const [unitsJson, setUnitsJson] = useState('[]');
   const [useVisualMode, setUseVisualMode] = useState(true);
 
-  const [state, action] = useActionState(createCategoryWrapper, { success: false, message: '' });
+  const [state, action] = useActionState(createCategoryWrapper, initialState);
+  const { getError } = useFormErrors(state ?? initialState);
 
   useEffect(() => {
     if (state.message) {
@@ -38,24 +41,26 @@ export default function CategoryForm() {
           <label htmlFor="cat-id" className="text-xs font-bold text-slate-500 mb-1 block">
             ID *
           </label>
-          <input
+          <Input
             id="cat-id"
             name="id"
             required
-            className="w-full p-3 border rounded-xl bg-slate-50 uppercase font-bold text-indigo-900 outline-none touch-manipulation"
+            className="bg-slate-50 uppercase font-bold text-indigo-900 touch-manipulation"
             placeholder="RAW"
+            errorMessage={getError('id')}
           />
         </div>
         <div className="sm:col-span-3">
           <label htmlFor="cat-name" className="text-xs font-bold text-slate-500 mb-1 block">
             ชื่อหมวดหมู่ *
           </label>
-          <input
+          <Input
             id="cat-name"
             name="name"
             required
-            className="w-full p-3 border rounded-xl outline-none touch-manipulation"
+            className="touch-manipulation"
             placeholder="วัตถุดิบ..."
+            errorMessage={getError('name')}
           />
         </div>
       </div>

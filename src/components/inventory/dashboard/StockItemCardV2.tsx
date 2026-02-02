@@ -204,7 +204,7 @@ export const StockItemCardV2 = React.memo(
             {totalQty.toLocaleString()}
           </div>
           {status?.status && affectedQty > 0 && (
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
               {affectedQty.toLocaleString()} affected
             </div>
           )}

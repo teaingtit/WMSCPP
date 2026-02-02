@@ -25,7 +25,7 @@ export default function TerminalLogView({ logs }: TerminalLogViewProps) {
 
   if (logs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-slate-400 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+      <div className="flex flex-col items-center justify-center p-12 text-slate-500 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
         <FileText size={32} className="mb-3 opacity-50" />
         <p>No system logs found for this period.</p>
       </div>
@@ -41,7 +41,7 @@ export default function TerminalLogView({ logs }: TerminalLogViewProps) {
             <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
             <div className="w-3 h-3 rounded-full bg-emerald-500/80"></div>
           </div>
-          <span className="ml-3 text-xs text-slate-400 font-sans font-medium">
+          <span className="ml-3 text-xs text-slate-500 font-sans font-medium">
             System Activity Log
           </span>
         </div>
@@ -72,7 +72,7 @@ export default function TerminalLogView({ logs }: TerminalLogViewProps) {
             </div>
 
             {/* User */}
-            <div className="shrink-0 text-xs text-slate-500 flex items-center gap-1.5 pt-1 opacity-50 group-hover:opacity-100 transition-opacity">
+            <div className="shrink-0 text-xs text-slate-500 flex items-center gap-1.5 pt-1 md:opacity-50 md:group-hover:opacity-100 transition-opacity">
               <User size={10} />
               {log.user.split('@')[0]}
             </div>
@@ -124,7 +124,7 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
           <span className="text-slate-500 text-xs">({entry.sku})</span>
         </div>
 
-        <div className="flex items-center gap-2 text-slate-400 text-xs">
+        <div className="flex items-center gap-2 text-slate-500 text-xs">
           <span className="text-white font-bold">
             {entry.quantity} {entry.uom}
           </span>
@@ -144,7 +144,7 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
           {Object.entries(entry.attributes || {}).map(([key, value]) => (
             <span
               key={key}
-              className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700"
+              className="text-xs font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700"
             >
               <span className="text-slate-500 mr-1">{formatAttributeKey(key)}:</span>
               <span className="text-amber-200/80">{formatAttributeValue(value)}</span>
@@ -168,7 +168,7 @@ function SystemLine({ entry }: { entry: SystemLogEntry }) {
         <span className="text-purple-200 font-medium">{entry.entityName}</span>
         <span className="text-slate-500 text-xs">({entry.entityType})</span>
       </div>
-      <div className="text-xs text-slate-400 pl-1 border-l-2 border-slate-700 ml-1">
+      <div className="text-xs text-slate-500 pl-1 border-l-2 border-slate-700 ml-1">
         {entry.action}:{' '}
         <span className="text-rose-300 line-through mr-1 opacity-70">{entry.oldValue}</span>{' '}
         <ArrowRight size={10} className="inline mx-1" />{' '}

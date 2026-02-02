@@ -75,7 +75,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
               ชื่อจริง (First Name)
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
               <input
                 id="first_name"
                 name="first_name"
@@ -107,7 +107,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
               อีเมล (Email)
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
               <input
                 id="email"
                 name="email"
@@ -169,7 +169,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
                   className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20"
                   placeholder="ตั้งรหัสผ่านอย่างน้อย 6 ตัวอักษร..."
                 />
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   * หากไม่เลือกส่งอีเมล Admin ต้องแจ้งรหัสผ่านนี้ให้ผู้ใช้ทราบ
                 </p>
               </div>
@@ -313,7 +313,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(u.id)}
-                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="ระงับการใช้งาน / ลบ"
                         >
                           <Trash2 size={16} />
@@ -325,7 +325,7 @@ export default function UserManager({ users, warehouses }: UserManagerProps) {
               })}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-400">
+                  <td colSpan={5} className="p-8 text-center text-slate-500">
                     ไม่พบข้อมูลผู้ใช้
                   </td>
                 </tr>

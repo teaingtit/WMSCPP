@@ -118,7 +118,7 @@ export default function TransactionConfirmModal({
                 className="w-full py-4 bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               >
                 {isLoading ? (
-                  <Loader2 className="animate-spin text-slate-400" />
+                  <Loader2 className="animate-spin text-slate-500" />
                 ) : (
                   <Save className="text-slate-500" />
                 )}
@@ -130,7 +130,7 @@ export default function TransactionConfirmModal({
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="w-full py-2 text-slate-400 font-bold text-sm hover:text-slate-600"
+              className="w-full py-2 text-slate-500 font-bold text-sm hover:text-slate-600"
             >
               ยกเลิก
             </button>

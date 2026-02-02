@@ -4,9 +4,11 @@ import { useRef, useEffect, useActionState } from 'react';
 import { createWarehouse, deleteWarehouse } from '@/actions/settings-actions';
 import { Save } from 'lucide-react';
 import { SubmitButton } from '@/components/ui/submit-button';
-import { DimensionConfig } from './warehouse/DimensionConfig'; // Import ที่แยกมา
-import { WarehouseList } from './warehouse/WarehouseList'; // Import ที่แยกมา
+import { Input } from '@/components/ui/input';
+import { DimensionConfig } from './warehouse/DimensionConfig';
+import { WarehouseList } from './warehouse/WarehouseList';
 import { wrapFormAction, notify } from '@/lib/ui-helpers';
+import { useFormErrors } from '@/hooks/useFormErrors';
 
 const initialState = { success: false, message: '' };
 
@@ -14,6 +16,7 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
   const formRef = useRef<HTMLFormElement>(null);
 
   const [createState, createAction] = useActionState(wrapFormAction(createWarehouse), initialState);
+  const { getError } = useFormErrors(createState);
 
   const [deleteState, deleteAction] = useActionState(wrapFormAction(deleteWarehouse), initialState);
 
@@ -43,24 +46,26 @@ export const WarehouseManager = ({ warehouses }: { warehouses: any[] }) => {
             <label htmlFor="wh-code" className="block text-xs font-bold text-slate-500 mb-1">
               รหัสคลัง
             </label>
-            <input
+            <Input
               id="wh-code"
               name="code"
               placeholder="WH-MAIN"
               required
-              className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 uppercase font-bold text-indigo-900 focus:ring-2 ring-indigo-500/20 outline-none"
+              className="bg-slate-50 uppercase font-bold text-indigo-900"
+              errorMessage={getError('code')}
             />
           </div>
           <div className="flex-[2]">
             <label htmlFor="wh-name" className="block text-xs font-bold text-slate-500 mb-1">
               ชื่อคลังสินค้า
             </label>
-            <input
+            <Input
               id="wh-name"
               name="name"
               placeholder="คลังสินค้าหลัก..."
               required
-              className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 ring-indigo-500/20 outline-none"
+              className="bg-slate-50"
+              errorMessage={getError('name')}
             />
           </div>
         </div>

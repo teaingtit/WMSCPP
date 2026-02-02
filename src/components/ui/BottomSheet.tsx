@@ -97,8 +97,8 @@ export default function BottomSheet({
     const deltaY = currentY.current - startY.current;
     isDragging.current = false;
 
-    if (deltaY > 100) {
-      // Dismiss if dragged more than 100px
+    // Dismiss if dragged more than 150px (increased from 100px to prevent accidental dismissal)
+    if (deltaY > 150) {
       onClose();
     }
 

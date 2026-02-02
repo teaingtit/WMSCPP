@@ -35,7 +35,7 @@ export default function PageHeader({
         {backHref && (
           <Link
             href={backHref}
-            className="p-2 -ml-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 active:scale-95"
+            className="p-2 -ml-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 active:scale-95"
           >
             <ChevronLeft size={24} />
           </Link>
@@ -53,7 +53,7 @@ export default function PageHeader({
           <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">
             {title}
           </h1>
-          {subtitle && <p className="text-sm text-slate-400 mt-0.5 truncate">{subtitle}</p>}
+          {subtitle && <p className="text-sm text-slate-500 mt-0.5 truncate">{subtitle}</p>}
         </div>
       </div>
 

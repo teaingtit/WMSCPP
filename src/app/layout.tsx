@@ -3,7 +3,6 @@ import { Inter, Sarabun } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import './globals.css';
 import GlobalLoadingProvider from '@/components/providers/GlobalLoadingProvider';
-import BottomNav from '@/components/ui/BottomNav';
 import { Toaster } from 'sonner';
 import TableStacker from '@/components/ui/TableStacker';
 import { SkipLink } from '@/components/ui/SkipLink';
@@ -67,7 +66,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="app-container" id="main-content">
             {children}
           </div>
-          <BottomNav />
           <TableStacker />
           <Toaster position="top-center" richColors />
         </GlobalLoadingProvider>

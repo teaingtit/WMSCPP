@@ -188,7 +188,7 @@ export default function StockDetailModal({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Product Details Card */}
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-              <div className="text-label text-slate-400 mb-3 flex items-center gap-1.5">
+              <div className="text-label text-slate-500 mb-3 flex items-center gap-1.5">
                 <Box size={12} /> ข้อมูลสินค้า
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -213,7 +213,7 @@ export default function StockDetailModal({
                 <div>
                   <span className="text-caption-subtle block">อัปเดตล่าสุด</span>
                   <span className="font-bold text-slate-700 text-sm flex items-center gap-1">
-                    <Clock size={10} className="text-slate-400" />
+                    <Clock size={10} className="text-slate-500" />
                     {new Date(item.updated_at).toLocaleDateString('th-TH')}
                   </span>
                 </div>
@@ -222,20 +222,20 @@ export default function StockDetailModal({
 
             {/* Location Details */}
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-              <div className="text-label text-slate-400 mb-3 flex items-center gap-1.5">
+              <div className="text-label text-slate-500 mb-3 flex items-center gap-1.5">
                 <MapPin size={12} /> ข้อมูลตำแหน่ง
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4.5rem]">
-                  <span className="text-label text-slate-400">ตำแหน่ง</span>
+                  <span className="text-label text-slate-500">ตำแหน่ง</span>
                   <span className="font-bold text-slate-700">{item.location?.code || '-'}</span>
                 </div>
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-label text-slate-400">Lot</span>
+                  <span className="text-label text-slate-500">Lot</span>
                   <span className="font-bold text-slate-700">{item.lot || '-'}</span>
                 </div>
                 <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-label text-slate-400">Position</span>
+                  <span className="text-label text-slate-500">Position</span>
                   <span className="font-bold text-slate-700">{item.cart || '-'}</span>
                 </div>
                 {item.level && (
@@ -251,7 +251,7 @@ export default function StockDetailModal({
 
             {/* Quantity Status Breakdown */}
             <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-label text-slate-400 mb-3 flex items-center gap-1.5">
+              <div className="text-label text-slate-500 mb-3 flex items-center gap-1.5">
                 <Tag size={12} /> รายละเอียดจำนวน
               </div>
 
@@ -264,7 +264,7 @@ export default function StockDetailModal({
                   }`}
                 >
                   {totalQuantity.toLocaleString()}
-                  <span className="text-sm font-medium text-slate-400 ml-1">
+                  <span className="text-sm font-medium text-slate-500 ml-1">
                     {item.product?.uom}
                   </span>
                 </span>
@@ -296,7 +296,7 @@ export default function StockDetailModal({
                   </div>
                   <span
                     className={`font-bold text-lg ${
-                      !status?.status ? 'text-emerald-700' : 'text-slate-400'
+                      !status?.status ? 'text-emerald-700' : 'text-slate-500'
                     }`}
                   >
                     {normalQuantity.toLocaleString()}

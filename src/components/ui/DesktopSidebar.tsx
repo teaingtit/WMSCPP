@@ -45,7 +45,7 @@ export default function DesktopSidebar() {
         className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
           isActive
             ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-            : 'text-slate-400 hover:bg-slate-800/50 hover:text-primary-foreground'
+            : 'text-slate-300 hover:bg-slate-800/50 hover:text-primary-foreground'
         }`}
       >
         <item.icon
@@ -103,7 +103,7 @@ export default function DesktopSidebar() {
               className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
                 pathname.includes('/inventory')
                   ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-primary-foreground'
+                  : 'text-slate-300 hover:bg-slate-800/50 hover:text-primary-foreground'
               }`}
             >
               <Package size={18} />
@@ -144,7 +144,7 @@ export default function DesktopSidebar() {
               </div>
             </div>
             {!isAdmin && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-900/50 px-2 py-1 rounded border border-slate-800">
+              <div className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-900/50 px-2 py-1 rounded border border-slate-800">
                 <Warehouse size={10} />
                 <span>เข้าถึง: {user.allowed_warehouses?.length || 0} คลัง</span>
               </div>

@@ -112,7 +112,7 @@ export const StockLotSection = ({
                   e.stopPropagation();
                   onLotStatusClick(lot);
                 }}
-                className="flex items-center gap-1 text-xs font-bold text-slate-400 hover:text-cyan-600 px-2 py-1 rounded-lg border border-dashed border-slate-300 hover:border-cyan-400 transition-all"
+                className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-cyan-600 px-2 py-1 rounded-lg border border-dashed border-slate-300 hover:border-cyan-400 transition-all"
                 title="ตั้งค่าสถานะ"
               >
                 <Settings2 size={12} />
