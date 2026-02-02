@@ -97,9 +97,9 @@ export default function LotStatusModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+      <div className="bg-white w-full max-w-md max-h-[min(90vh,36rem)] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-cyan-600 to-cyan-700 p-5 text-white">
+        <div className="relative bg-gradient-to-br from-cyan-600 to-cyan-700 p-5 text-white shrink-0">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all"
@@ -118,8 +118,8 @@ export default function LotStatusModal({
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-5 space-y-5">
+        {/* Content - scrollable when overflow */}
+        <div className="p-5 space-y-5 overflow-y-auto min-h-0 flex-1">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="animate-spin text-cyan-600" size={32} />
@@ -178,7 +178,7 @@ export default function LotStatusModal({
                           key={status.id}
                           onClick={() => setSelectedStatusId(status.id)}
                           disabled={isCurrent}
-                          className={`p-3 rounded-xl border-2 text-left transition-all ${
+                          className={`p-3 rounded-xl border-2 text-left transition-all w-full min-w-0 overflow-hidden ${
                             isSelected
                               ? 'border-cyan-500 ring-2 ring-cyan-200'
                               : isCurrent
@@ -187,19 +187,19 @@ export default function LotStatusModal({
                           }`}
                           style={isSelected ? createStatusStyle(status) : undefined}
                         >
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 min-w-0">
                             <span
-                              className="w-3 h-3 rounded-full"
+                              className="w-3 h-3 rounded-full shrink-0"
                               style={{ backgroundColor: status.color }}
                             />
-                            <span className="font-bold text-sm">{status.name}</span>
+                            <span className="font-bold text-sm break-words">{status.name}</span>
                             {isCurrent && (
-                              <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full shrink-0">
                                 Current
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 flex items-center gap-1 ml-5">
+                          <div className="text-[10px] text-slate-500 flex items-center gap-1 ml-5 break-words">
                             {effectOption?.icon} {effectOption?.label}
                           </div>
                         </button>
@@ -263,7 +263,7 @@ export default function LotStatusModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 p-4 bg-slate-50 flex gap-3">
+        <div className="border-t border-slate-200 p-4 bg-slate-50 flex gap-3 shrink-0">
           <button
             onClick={onClose}
             className="flex-1 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 active:scale-[0.98] transition-all"

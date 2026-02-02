@@ -342,33 +342,24 @@ describe('Status Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
       };
 
-      // Create upsert query that returns a promise
-      // upsert() is called with data and options, returns { data, error }
-      const createUpsertQuery = () => {
+      const createDeleteQuery = () => {
         const query: any = {};
-        const promise = Promise.resolve({
-          data: null,
-          error: null,
-        });
-        query.upsert = vi.fn(function () {
-          return promise;
-        });
+        const promise = Promise.resolve({ error: null });
+        query.delete = vi.fn(() => query);
+        query.eq = vi.fn(() => query);
+        query.then = promise.then.bind(promise);
+        query.catch = promise.catch.bind(promise);
         return query;
       };
-      const mockUpsertQuery = createUpsertQuery();
+      const mockDeleteQuery = createDeleteQuery();
 
-      // Create insert query that returns a promise
       const createInsertQuery = () => {
         const query: any = {};
-        const promise = Promise.resolve({
-          data: null,
-          error: null,
-        });
-        query.insert = vi.fn(function () {
-          return promise;
-        });
+        const promise = Promise.resolve({ data: null, error: null });
+        query.insert = vi.fn(() => promise);
         return query;
       };
       const mockInsertQuery = createInsertQuery();
@@ -381,7 +372,8 @@ describe('Status Actions', () => {
         if (table === 'entity_statuses') {
           _callCount++;
           if (_callCount === 1) return mockCurrentStatusQuery;
-          return mockUpsertQuery;
+          if (_callCount === 2) return mockDeleteQuery;
+          return mockInsertQuery;
         }
         if (table === 'status_change_logs') {
           return mockInsertQuery;
@@ -413,6 +405,7 @@ describe('Status Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null }),
       };
 
       const createDeleteQuery = () => {
@@ -466,6 +459,7 @@ describe('Status Actions', () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: mockCurrentStatus }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockCurrentStatus }),
       };
 
       // Create delete query that supports chaining with multiple eq() calls
@@ -874,7 +868,7 @@ describe('Status Actions', () => {
   });
 
   describe('setLotStatus', () => {
-    it('should handle generic error during upsert', async () => {
+    it('should handle generic error during insert', async () => {
       mockSupabase.auth = {
         getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
       };
@@ -885,15 +879,23 @@ describe('Status Actions', () => {
         single: vi.fn().mockResolvedValue({ data: { role: 'admin' } }),
       };
 
-      const mockUpsertQuery = {
-        upsert: vi.fn().mockResolvedValue({ error: { message: 'Upsert failed' } }),
+      const mockDeleteQuery = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        then: (resolve: any) => resolve({ error: null }),
+      } as any;
+      const mockInsertQuery = {
+        insert: vi.fn().mockResolvedValue({ error: { message: 'Insert failed' } }),
       };
 
-      let callCount = 0;
+      let lotCallCount = 0;
       mockSupabase.from = vi.fn((table) => {
         if (table === 'user_roles') return mockRoleQuery;
-        if (table === 'lot_statuses') return mockUpsertQuery;
-        return mockRoleQuery; // fallthrough
+        if (table === 'lot_statuses') {
+          lotCallCount++;
+          return lotCallCount === 1 ? mockDeleteQuery : mockInsertQuery;
+        }
+        return mockRoleQuery;
       });
 
       const formData = createMockFormData({
@@ -907,7 +909,7 @@ describe('Status Actions', () => {
       const result = await (await import('@/actions/status-actions')).setLotStatus(formData);
 
       expect(result.success).toBe(false);
-      expect(result.message).toBe('Upsert failed');
+      expect(result.message).toBe('Insert failed');
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -961,23 +963,21 @@ describe('Status Actions', () => {
         single: vi.fn().mockResolvedValue({ data: { role: 'admin' } }),
       };
 
-      const createUpsertQuery = () => {
-        const query: any = {};
-        const promise = Promise.resolve({ data: null, error: null });
-        query.upsert = vi.fn(function () {
-          return promise;
-        });
-        return query;
+      const mockDeleteQuery = {
+        delete: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        then: (resolve: any) => resolve({ error: null }),
+      } as any;
+      const mockInsertQuery = {
+        insert: vi.fn().mockResolvedValue({ data: null, error: null }),
       };
-      const mockUpsertQuery = createUpsertQuery();
 
-      let callCount = 0;
+      let lotCallCount = 0;
       mockSupabase.from = vi.fn((table) => {
-        if (table === 'user_roles') {
-          return mockRoleQuery;
-        }
+        if (table === 'user_roles') return mockRoleQuery;
         if (table === 'lot_statuses') {
-          return mockUpsertQuery;
+          lotCallCount++;
+          return lotCallCount === 1 ? mockDeleteQuery : mockInsertQuery;
         }
         return mockRoleQuery;
       });

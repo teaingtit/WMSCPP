@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, Package, AlertTriangle } from 'lucide-react';
+import { ChevronDown, Package, AlertTriangle, MapPin, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { StockWithDetails } from '@/types/inventory';
 import type { EntityStatus } from '@/types/status';
+import { createStatusStyle } from '@/types/status';
 import type { LotStatus } from '@/actions/status-actions';
 import { StockPositionGroup } from './StockPositionGroup';
 import { isRestricted } from '../utils';
@@ -39,6 +40,9 @@ export const StockLotSectionV2 = React.memo(
     statusMap,
     noteCountMap,
     onStatusClick,
+    lotStatus,
+    isAdmin,
+    onLotStatusClick,
   }: StockLotSectionV2Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -68,6 +72,13 @@ export const StockLotSectionV2 = React.memo(
       setIsExpanded(!isExpanded);
     };
 
+    const handleHeaderKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleToggle();
+      }
+    };
+
     const handleSelectLot = (e: React.MouseEvent) => {
       e.stopPropagation();
       onToggleLot(lot);
@@ -82,20 +93,21 @@ export const StockLotSectionV2 = React.memo(
           'overflow-hidden',
         )}
       >
-        {/* Header - Full Touch Target */}
-        <button
+        {/* Header - Full Touch Target (div to allow nested buttons for lot status) */}
+        <div
+          role="button"
+          tabIndex={0}
           onClick={handleToggle}
+          onKeyDown={handleHeaderKeyDown}
           className={cn(
             'flex items-center justify-between w-full p-5',
-            'text-left touch-manipulation',
+            'text-left touch-manipulation cursor-pointer',
             'transition-colors duration-150',
             'hover:bg-neutral-50 dark:hover:bg-white/5',
             'active:bg-neutral-100 dark:active:bg-white/10',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ring-offset-2',
           )}
-          {...(isExpanded
-            ? { 'aria-expanded': 'true' as const }
-            : { 'aria-expanded': 'false' as const })}
+          aria-expanded={isExpanded ? 'true' : 'false'}
           aria-label={`${lot} - ${totalItems} รายการ${
             restrictedCount > 0 ? `, มี ${restrictedCount} รายการติดสถานะ` : ''
           }`}
@@ -150,9 +162,51 @@ export const StockLotSectionV2 = React.memo(
 
             {/* Text Information */}
             <div className="flex-1 min-w-0">
-              {/* Lot Name */}
-              <div className="font-semibold text-base text-neutral-900 dark:text-white truncate">
-                {lot}
+              {/* Lot Name + Lot Status Badge */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-base text-neutral-900 dark:text-white truncate">
+                  {lot}
+                </span>
+                {/* Lot Status Badge */}
+                {lotStatus?.status && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isAdmin && onLotStatusClick) onLotStatusClick(lot);
+                    }}
+                    className={cn(
+                      'flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg border transition-all shrink-0',
+                      isAdmin ? 'hover:opacity-80 cursor-pointer' : 'cursor-default',
+                    )}
+                    style={createStatusStyle(lotStatus.status)}
+                    title={
+                      isAdmin ? 'Click to change lot status' : lotStatus.status.description || ''
+                    }
+                    aria-label={
+                      isAdmin ? `Change status for ${lot}` : `Status: ${lotStatus.status.name}`
+                    }
+                  >
+                    <MapPin size={12} aria-hidden />
+                    {lotStatus.status.name}
+                  </button>
+                )}
+                {/* Add Status Button (Admin only, when no status) */}
+                {isAdmin && !lotStatus?.status && onLotStatusClick && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onLotStatusClick(lot);
+                    }}
+                    className="flex items-center gap-1 text-xs font-bold text-neutral-400 hover:text-primary px-2 py-1 rounded-lg border border-dashed border-neutral-300 hover:border-primary transition-all shrink-0"
+                    title="ตั้งค่าสถานะ"
+                    aria-label={`Set status for ${lot}`}
+                  >
+                    <Settings2 size={12} aria-hidden />
+                    ตั้งค่าสถานะ
+                  </button>
+                )}
               </div>
 
               {/* Meta Information */}
@@ -187,7 +241,7 @@ export const StockLotSectionV2 = React.memo(
               aria-hidden="true"
             />
           </div>
-        </button>
+        </div>
 
         {/* Expandable Content - Position Groups */}
         {isExpanded && (

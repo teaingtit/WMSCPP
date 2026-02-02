@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { ActionResponse } from '@/types/action-response';
@@ -58,10 +59,12 @@ export interface LotStatus {
   status: StatusDefinition;
   applied_at: string;
   applied_by: string;
+  reason?: string | null;
 }
 
-// Define lotStatusSelect
-const lotStatusSelect = 'lot, status_id, status, applied_at, applied_by';
+// Define lotStatusSelect - use explicit relationship syntax for status
+const lotStatusSelect =
+  'lot, status_id, status:status_definitions(*), applied_at, applied_by, reason';
 
 // Ensure LotStatusSchema is defined
 const LotStatusSchema = z.object({
@@ -362,23 +365,37 @@ export async function applyEntityStatus(formData: FormData): Promise<ActionRespo
       .select('status_id')
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
-      .single();
+      .maybeSingle();
 
-    // Upsert the status
-    const { error: upsertError } = await supabase.from(TABLES.ENTITY_STATUSES).upsert(
-      {
-        entity_type,
-        entity_id,
-        status_id,
-        applied_by: user.id,
-        notes: notes || null,
-        affected_quantity: affected_quantity || null,
-        applied_at: new Date().toISOString(),
-      },
-      { onConflict: 'entity_type,entity_id' },
-    );
+    // Replace status: delete existing then insert (no unique on entity_type,entity_id alone)
+    const { error: deleteError } = await supabase
+      .from(TABLES.ENTITY_STATUSES)
+      .delete()
+      .eq('entity_type', entity_type)
+      .eq('entity_id', entity_id);
 
-    if (upsertError) throw upsertError;
+    if (deleteError) throw deleteError;
+
+    // Ensure profile exists (entity_statuses.applied_by references profiles in DB)
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .upsert({ id: user.id, email: user.email ?? '' }, { onConflict: 'id' });
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+      // Continue anyway - the FK might still work if profile exists from another path
+    }
+
+    const { error: insertError } = await supabase.from(TABLES.ENTITY_STATUSES).insert({
+      entity_type,
+      entity_id,
+      status_id,
+      applied_by: user.id,
+      notes: notes || null,
+      affected_quantity: affected_quantity || null,
+      applied_at: new Date().toISOString(),
+    });
+
+    if (insertError) throw insertError;
 
     // Log the status change (non-blocking)
     await supabase
@@ -417,7 +434,7 @@ export async function removeEntityStatus(formData: FormData): Promise<ActionResp
       .select('status_id, affected_quantity')
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
-      .single();
+      .maybeSingle();
 
     const { error } = await supabase
       .from(TABLES.ENTITY_STATUSES)
@@ -472,6 +489,7 @@ export async function getLotStatus(warehouseId: string, lot: string): Promise<Lo
     status: data.status as StatusDefinition, // Ensure proper typing
     applied_at: data.applied_at,
     applied_by: data.applied_by,
+    reason: data.reason,
   };
 }
 
@@ -504,17 +522,22 @@ export async function setLotStatus(formData: FormData): Promise<ActionResponse> 
 
   try {
     if (status_id) {
-      const { error } = await supabase.from(TABLES.LOT_STATUSES).upsert(
-        {
-          warehouse_id,
-          lot,
-          status_id,
-          applied_at: new Date().toISOString(),
-          applied_by: user.id,
-          reason,
-        },
-        { onConflict: 'warehouse_id,lot' },
-      );
+      // Replace: delete existing lot status then insert (lot_statuses has no unique on lot alone)
+      const { error: delErr } = await supabase
+        .from(TABLES.LOT_STATUSES)
+        .delete()
+        .eq('warehouse_id', warehouse_id)
+        .eq('lot', lot);
+      if (delErr) throw delErr;
+
+      const { error } = await supabase.from(TABLES.LOT_STATUSES).insert({
+        warehouse_id,
+        lot,
+        status_id,
+        applied_at: new Date().toISOString(),
+        applied_by: user.id,
+        reason: reason || null,
+      });
 
       if (error) throw error;
       revalidatePath('/dashboard');
