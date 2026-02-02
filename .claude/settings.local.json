@@ -40,7 +40,8 @@
       "Bash(killall node:*)",
       "Bash(git diff:*)",
       "mcp__supabase__get_advisors",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(npm run test:unit:coverage:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

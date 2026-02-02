@@ -21,32 +21,35 @@ export const WarehouseList = ({ warehouses, deleteAction }: WarehouseListProps) 
         {warehouses.map((wh) => (
           <div
             key={wh.id}
-            className="flex justify-between items-center p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 transition-colors group"
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group gap-4"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-100 transition-colors">
-                <Building2 size={20} />
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:scale-105 transition-transform">
+                <Building2 size={24} />
               </div>
               <div>
-                <div className="font-bold text-slate-700">{wh.name}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs text-slate-400 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+                <div className="font-bold text-slate-800 text-base">{wh.name}</div>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <span className="text-xs font-mono text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
                     {wh.code}
                   </span>
                   {wh.config && (
-                    <span className="text-[10px] text-slate-400 flex gap-1 bg-slate-50 px-1 rounded">
-                      <span>X:{wh.config.axis_x}</span>
-                      <span>Y:{wh.config.axis_y}</span>
-                      <span>Z:{wh.config.axis_z}</span>
+                    <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md">
+                      <span title="X Axis">X:{wh.config.axis_x}</span>
+                      <span className="w-px h-3 bg-slate-200" />
+                      <span title="Y Axis">Y:{wh.config.axis_y}</span>
+                      <span className="w-px h-3 bg-slate-200" />
+                      <span title="Z Axis">Z:{wh.config.axis_z}</span>
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <form action={deleteAction}>
+            <form action={deleteAction} className="flex sm:block shrink-0">
               <input type="hidden" name="id" value={wh.id} />
-              <SubmitButton className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+              <SubmitButton className="w-full sm:w-auto p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all flex items-center justify-center gap-2">
                 <Trash2 size={18} />
+                <span className="sm:hidden text-sm font-medium">ลบรายการ</span>
               </SubmitButton>
             </form>
           </div>

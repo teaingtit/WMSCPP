@@ -68,7 +68,7 @@ export default async function DashboardPage() {
           <Link
             key={wh.id}
             href={`/dashboard/${wh.code}`}
-            className="group relative bg-gradient-to-b from-slate-800 to-slate-800/80 rounded-2xl p-5 sm:p-6 border border-slate-700/50 shadow-lg hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 block overflow-hidden"
+            className="group relative bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300 block overflow-hidden"
             style={{ animationDelay: `${index * 80}ms` }}
           >
             {/* Hover Gradient Overlay */}
@@ -76,31 +76,38 @@ export default async function DashboardPage() {
 
             {/* Header */}
             <div className="flex justify-between items-start mb-5 relative z-10">
-              <div className="p-3 bg-slate-700/50 text-primary rounded-xl group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-lg group-hover:shadow-primary/25">
-                <Building2 size={22} />
+              <div className="p-3.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-primary/25">
+                <Building2 size={24} />
               </div>
               {wh.is_active && (
-                <span className="flex items-center gap-1.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="flex items-center gap-1.5 text-[11px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-500/20">
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                   ออนไลน์
                 </span>
               )}
             </div>
 
             {/* Content */}
-            <h3 className="text-lg font-bold text-white mb-1.5 group-hover:text-primary transition-colors relative z-10">
-              {wh.name}
-            </h3>
-            <div className="flex items-center gap-2 mb-5 relative z-10">
-              <span className="text-xs text-slate-400 font-mono bg-slate-900/50 px-2.5 py-1 rounded-lg border border-slate-700/50">
-                {wh.code}
-              </span>
+            <div className="relative z-10">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
+                {wh.name}
+              </h3>
+              <div className="flex items-center gap-2 mb-6">
+                <span className="text-xs text-slate-500 font-mono bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                  CODE: {wh.code}
+                </span>
+              </div>
             </div>
 
             {/* Action */}
-            <div className="flex items-center text-sm font-semibold text-primary gap-2 group-hover:gap-3 transition-all relative z-10">
+            <div className="flex items-center justify-between text-sm font-bold text-primary relative z-10 pt-4 border-t border-slate-100 dark:border-slate-800">
               <span>เข้าสู่ระบบจัดการ</span>
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                <ArrowRight
+                  size={16}
+                  className="transition-transform group-hover:translate-x-0.5"
+                />
+              </div>
             </div>
           </Link>
         ))}

@@ -115,24 +115,87 @@ export default function TransferPage() {
       )}
       {/* 1. Header & Tabs */}
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-slate-800 mb-4 flex items-center gap-2">
+        <h1 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2">
           {activeTab === 'INTERNAL' ? (
             <ArrowRightLeft className="text-orange-500" />
           ) : (
             <Building2 className="text-indigo-500" />
           )}
-          {activeTab === 'INTERNAL' ? 'Internal Transfer' : 'Cross-Warehouse'}
+          {activeTab === 'INTERNAL'
+            ? 'โอนย้ายภายใน (Internal)'
+            : 'โอนย้ายข้ามคลัง (Cross-Warehouse)'}
         </h1>
 
-        <div className="flex bg-slate-100 p-1 rounded-xl w-fit">
+        {/* 2.5D Flow Indicator (Mobile-First) */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-indigo-500" />
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+            {/* Source */}
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100">
+                <Building2 className="text-orange-600" size={24} />
+              </div>
+              <div>
+                <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">
+                  From (ต้นทาง)
+                </div>
+                <div className="font-bold text-slate-800 text-lg">Current Warehouse</div>
+                <div className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1">
+                  {warehouseId}
+                </div>
+              </div>
+            </div>
+
+            {/* Connector */}
+            <div className="hidden sm:flex flex-col items-center">
+              <div className="w-full h-px bg-slate-200 w-32 relative">
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 border-t-2 border-r-2 border-slate-300 rotate-45" />
+              </div>
+            </div>
+            {/* Mobile Connector */}
+            <div className="sm:hidden text-slate-300">
+              <ArrowRightLeft className="rotate-90" size={24} />
+            </div>
+
+            {/* Target */}
+            <div className="flex items-center gap-4 w-full sm:w-auto justify-end text-right">
+              <div>
+                <div className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">
+                  To (ปลายทาง)
+                </div>
+                <div className="font-bold text-slate-800 text-lg">
+                  {activeTab === 'INTERNAL' ? 'Current Warehouse' : 'Destination Warehouse'}
+                </div>
+                <div className="text-xs text-indigo-500 font-medium mt-1">
+                  {activeTab === 'INTERNAL' ? 'ย้ายตำแหน่ง/สถานะ' : 'เลือกคลังปลายทาง'}
+                </div>
+              </div>
+              <div
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+                  activeTab === 'INTERNAL'
+                    ? 'bg-orange-50 border-orange-100'
+                    : 'bg-indigo-50 border-indigo-100'
+                }`}
+              >
+                <Building2
+                  className={activeTab === 'INTERNAL' ? 'text-orange-600' : 'text-indigo-600'}
+                  size={24}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl w-full sm:w-fit">
           <button
             onClick={() => {
               setActiveTab('INTERNAL');
               setSelectedStock(null);
             }}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
               activeTab === 'INTERNAL'
-                ? 'bg-white text-orange-600 shadow-sm'
+                ? 'bg-white text-orange-600 shadow-sm ring-1 ring-black/5'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
@@ -143,9 +206,9 @@ export default function TransferPage() {
               setActiveTab('CROSS');
               setSelectedStock(null);
             }}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
               activeTab === 'CROSS'
-                ? 'bg-white text-indigo-600 shadow-sm'
+                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
