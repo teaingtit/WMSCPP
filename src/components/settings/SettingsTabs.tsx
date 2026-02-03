@@ -1,13 +1,76 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Users, Tags, Boxes, Palette } from 'lucide-react';
+import { Users, Tags, Boxes, Palette, Calendar } from 'lucide-react';
 import UserManager from '@/components/settings/UserManager';
 import CategoryManager from '@/components/settings/CategoryManager';
 import { WarehouseManager } from '@/components/settings/WarehouseManager';
 import { StatusManager } from '@/components/settings/StatusManager';
+import ReportScheduleManager from '@/components/settings/ReportScheduleManager';
 import { User, Warehouse, Category, Product } from '@/types/settings';
 import { StatusDefinition } from '@/types/status';
+
+function ReportsTabContent({ warehouses }: { warehouses: Warehouse[] }) {
+  const [selectedId, setSelectedId] = useState<string>(warehouses[0]?.id ?? '');
+  const selected = warehouses.find((w) => w.id === selectedId);
+
+  // Keep selectedId in sync when warehouses list changes (e.g. warehouse deleted)
+  useEffect(() => {
+    const hasSelected = warehouses.some((w) => w.id === selectedId);
+    if (!hasSelected && warehouses.length > 0) {
+      setSelectedId(warehouses[0]!.id);
+    } else if (warehouses.length === 0) {
+      setSelectedId('');
+    }
+  }, [warehouses, selectedId]);
+
+  if (warehouses.length === 0) {
+    return (
+      <div className="flex items-center gap-3 mb-6 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+        <p className="text-slate-600">ไม่มีคลังสินค้า กรุณาสร้างคลังก่อน</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex items-center gap-3 mb-6 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+        <div className="p-2 bg-purple-100 text-purple-700 rounded-lg shadow-sm">
+          <Calendar size={20} />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-lg font-bold text-slate-800">รายงานอัตโนมัติ</h2>
+          <p className="text-sm text-slate-500">
+            ตั้งค่าการส่งรายงานทางอีเมลตามกำหนด (สรุปสินค้าคงคลัง, สรุปการเคลื่อนไหว)
+          </p>
+        </div>
+        <label
+          htmlFor="reports-warehouse"
+          className="flex items-center gap-2 text-sm font-medium text-slate-700"
+        >
+          <span>คลัง:</span>
+          <select
+            id="reports-warehouse"
+            aria-label="เลือกคลังสินค้า"
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {warehouses.map((w) => (
+              <option key={w.id} value={w.id}>
+                {w.name} ({w.code})
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {selected && (
+        <ReportScheduleManager warehouseId={selected.id} warehouseName={selected.name} />
+      )}
+    </>
+  );
+}
 
 interface SettingsTabsProps {
   users: User[];
@@ -58,6 +121,14 @@ export function SettingsTabs({
           >
             <Palette size={16} />
             <span>Status Design</span>
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="reports"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm transition-all"
+          >
+            <Calendar size={16} />
+            <span>รายงานอัตโนมัติ</span>
           </TabsTrigger>
         </TabsList>
       </div>
@@ -121,6 +192,10 @@ export function SettingsTabs({
             </div>
           </div>
           <StatusManager statuses={statuses} />
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6 outline-none">
+          <ReportsTabContent warehouses={warehouses} />
         </TabsContent>
       </div>
     </Tabs>

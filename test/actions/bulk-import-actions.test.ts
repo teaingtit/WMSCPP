@@ -28,6 +28,10 @@ vi.mock('@/lib/auth-service', () => ({
   checkManagerRole: vi.fn(() => Promise.resolve(true)),
 }));
 
+vi.mock('@/lib/rate-limit', () => ({
+  enforceRateLimit: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock('@/lib/utils/excel-utils', () => ({
   generateCategoryTemplate: vi.fn().mockResolvedValue('base64-category-template'),
   generateProductTemplate: vi.fn().mockResolvedValue('base64-product-template'),

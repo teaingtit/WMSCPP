@@ -94,6 +94,40 @@ export async function generateInboundTemplate(_whName: string, _catName: string,
   return Buffer.from(await workbook.xlsx.writeBuffer()).toString('base64');
 }
 
+export async function generateOutboundTemplate(whCode: string) {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Outbound');
+
+  const columns: any[] = [
+    { header: 'SKU (รหัสสินค้า)*', key: 'sku', width: 20 },
+    { header: 'Qty (จำนวน)*', key: 'qty', width: 15 },
+    { header: 'Location Code (ตำแหน่ง)', key: 'location', width: 15 },
+    { header: 'Note (หมายเหตุ)', key: 'note', width: 30 },
+  ];
+
+  sheet.columns = columns;
+
+  // Style header row
+  const headerRow = sheet.getRow(1);
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE2E8F0' },
+  };
+
+  // Add instruction row
+  const infoRow = sheet.addRow([
+    `*** Template สำหรับคลัง ${whCode} ***`,
+    'กรอกจำนวนที่ต้องการเบิก',
+    'ถ้าไม่ระบุจะเบิกจากตำแหน่งแรกที่มี',
+    'หมายเหตุ (ไม่บังคับ)',
+  ]);
+  infoRow.font = { italic: true, color: { argb: 'FF888888' } };
+
+  return Buffer.from(await workbook.xlsx.writeBuffer()).toString('base64');
+}
+
 // --- Parsers (อ่านไฟล์) ---
 
 export async function parseExcel(file: File) {

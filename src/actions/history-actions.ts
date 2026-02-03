@@ -11,8 +11,12 @@ import {
 } from '@/types/history';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import type { FormSchemaField } from '@/types/settings';
+import { sanitizeSearchQuery, isValidSearchQuery } from '@/lib/search-utils';
 
 export { type HistoryMode };
+
+// RPC function name for full-text search
+const SEARCH_TRANSACTIONS_RPC = 'search_transactions';
 
 export async function getHistory(
   warehouseId: string,
@@ -44,52 +48,98 @@ export async function getHistory(
     });
   }
 
-  // 2. Fetch Transactions (Common for both modes)
-  let txQuery = supabase
-    .from('transactions')
-    .select(
-      `
-      *,
-      product:products(sku, name, uom),
-      from_loc:locations!transactions_from_location_fkey(code, warehouse:warehouses(name)),
-      to_loc:locations!transactions_to_location_fkey(code, warehouse:warehouses(name))
-    `,
-    )
-    .eq('warehouse_id', whId)
-    .order('created_at', { ascending: false })
-    .limit(limit);
+  // 2. Fetch Transactions - Use full-text search RPC when search query is provided
+  let transactions: any[] = [];
+  let txError: any = null;
 
-  // Apply Filters to Transactions
-  if (filter?.search) {
-    // Note: Searching nested relations in Supabase/PostgREST is tricky with 'or'.
-    // We'll search local fields and try to filter in memory for complex joins if needed,
-    // or use !inner joins. For now, let's search searchable text fields.
-    // A complex OR filter across joined tables often requires a custom RPC or carefully constructed query.
-    // Simplified search: details, user_email.
-    // For product name/sku, we might need !inner join or separate filtering.
-    // Let's try a broad OR on the main table first.
-    txQuery = txQuery.or(`details.ilike.%${filter.search}%,user_email.ilike.%${filter.search}%`);
-  }
+  // Use full-text search RPC for search queries >= 2 characters
+  const useFullTextSearch = filter?.search && isValidSearchQuery(filter.search);
 
-  if (filter?.type && filter.type !== 'ALL') {
-    txQuery = txQuery.eq('type', filter.type);
-  }
+  if (useFullTextSearch) {
+    // Use optimized full-text search
+    const sanitizedQuery = sanitizeSearchQuery(filter!.search!);
 
-  if (filter?.startDate) {
-    txQuery = txQuery.gte('created_at', filter.startDate);
-  }
-  if (filter?.endDate) {
-    txQuery = txQuery.lte('created_at', filter.endDate);
-  }
+    const { data: rpcData, error: rpcError } = await supabase.rpc(SEARCH_TRANSACTIONS_RPC, {
+      p_warehouse_id: whId,
+      p_query: sanitizedQuery,
+      p_type: filter?.type && filter.type !== 'ALL' ? filter.type : null,
+      p_start_date: filter?.startDate || null,
+      p_end_date: filter?.endDate || null,
+      p_limit: limit,
+    });
 
-  if (mode === 'simple') {
-    // If specific type selected, respect it, otherwise default simple types
-    if (!filter?.type || filter.type === 'ALL') {
-      txQuery = txQuery.in('type', ['INBOUND', 'OUTBOUND', 'TRANSFER', 'TRANSFER_OUT']);
+    if (rpcError) {
+      console.error('Full-text search error:', rpcError);
+      // Fallback to regular query
+      txError = rpcError;
+    } else {
+      // RPC returns raw transaction data, we need to fetch related data
+      const txIds = (rpcData || []).map((t: any) => t.id);
+
+      if (txIds.length > 0) {
+        const { data: fullData, error: fullError } = await supabase
+          .from('transactions')
+          .select(
+            `
+            *,
+            product:products(sku, name, uom),
+            from_loc:locations!transactions_from_location_fkey(code, warehouse:warehouses(name)),
+            to_loc:locations!transactions_to_location_fkey(code, warehouse:warehouses(name))
+          `,
+          )
+          .in('id', txIds)
+          .order('created_at', { ascending: false });
+
+        transactions = fullData || [];
+        txError = fullError;
+      }
     }
   }
 
-  const { data: transactions, error: txError } = await txQuery;
+  // Fallback to regular query if not using full-text search or if it failed
+  if (!useFullTextSearch || txError) {
+    let txQuery = supabase
+      .from('transactions')
+      .select(
+        `
+        *,
+        product:products(sku, name, uom),
+        from_loc:locations!transactions_from_location_fkey(code, warehouse:warehouses(name)),
+        to_loc:locations!transactions_to_location_fkey(code, warehouse:warehouses(name))
+      `,
+      )
+      .eq('warehouse_id', whId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    // Apply Filters to Transactions
+    if (filter?.search && !useFullTextSearch) {
+      // Fallback to ILIKE for short queries
+      txQuery = txQuery.or(`details.ilike.%${filter.search}%,user_email.ilike.%${filter.search}%`);
+    }
+
+    if (filter?.type && filter.type !== 'ALL') {
+      txQuery = txQuery.eq('type', filter.type);
+    }
+
+    if (filter?.startDate) {
+      txQuery = txQuery.gte('created_at', filter.startDate);
+    }
+    if (filter?.endDate) {
+      txQuery = txQuery.lte('created_at', filter.endDate);
+    }
+
+    if (mode === 'simple') {
+      // If specific type selected, respect it, otherwise default simple types
+      if (!filter?.type || filter.type === 'ALL') {
+        txQuery = txQuery.in('type', ['INBOUND', 'OUTBOUND', 'TRANSFER', 'TRANSFER_OUT']);
+      }
+    }
+
+    const { data: queryData, error: queryError } = await txQuery;
+    transactions = queryData || [];
+    txError = queryError;
+  }
 
   if (txError) {
     console.error('Fetch History Error:', txError);
@@ -97,9 +147,7 @@ export async function getHistory(
   }
 
   // Client-side filtering for joined fields (Product Name/SKU) if search term exists
-  // This is a tradeoff: Fetch more, filter in memory vs complex query.
-  // Given "limit", this operates on the result set.
-  // To do it properly, we'd need to modify the query to use !inner(product) etc.
+  // This is still useful for filtering by product name/SKU which isn't in the search_vector
   let filteredTransactions = transactions || [];
   if (filter?.search) {
     const lowerSearch = filter.search.toLowerCase();

@@ -3,9 +3,14 @@ import { Inter, Sarabun } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import './globals.css';
 import GlobalLoadingProvider from '@/components/providers/GlobalLoadingProvider';
+import ThemeProvider from '@/components/providers/ThemeProvider';
+import ShortcutsProvider from '@/components/providers/ShortcutsProvider';
 import { Toaster } from 'sonner';
 import TableStacker from '@/components/ui/TableStacker';
 import { SkipLink } from '@/components/ui/SkipLink';
+import { themeInitScript } from '@/hooks/useTheme';
+import OfflineIndicator from '@/components/ui/OfflineIndicator';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const sarabun = Sarabun({
@@ -39,36 +44,45 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th">
+    <html lang="th" suppressHydrationWarning>
+      <head>
+        {/* Prevent theme flash on load */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
         className={cn(
-          'min-h-screen bg-slate-50 font-sans antialiased',
+          'min-h-screen bg-background font-sans antialiased',
           inter.variable,
           sarabun.variable,
         )}
       >
-        {/* ✅ ห่อ GlobalLoadingProvider ไว้ชั้นนอกสุด (แต่ใน body) */}
-        <GlobalLoadingProvider>
-          <SkipLink />
-          {/* ARIA Live Region for Screen Readers */}
-          <div
-            id="aria-live-announcements"
-            aria-live="polite"
-            aria-atomic="true"
-            className="sr-only"
-          />
-          <div
-            id="aria-live-assertive"
-            aria-live="assertive"
-            aria-atomic="true"
-            className="sr-only"
-          />
-          <div className="app-container" id="main-content">
-            {children}
-          </div>
-          <TableStacker />
-          <Toaster position="top-center" richColors />
-        </GlobalLoadingProvider>
+        <ThemeProvider>
+          <GlobalLoadingProvider>
+            <ShortcutsProvider>
+              <SkipLink />
+              {/* ARIA Live Region for Screen Readers */}
+              <div
+                id="aria-live-announcements"
+                aria-live="polite"
+                aria-atomic="true"
+                className="sr-only"
+              />
+              <div
+                id="aria-live-assertive"
+                aria-live="assertive"
+                aria-atomic="true"
+                className="sr-only"
+              />
+              <div className="app-container" id="main-content">
+                {children}
+              </div>
+              <TableStacker />
+              <Toaster position="top-center" richColors />
+              <OfflineIndicator />
+              <ServiceWorkerRegistration />
+            </ShortcutsProvider>
+          </GlobalLoadingProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

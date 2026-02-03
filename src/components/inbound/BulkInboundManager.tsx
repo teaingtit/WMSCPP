@@ -75,7 +75,7 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
         setReport(res.report);
       } else {
         // Fallback กรณี Error ทั่วไป
-        setReport({ total: 0, failed: 1, errors: [res.message] });
+        setReport({ total: 0, failed: 1, errors: [res.message ?? 'Unknown error'] });
       }
     }
   };

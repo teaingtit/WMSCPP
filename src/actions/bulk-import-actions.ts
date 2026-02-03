@@ -9,6 +9,7 @@ import { Worksheet, Row, Cell } from 'exceljs';
 import { getWarehouseId } from '@/lib/utils/db-helpers';
 import { checkManagerRole } from '@/lib/auth-service';
 import { RPC } from '@/lib/constants';
+import { enforceRateLimit } from '@/lib/rate-limit';
 
 // ImportResult intentionally removed (unused) — keep helpers minimal
 
@@ -48,6 +49,10 @@ export async function importMasterData(formData: FormData, type: 'product' | 'ca
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Unauthenticated' };
+
+  // Rate limit check
+  const rateLimitError = await enforceRateLimit('BULK_IMPORT', user.id);
+  if (rateLimitError) return rateLimitError;
 
   const isManager = await checkManagerRole(supabase, user.id);
   if (!isManager)
@@ -293,6 +298,10 @@ export async function importInboundStock(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return { success: false, message: 'Unauthenticated' };
   const userId = user.id;
+
+  // Rate limit check
+  const rateLimitError = await enforceRateLimit('BULK_IMPORT', userId);
+  if (rateLimitError) return rateLimitError;
 
   // Resolve Warehouse ID if it is a Code (แปลง Code เป็น UUID ถ้าจำเป็น)
   const originalWarehouseId = warehouseId;

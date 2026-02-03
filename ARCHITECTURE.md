@@ -28,23 +28,32 @@ GemWMS is built on **Next.js 16** using the **App Router** pattern. It leverages
 
 ```
 src/
-├── actions/        # Server Actions (Mutations)
+├── actions/        # Server Actions (mutations, report schedules, etc.)
 ├── app/            # App Router (Pages & Layouts)
-│   ├── (auth)/     # Auth routes (login, forgot-password)
-│   └── dashboard/  # Protected application routes
-├── components/     # React Components
-│   ├── ui/         # Reusable UI elements (Buttons, Inputs)
-│   └── [feature]/  # Feature-specific components
+│   ├── (auth)/     # Auth routes (login)
+│   ├── api/        # API routes (e.g. /api/health)
+│   ├── dashboard/  # Protected routes (warehouses, inventory, inbound, outbound, transfer, audit, history, settings)
+│   ├── debug/      # Debug page
+│   ├── offline/    # Offline fallback page
+│   └── page.tsx    # Landing
+├── components/     # React components (ui/, settings/, inbound/, outbound/, etc.)
 ├── lib/            # Shared utilities
-│   ├── db/         # Database helpers (Pool, etc.)
-│   └── supabase/   # Supabase client instantiation
-└── types/          # TypeScript interfaces/types
+│   ├── db/         # Supabase server/admin helpers (supabase-server.ts, supabase-admin.ts)
+│   ├── supabase/   # Supabase client (server, client, admin)
+│   ├── offline/    # IndexedDB and offline sync
+│   ├── reports/    # Report generation and email templates
+│   ├── utils/      # db-helpers, excel-utils
+│   ├── validations/# Auth schemas (Zod)
+│   ├── action-utils.ts
+│   ├── rate-limit.ts
+│   └── search-utils.ts
+└── types/          # TypeScript interfaces
 
 e2e/                # Playwright E2E tests
-integration/        # Integration tests (playwright.integration.config.ts)
-test/               # Vitest unit tests (actions, utils, components)
-database/           # Schema (schema.sql), functions (functions.sql), migrations
+test/               # Vitest unit tests (actions/, lib/, components/, database/, hooks/)
 ```
+
+Schema and migrations may be managed in Supabase (Dashboard or CLI); optional `database/` folder with `schema.sql` / `functions.sql` is used by contract tests if present.
 
 ## Testing Strategy
 

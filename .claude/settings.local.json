@@ -42,7 +42,10 @@
       "mcp__supabase__get_advisors",
       "Bash(git log:*)",
       "Bash(npm run test:unit:coverage:*)",
-      "mcp__supabase__list_migrations"
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_edge_functions",
+      "Bash(head:*)",
+      "mcp__supabase__deploy_edge_function"
     ]
   },
   "enableAllProjectMcpServers": true,

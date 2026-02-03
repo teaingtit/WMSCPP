@@ -12,6 +12,8 @@ Modern Warehouse Management System (WMS) built with **Next.js 16**.
   - **Transfer:** Move stock between bins/locations with "From -> To" workflow.
 - **Multi-Warehouse:** Manage multiple sites/zones.
 - **Role-Based Access:** Admin, Manager, Staff roles (via Supabase Auth).
+- **Scheduled Reports:** Email reports (inventory summary, transaction summary) on a cron schedule; see [docs/scheduled-reports.md](./docs/scheduled-reports.md).
+- **Offline Support:** Service worker and offline fallback for limited offline use.
 - **Responsive Design:** Optimized for Desktop and Tablet use.
 
 ## 🛠️ Tech Stack

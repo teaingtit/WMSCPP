@@ -5,6 +5,7 @@ import { ActionResponse } from '@/types/action-response';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import * as Sentry from '@sentry/nextjs';
 
 /** Auth context passed to action handlers by withAuth wrapper. */
 export type WithAuthContext = { user: AppUser; supabase: SupabaseClient };
@@ -263,6 +264,16 @@ export const withAuth = <TInput, TOutput>(
       return await handler(data, { user: appUser, supabase });
     } catch (error: any) {
       console.error('Action Error:', error);
+      // Capture error in Sentry with context
+      Sentry.captureException(error, {
+        tags: {
+          source: 'server-action',
+        },
+        extra: {
+          userId: user.id,
+          userEmail: user.email,
+        },
+      });
       return { success: false, message: error.message || 'Internal Server Error' };
     }
   };

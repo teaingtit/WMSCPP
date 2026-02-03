@@ -13,7 +13,9 @@ Tests สำหรับ Mobile-First UI Components ที่สร้างใ�
 - ✅ `TouchTarget.test.tsx` - Touch target wrapper
 - ✅ `BottomSheet.test.tsx` - Bottom sheet modal
 - ✅ `PullToRefresh.test.tsx` - Pull to refresh
-- ✅ `button.test.tsx` - Button component (existing)
+- ✅ `button.test.tsx` - Button component
+- ✅ `card.test.tsx` - Card component
+- ✅ `input.test.tsx` - Input component
 
 ## 🎯 Test Coverage
 
@@ -95,7 +97,7 @@ npm run test:unit:coverage -- src/components/ui/__tests__
 
 ## 📊 Test Statistics
 
-**Total Test Files**: 7 new files  
+**Total Test Files**: 10 (FAB, Skeleton, AnimatedList, TouchTarget, BottomSheet, PullToRefresh, Button, Card, Input, etc.)  
 **Total Tests**: 50+ tests  
 **Coverage Areas**:
 

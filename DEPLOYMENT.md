@@ -111,12 +111,12 @@ $env:WMSCPP_IMAGE = "ghcr.io/your-org/wmscpp:v1.0"
 
 ## Database Migrations
 
-After deploying, run any new SQL migrations in Supabase:
+Schema and migrations are managed in Supabase (Dashboard or CLI). After deploying app changes that depend on new DB objects:
 
 1. Open **Supabase Dashboard** → **SQL Editor**
-2. Run the contents of `database/inventory-position-pagination.sql` (for position-aware inventory pagination)
+2. Run any new migration SQL (e.g. new RPCs, tables, or indexes from your schema/migrations source).
 
-Without this migration, inventory falls back to row-based pagination (items at the same position may appear on separate pages).
+If your repo includes a `database/` folder with migration files (e.g. `inventory-position-pagination.sql` for position-aware inventory pagination), run those as needed. Without the position-pagination RPC, inventory falls back to row-based pagination.
 
 ---
 

@@ -505,6 +505,13 @@ describe('History Actions', () => {
         }
         return mockWarehouseQuery;
       });
+      // getHistory uses search_transactions RPC when search has 2+ chars; mock it to return tx id then fetch full row
+      mockSupabase.rpc = vi.fn().mockImplementation((name: string) => {
+        if (name === 'search_transactions') {
+          return Promise.resolve({ data: [{ id: 'tx1' }], error: null });
+        }
+        return Promise.resolve({ data: null, error: null });
+      });
 
       const result = await getHistory('WH01', 100, 'simple', { search: 'ABC' });
 
@@ -1186,6 +1193,8 @@ describe('History Actions', () => {
         if (table === 'status_change_logs') return createStatusLogsQuery();
         return mockWarehouseQuery;
       });
+      // getHistory uses search_transactions RPC when search is provided; return no tx hits so only system logs are tested
+      mockSupabase.rpc = vi.fn().mockResolvedValue({ data: [], error: null });
 
       // The client-side filter in history-actions.ts should filter logs by changer email/name
       const result = await getHistory('WH01', 100, 'detailed', { search: 'admin' });

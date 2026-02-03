@@ -8,10 +8,6 @@ This directory contains comprehensive unit tests for all features in the Warehou
 test/
 ├── actions/              # Server action tests
 │   ├── auth-actions.test.ts
-│   ├── inbound-actions.test.ts
-│   ├── outbound-actions.test.ts
-│   ├── transfer-actions.test.ts
-│   ├── warehouse-actions.test.ts
 │   ├── audit-actions.test.ts
 │   ├── bulk-import-actions.test.ts
 │   ├── bulk-import-validation.test.ts
@@ -19,18 +15,45 @@ test/
 │   ├── dashboard-actions.test.ts
 │   ├── export-actions.test.ts
 │   ├── history-actions.test.ts
+│   ├── inbound-actions.test.ts
+│   ├── inventory-actions.test.ts
+│   ├── outbound-actions.test.ts
 │   ├── product-search-actions.test.ts
+│   ├── report-actions.test.ts
 │   ├── schema-version-actions.test.ts
 │   ├── settings-actions.test.ts
 │   ├── status-actions.test.ts
+│   ├── transfer-actions.test.ts
 │   ├── user-actions.test.ts
-│   └── (inventory-actions: covered via inventory page / e2e as needed)
+│   └── warehouse-actions.test.ts
+├── components/
+│   ├── InventoryDashboard.test.tsx
+│   ├── ReportScheduleManager.test.tsx
+│   └── VisualSchemaDesigner.test.tsx
 ├── database/
-│   └── database.test.ts  # DB helpers / queries
+│   └── database.test.ts  # DB contract (TABLES, RPC, ROLES vs schema/functions if present)
+├── hooks/
+│   └── (use-media-query, useFormAction, useTransactionFlow, etc.)
+├── lib/
+│   ├── action-utils.test.ts
+│   ├── auth-schemas.test.ts
+│   ├── auth-service.test.ts
+│   ├── constants.test.ts
+│   ├── db-helpers.test.ts
+│   ├── excel-utils.test.ts
+│   ├── rate-limit.test.ts
+│   ├── reports/
+│   │   ├── email-templates.test.ts
+│   │   └── inventory-report.test.ts
+│   ├── search-utils.test.ts
+│   └── utils.test.ts
+├── fixtures/
+│   └── mock-data.ts
+├── mocks/
+│   └── (database, sentry)
 ├── utils/
 │   └── test-helpers.ts   # Test utilities and mocks
-├── setup.ts              # Test setup configuration
-├── TransferTargetForm.test.tsx
+├── setup.ts
 └── TypeError.test.ts
 ```
 
@@ -119,10 +142,18 @@ test/
 
 ### History (`history-actions.test.ts`)
 
-- ✅ Fetch transaction history (simple mode)
-- ✅ Filter by transaction type
-- ✅ Warehouse validation
-- ✅ Error handling
+- ✅ Fetch transaction history (simple and detailed mode)
+- ✅ Filter by transaction type, search term, date range
+- ✅ Full-text search RPC and fallback
+- ✅ Warehouse validation and error handling
+
+### Report Schedules (`report-actions.test.ts`)
+
+- ✅ Get report schedules by warehouse
+- ✅ Create / update / delete / toggle schedules
+- ✅ Run report now (Edge Function trigger)
+- ✅ Validation (warehouse ID, schedule ID, report types)
+- ✅ CRON_PRESETS and REPORT_TYPE_LABELS
 
 ### Product Search (`product-search-actions.test.ts`)
 
@@ -173,7 +204,8 @@ test/
 
 ### Database (`database/database.test.ts`)
 
-- ✅ DB helpers and query behavior (as applicable)
+- ✅ Contract tests: TABLES, RPC, ROLES vs `database/schema.sql` and `database/functions.sql` (if present)
+- ✅ Skips schema/functions checks when `database/` files are absent (e.g. schema managed in Supabase only)
 
 ## Running Tests
 
@@ -187,12 +219,14 @@ npm run test:unit -- --watch
 # Run tests with coverage
 npm run test:unit:coverage
 
-# Run specific test file (single run)
+# Run specific test file (single run, no watch)
 npm run test:unit:run -- test/actions/auth-actions.test.ts
 
 # Run in watch mode
 npm run test:unit -- test/actions/auth-actions.test.ts
 ```
+
+Note: `npm run test` runs both unit and E2E tests (`test:unit` then `test:e2e`).
 
 ## Test Utilities
 

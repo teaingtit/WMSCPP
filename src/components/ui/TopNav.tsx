@@ -14,11 +14,14 @@ import {
   ChevronDown,
   Sparkles,
   ArrowLeftRight,
+  Keyboard,
 } from 'lucide-react';
 import { MENU_ITEMS, APP_CONFIG } from '@/lib/constants';
 import { logout } from '@/actions/auth-actions';
 import { useUser } from '@/components/providers/UserProvider';
+import { useShortcutsContext } from '@/components/providers/ShortcutsProvider';
 import { cn } from '@/lib/utils';
+import ThemeToggle from './ThemeToggle';
 
 // Modern Dropdown Component with glass morphism
 function NavDropdown({
@@ -77,6 +80,7 @@ export default function TopNav() {
   const pathname = usePathname();
   const params = useParams();
   const user = useUser();
+  const { showHelp } = useShortcutsContext();
 
   const isAdmin = user?.role === 'admin';
   const warehouseId = params?.['warehouseId'] as string;
@@ -217,8 +221,20 @@ export default function TopNav() {
         </nav>
       </div>
 
-      {/* Right: User Profile */}
-      <div className="flex items-center gap-4">
+      {/* Right: User Profile & Actions */}
+      <div className="flex items-center gap-2">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
+        {/* Keyboard Shortcuts Help */}
+        <button
+          onClick={showHelp}
+          className="p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-200 active:scale-95"
+          title="คีย์ลัด (กด ?)"
+        >
+          <Keyboard size={20} />
+        </button>
+
         {user && (
           <div className="flex items-center gap-3 pl-4 border-l border-white/10">
             <div className="text-right hidden xl:block">

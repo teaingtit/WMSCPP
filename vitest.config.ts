@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@sentry/nextjs': path.resolve(__dirname, 'test/mocks/sentry.ts'),
     },
   },
   cacheDir: 'node_modules/.vite',
