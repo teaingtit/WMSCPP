@@ -1,117 +1,52 @@
 'use client';
 
-import { useState } from 'react';
-import { downloadInboundTemplate, importInboundStock } from '@/actions/bulk-import-actions';
 import { Button } from '@/components/ui/button';
 import { FileDown, Upload, Loader2, FileSpreadsheet, CheckCircle2, XCircle } from 'lucide-react';
-import { notify } from '@/lib/ui-helpers';
+import { useBulkInbound } from '@/hooks/useBulkInbound';
 
-interface Props {
+interface BulkInboundManagerProps {
   warehouseId: string;
-  categories: any[];
+  categories: Array<{ id: string; name: string }>;
   userId: string;
 }
 
-export default function BulkInboundManager({ warehouseId, categories, userId }: Props) {
-  const [selectedCat, setSelectedCat] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  // State สำหรับเก็บผลลัพธ์ Report
-  const [report, setReport] = useState<{ total: number; failed: number; errors: string[] } | null>(
-    null,
-  );
-
-  const handleDownload = async (): Promise<void> => {
-    if (!selectedCat) {
-      notify.error('กรุณาเลือกหมวดหมู่สินค้าก่อน');
-      return;
-    }
-    try {
-      setLoading(true);
-      const res = await downloadInboundTemplate(warehouseId, selectedCat);
-      if (res?.base64) {
-        const link = document.createElement('a');
-        link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
-        link.download = res.fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        notify.success('ดาวน์โหลด Template สำเร็จ');
-      } else {
-        notify.error('ไม่สามารถสร้าง Template ได้');
-      }
-    } catch (error: any) {
-      notify.error(error.message || 'เกิดข้อผิดพลาดในการดาวน์โหลด');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedCat) return;
-
-    setLoading(true);
-    setReport(null); // Reset Report ก่อนเริ่ม
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('warehouseId', warehouseId);
-    formData.append('categoryId', selectedCat);
-    formData.append('userId', userId);
-
-    const res = await importInboundStock(formData);
-    setLoading(false);
-
-    // Reset Input File ให้เลือกไฟล์เดิมซ้ำได้ถ้าแก้แล้ว
-    e.target.value = '';
-
-    if (res.success) {
-      notify.ok(res);
-      setReport({ total: res.report?.total || 0, failed: 0, errors: [] });
-    } else {
-      notify.error('การนำเข้าข้อมูลไม่สำเร็จ');
-      if (res.report) {
-        setReport(res.report);
-      } else {
-        // Fallback กรณี Error ทั่วไป
-        setReport({ total: 0, failed: 1, errors: [res.message ?? 'Unknown error'] });
-      }
-    }
-  };
+export default function BulkInboundManager({
+  warehouseId,
+  categories,
+  userId,
+}: BulkInboundManagerProps) {
+  const { selectedCat, setSelectedCat, report, loading, handleDownload, handleUpload } =
+    useBulkInbound({ warehouseId, userId });
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 mb-8 shadow-sm space-y-6">
+    <div className="bg-card border border-border rounded-xl p-6 mb-8 shadow-sm space-y-6">
       {/* Header Section */}
       <div className="flex items-start gap-4">
-        <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+        <div className="p-3 bg-primary/10 rounded-xl text-primary">
           <FileSpreadsheet size={28} />
         </div>
         <div>
-          <h3 className="font-bold text-slate-900 text-lg">Bulk Inbound (นำเข้าแบบไฟล์)</h3>
-          <p className="text-sm text-slate-500">
+          <h3 className="font-bold text-foreground text-lg">Bulk Inbound (นำเข้าแบบไฟล์)</h3>
+          <p className="text-sm text-muted-foreground">
             ระบบจะตรวจสอบความถูกต้องของข้อมูลทุกบรรทัดก่อนบันทึก (All-or-Nothing)
           </p>
         </div>
       </div>
 
       {/* Control Section */}
-      <div className="flex flex-col md:flex-row gap-5 items-end p-4 bg-slate-50/50 rounded-lg border border-slate-100">
+      <div className="flex flex-col md:flex-row gap-5 items-end p-4 bg-muted/50 rounded-lg border border-border">
         <div className="flex-1 w-full">
           <label
             htmlFor="category-select"
-            className="text-xs font-bold text-slate-600 mb-1.5 block"
+            className="text-xs font-bold text-foreground mb-1.5 block"
           >
             1. เลือกหมวดหมู่สินค้า
           </label>
           <select
             id="category-select"
             value={selectedCat}
-            onChange={(e) => {
-              setSelectedCat(e.target.value);
-              setReport(null);
-            }}
-            className="w-full p-3 rounded-lg border border-slate-200 text-sm bg-white focus:ring-2 focus:ring-indigo-100 outline-none"
+            onChange={(e) => setSelectedCat(e.target.value)}
+            className="w-full p-3 rounded-lg border border-border text-sm bg-background text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
           >
             <option value="">-- กรุณาเลือกหมวดหมู่ --</option>
             {categories.map((c) => (
@@ -127,7 +62,7 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
             variant="outline"
             disabled={!selectedCat || loading}
             onClick={handleDownload}
-            className="flex-1 bg-white hover:bg-slate-50 h-[46px]"
+            className="flex-1 bg-card hover:bg-accent h-[46px]"
           >
             <FileDown size={16} className="mr-2 text-emerald-600" /> โหลด Template
           </Button>
@@ -144,7 +79,7 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
             />
             <Button
               disabled={!selectedCat || loading}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white h-[46px]"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-[46px]"
             >
               {loading ? (
                 <Loader2 className="animate-spin mr-2" />
@@ -182,7 +117,7 @@ export default function BulkInboundManager({ warehouseId, categories, userId }: 
           </div>
 
           {report.failed > 0 && report.errors.length > 0 && (
-            <div className="mt-2 bg-white rounded border border-red-200 overflow-hidden">
+            <div className="mt-2 bg-card rounded border border-red-200 dark:border-red-800 overflow-hidden">
               <div className="px-3 py-2 bg-red-100/50 text-xs font-bold text-red-700 border-b border-red-100">
                 รายการข้อผิดพลาด (กรุณาแก้ไขแล้วอัปโหลดใหม่)
               </div>

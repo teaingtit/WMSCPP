@@ -59,11 +59,13 @@ export function extractFormFields<K extends string>(
 // ============================================
 
 /** Quick success response */
-export const ok = (message: string, data?: any): ActionResponse => ({
-  success: true,
-  message,
-  ...data,
-});
+export const ok = <T = undefined>(message: string, data?: T): ActionResponse<T> => {
+  const response: ActionResponse<T> = { success: true, message };
+  if (data !== undefined) {
+    response.data = data;
+  }
+  return response;
+};
 
 /** Quick error response */
 export const fail = (message: string): ActionResponse => ({
@@ -73,11 +75,12 @@ export const fail = (message: string): ActionResponse => ({
 
 /** Handle duplicate key error (code 23505) */
 export const handleDuplicateError = (
-  error: any,
+  error: unknown,
   fieldName: string,
   value: string,
 ): ActionResponse | null => {
-  if (error?.code === '23505') {
+  const err = error as { code?: string };
+  if (err?.code === '23505') {
     return fail(`${fieldName} "${value}" already exists`);
   }
   return null;
@@ -127,7 +130,7 @@ export async function softDelete(options: SoftDeleteOptions): Promise<ActionResp
     }
 
     // Build update payload
-    const updatePayload: Record<string, any> = { is_active: false };
+    const updatePayload: Record<string, unknown> = { is_active: false };
     if (renameField) {
       updatePayload[renameField.field] = `${renameField.currentValue}_DEL_${Date.now()}`;
     }
@@ -137,8 +140,9 @@ export async function softDelete(options: SoftDeleteOptions): Promise<ActionResp
 
     revalidatePaths.forEach((path) => revalidatePath(path));
     return ok(successMessage);
-  } catch (err: any) {
-    return fail(err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return fail(message);
   }
 }
 
@@ -197,8 +201,9 @@ export async function modifyCategoryUnits(
     revalidatePath('/dashboard/settings');
     const action = operation === 'add' ? 'added' : 'removed';
     return ok(`Unit "${normalizedUnit}" ${action} successfully`);
-  } catch (err: any) {
-    return fail('Error: ' + err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return fail('Error: ' + message);
   }
 }
 
@@ -262,8 +267,10 @@ export const withAuth = <TInput, TOutput>(
 
     try {
       return await handler(data, { user: appUser, supabase });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Action Error:', error);
+      const errorMessage =
+        error instanceof Error && error.message ? error.message : 'Internal Server Error';
       // Capture error in Sentry with context
       Sentry.captureException(error, {
         tags: {
@@ -274,14 +281,14 @@ export const withAuth = <TInput, TOutput>(
           userEmail: user.email,
         },
       });
-      return { success: false, message: error.message || 'Internal Server Error' };
+      return { success: false, message: errorMessage };
     }
   };
 };
 
-export async function processBulkAction<T>(
+export async function processBulkAction<T, TOutput = undefined>(
   items: T[],
-  action: (item: T) => Promise<ActionResponse<any>>,
+  action: (item: T) => Promise<ActionResponse<TOutput>>,
 ) {
   const results = {
     success: 0,
@@ -298,9 +305,10 @@ export async function processBulkAction<T>(
         results.failed++;
         results.errors.push(result.message || 'Unknown Error');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       results.failed++;
-      results.errors.push(err.message);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      results.errors.push(message);
     }
   });
 

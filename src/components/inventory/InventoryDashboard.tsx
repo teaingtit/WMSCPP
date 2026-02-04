@@ -404,27 +404,42 @@ const InventoryDashboardContent = ({
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-800 flex items-center gap-3">
-            <span className="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-200">
-              <Package size={24} />
+      {/* Header Section — balanced hierarchy, clear view/status */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 dark:border-slate-700 pb-4">
+        <div className="space-y-2">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
+            <span
+              className="flex shrink-0 bg-indigo-600 text-white p-1.5 rounded-lg shadow-md dark:shadow-indigo-900/30"
+              aria-hidden
+            >
+              <Package size={20} />
             </span>
-            จัดการสินค้าคงคลัง (Inventory Management)
+            <span className="leading-tight">จัดการสินค้าคงคลัง</span>
+            <span className="hidden sm:inline font-normal text-slate-500 dark:text-slate-400 text-base">
+              (Inventory Management)
+            </span>
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
-            มุมมองแบบ <span className="font-bold text-indigo-600">Lot, Position & Level</span>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <span className="text-slate-500 dark:text-slate-400">
+              มุมมอง:{' '}
+              <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                Lot, Position & Level
+              </span>
+            </span>
             {statusMap?.size > 0 && (
-              <span className="ml-2 inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                <Shield size={12} /> {statusMap.size} รายการที่มีสถานะ
+              <span
+                className="inline-flex items-center gap-1.5 text-xs font-medium bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-200/60 dark:border-indigo-800/50"
+                title="จำนวนรายการที่มีการติดตั้งสถานะ (เช่น สถานะ Lot)"
+              >
+                <Shield size={12} className="shrink-0" aria-hidden />
+                มีสถานะ {statusMap.size} รายการ
               </span>
             )}
-          </p>
+          </div>
         </div>
 
-        <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center">
-          <div className="w-full md:w-64">
+        <div className="w-full md:w-auto flex flex-col md:flex-row gap-3 items-stretch md:items-center shrink-0">
+          <div className="w-full md:w-64 min-w-0">
             <SearchInput placeholder="ค้นหา Lot, Position, Level, SKU..." />
           </div>
           <ExportButton warehouseId={warehouseId} />

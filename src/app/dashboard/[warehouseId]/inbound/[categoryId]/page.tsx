@@ -15,7 +15,9 @@ export default async function DynamicInboundPage({
 
   if (!category) {
     return (
-      <div className="p-8 text-center text-slate-500">ไม่พบหมวดหมู่สินค้า (Category Not Found)</div>
+      <div className="p-8 text-center text-muted-foreground">
+        ไม่พบหมวดหมู่สินค้า (Category Not Found)
+      </div>
     );
   }
 

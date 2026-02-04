@@ -204,7 +204,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-bold text-slate-800">ประวัติการตรวจนับ (Audit History)</h2>
+        <h2 className="text-xl font-bold text-foreground">ประวัติการตรวจนับ (Audit History)</h2>
         {isManager && (
           <>
             {/* Edit Dialog */}
@@ -263,7 +263,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                   />
 
                   <div className="flex items-center gap-2 border rounded-md px-3 py-2">
-                    <Search className="w-4 h-4 text-slate-500" />
+                    <Search className="w-4 h-4 text-muted-foreground" />
                     <input
                       className="flex-1 outline-none text-sm bg-transparent"
                       name="searchInventory"
@@ -274,9 +274,9 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                   </div>
 
                   <div className="flex-1 border rounded-md overflow-hidden flex flex-col min-h-[300px]">
-                    <div className="bg-slate-50 p-2 border-b flex items-center justify-between text-sm font-medium text-slate-600">
+                    <div className="bg-muted p-2 border-b border-border flex items-center justify-between text-sm font-medium text-muted-foreground">
                       <div
-                        className="flex items-center gap-2 cursor-pointer hover:text-slate-900"
+                        className="flex items-center gap-2 cursor-pointer hover:text-foreground"
                         onClick={toggleAll}
                       >
                         {areAllFilteredSelected ? (
@@ -295,18 +295,20 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                           {[1, 2, 3, 4, 5].map((i) => (
                             <div
                               key={i}
-                              className="flex items-center gap-3 p-2 border border-slate-100 rounded-md animate-pulse"
+                              className="flex items-center gap-3 p-2 border border-border rounded-md animate-pulse"
                             >
-                              <div className="w-4 h-4 bg-slate-100 rounded" />
+                              <div className="w-4 h-4 bg-muted rounded" />
                               <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-slate-100 rounded w-1/3" />
-                                <div className="h-3 bg-slate-100 rounded w-1/4" />
+                                <div className="h-4 bg-muted rounded w-1/3" />
+                                <div className="h-3 bg-muted rounded w-1/4" />
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : filteredItems.length === 0 ? (
-                        <div className="text-center py-8 text-slate-500 text-sm">ไม่พบสินค้า</div>
+                        <div className="text-center py-8 text-muted-foreground text-sm">
+                          ไม่พบสินค้า
+                        </div>
                       ) : (
                         filteredItems.map((item) => (
                           <div
@@ -315,25 +317,25 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                             className={`flex items-center gap-3 p-2 rounded-md cursor-pointer border transition-colors ${
                               selectedIds.has(item.id)
                                 ? 'bg-blue-50 border-blue-200'
-                                : 'hover:bg-slate-50 border-transparent'
+                                : 'hover:bg-accent border-transparent'
                             }`}
                           >
                             <div
                               className={`w-4 h-4 border rounded flex items-center justify-center ${
                                 selectedIds.has(item.id)
                                   ? 'bg-blue-600 border-blue-600'
-                                  : 'border-slate-300'
+                                  : 'border-border'
                               }`}
                             >
                               {selectedIds.has(item.id) && <Check className="w-3 h-3 text-white" />}
                             </div>
                             <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
                               <div className="font-medium truncate">{item.product.name}</div>
-                              <div className="text-slate-500 text-xs sm:text-sm">
+                              <div className="text-muted-foreground text-xs sm:text-sm">
                                 SKU: {item.product.sku}
                               </div>
-                              <div className="text-slate-500 text-xs sm:text-sm flex items-center gap-2">
-                                <span className="bg-slate-100 px-1.5 rounded text-slate-700">
+                              <div className="text-muted-foreground text-xs sm:text-sm flex items-center gap-2">
+                                <span className="bg-muted px-1.5 rounded text-foreground">
                                   {item.location.code}
                                 </span>
                                 <span>Qty: {item.quantity}</span>
@@ -361,14 +363,14 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
         )}
       </div>
 
-      <div className="flex items-center gap-2 bg-slate-100/80 p-1.5 rounded-xl w-full sm:w-fit backdrop-blur-sm">
+      <div className="flex items-center gap-2 bg-muted/80 p-1.5 rounded-xl w-full sm:w-fit backdrop-blur-sm">
         <button
           onClick={() => setViewMode('ACTIVE')}
           data-testid="tab-active"
           className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-center ${
             viewMode === 'ACTIVE'
-              ? 'bg-white text-blue-700 shadow-sm ring-1 ring-black/5'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'bg-card text-blue-700 dark:text-blue-400 shadow-sm ring-1 ring-border'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           กำลังดำเนินการ ({sessions.filter((s) => s.status === 'OPEN').length})
@@ -378,8 +380,8 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
           data-testid="tab-history"
           className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-center ${
             viewMode === 'HISTORY'
-              ? 'bg-white text-slate-800 shadow-sm ring-1 ring-black/5'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'bg-card text-foreground shadow-sm ring-1 ring-border'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           ประวัติย้อนหลัง ({sessions.filter((s) => s.status !== 'OPEN').length})
@@ -388,7 +390,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
 
       <div className="grid gap-4">
         {filteredSessions.length === 0 ? (
-          <div className="text-center p-8 border-2 border-dashed rounded-lg text-slate-500">
+          <div className="text-center p-8 border-2 border-dashed rounded-lg text-muted-foreground border-border">
             {viewMode === 'ACTIVE' ? 'ไม่มีรายการที่กำลังดำเนินการ' : 'ยังไม่มีประวัติการนับสต็อก'}
           </div>
         ) : (
@@ -396,7 +398,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
             <div
               key={session.id}
               data-testid="session-card"
-              className="group bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+              className="group bg-card p-5 rounded-xl shadow-sm border border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200"
             >
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -404,12 +406,12 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                     className={`px-2 py-0.5 text-xs rounded-full font-semibold ${
                       session.status === 'OPEN'
                         ? 'bg-green-100 text-green-700'
-                        : 'bg-slate-100 text-slate-600'
+                        : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {session.status}
                   </span>
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-muted-foreground">
                     {session.created_at
                       ? format(new Date(session.created_at), 'dd/MM/yyyy HH:mm')
                       : '-'}
@@ -428,7 +430,7 @@ export default function AuditSessionList({ warehouseId, sessions }: AuditSession
                       setEditName(session.name);
                     }}
                   >
-                    <Pencil className="w-4 h-4 text-slate-500" />
+                    <Pencil className="w-4 h-4 text-muted-foreground" />
                   </Button>
                 )}
 

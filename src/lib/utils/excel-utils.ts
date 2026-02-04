@@ -1,12 +1,28 @@
 import ExcelJS from 'exceljs';
 
+// --- Type Definitions ---
+
+interface SchemaField {
+  key: string;
+  label?: string;
+  type?: string;
+  scope?: 'PRODUCT' | 'LOT';
+}
+
+interface ExcelColumn {
+  header: string;
+  key: string;
+  width: number;
+  style?: { font: { color: { argb: string } } };
+}
+
 // --- Generators (สร้าง Template) ---
 
-export async function generateProductTemplate(catName: string, schema: any[]) {
+export async function generateProductTemplate(catName: string, schema: SchemaField[]) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Template');
 
-  const columns: any[] = [
+  const columns: ExcelColumn[] = [
     { header: 'SKU (รหัสสินค้า)*', key: 'sku', width: 20 },
     { header: 'Name (ชื่อสินค้า)*', key: 'name', width: 35 },
     { header: 'Image URL', key: 'image_url', width: 30 },
@@ -14,10 +30,10 @@ export async function generateProductTemplate(catName: string, schema: any[]) {
 
   // Dynamic Spec Columns
   schema
-    .filter((f: any) => !f.scope || f.scope === 'PRODUCT')
-    .forEach((field: any) => {
+    .filter((f) => !f.scope || f.scope === 'PRODUCT')
+    .forEach((field) => {
       columns.push({
-        header: field.label,
+        header: field.label || field.key,
         key: `attr_${field.key}`,
         width: 25,
         style: { font: { color: { argb: 'FF2F75B5' } } },
@@ -37,7 +53,7 @@ export async function generateCategoryTemplate() {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Template');
 
-  const columns: any[] = [
+  const columns: ExcelColumn[] = [
     { header: 'ID (รหัสหมวดหมู่)*', key: 'id', width: 15 },
     { header: 'Name (ชื่อหมวดหมู่)*', key: 'name', width: 30 },
   ];
@@ -63,11 +79,15 @@ export async function generateCategoryTemplate() {
   return Buffer.from(await workbook.xlsx.writeBuffer()).toString('base64');
 }
 
-export async function generateInboundTemplate(_whName: string, _catName: string, schema: any[]) {
+export async function generateInboundTemplate(
+  _whName: string,
+  _catName: string,
+  schema: SchemaField[],
+) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Inbound');
 
-  const columns: any[] = [
+  const columns: ExcelColumn[] = [
     { header: 'SKU (รหัสสินค้า)*', key: 'sku', width: 20 },
     { header: 'Qty (จำนวน)*', key: 'qty', width: 15 },
   ];
@@ -79,8 +99,8 @@ export async function generateInboundTemplate(_whName: string, _catName: string,
   );
 
   schema
-    .filter((f: any) => f && f.key)
-    .forEach((field: any) => {
+    .filter((f) => f && f.key)
+    .forEach((field) => {
       columns.push({
         header: field.label || field.key,
         key: `attr_${field.key}`,
@@ -98,7 +118,7 @@ export async function generateOutboundTemplate(whCode: string) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Outbound');
 
-  const columns: any[] = [
+  const columns: ExcelColumn[] = [
     { header: 'SKU (รหัสสินค้า)*', key: 'sku', width: 20 },
     { header: 'Qty (จำนวน)*', key: 'qty', width: 15 },
     { header: 'Location Code (ตำแหน่ง)', key: 'location', width: 15 },

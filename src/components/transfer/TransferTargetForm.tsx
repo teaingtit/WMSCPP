@@ -422,9 +422,9 @@ export default function TransferTargetForm({
   // form disabled state handled by specific controls when needed
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <h3 className="font-bold text-slate-700 flex items-center gap-2">
+    <div className="flex flex-col h-full bg-card rounded-3xl border border-border shadow-sm overflow-hidden relative">
+      <div className="p-6 border-b border-border flex items-center justify-between bg-muted/50">
+        <h3 className="font-bold text-foreground flex items-center gap-2">
           <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
             <ListChecks size={20} />
           </div>
@@ -440,10 +440,10 @@ export default function TransferTargetForm({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 min-h-[400px] max-h-[60vh] custom-scrollbar landscape-compact">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/30 min-h-[400px] max-h-[60vh] custom-scrollbar landscape-compact">
         {queue.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500 py-12">
-            <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-12">
+            <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center mb-4">
               <Box size={32} className="opacity-50" />
             </div>
             <p className="font-medium">ยังไม่มีรายการในคิว</p>
@@ -463,10 +463,10 @@ export default function TransferTargetForm({
                   setActiveQueueItemId(item.id);
                   openEditPanel(item.id);
                 }}
-                className={`bg-white p-4 rounded-2xl border transition-all relative overflow-hidden cursor-pointer group hover:shadow-md ${
+                className={`bg-card p-4 rounded-2xl border transition-all relative overflow-hidden cursor-pointer group hover:shadow-md ${
                   activeQueueItemId === item.id
-                    ? 'border-indigo-500 shadow-md ring-1 ring-indigo-500/20'
-                    : 'border-slate-100 shadow-sm hover:border-indigo-200'
+                    ? 'border-primary shadow-md ring-1 ring-primary/20'
+                    : 'border-border shadow-sm hover:border-primary/50'
                 }`}
               >
                 {/* Background Status Indicator */}
@@ -479,22 +479,22 @@ export default function TransferTargetForm({
                 <div className="flex justify-between items-start gap-3 pl-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-muted text-xs font-bold text-muted-foreground">
                         {idx + 1}
                       </span>
-                      <h4 className="font-bold text-slate-800 truncate text-sm">
+                      <h4 className="font-bold text-foreground truncate text-sm">
                         {item.sourceStock.product?.name || item.sourceStock.name || 'Unknown Item'}
                       </h4>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 font-medium mt-2">
-                      <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                        <span className="text-slate-500 text-xs uppercase">From</span>
-                        <span className="font-mono font-bold text-slate-700">
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground font-medium mt-2">
+                      <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md border border-border">
+                        <span className="text-muted-foreground text-xs uppercase">From</span>
+                        <span className="font-mono font-bold text-foreground">
                           {item.sourceStock.location?.code}
                         </span>
                       </div>
-                      <ArrowRight size={14} className="text-slate-300" />
+                      <ArrowRight size={14} className="text-muted-foreground" />
                       <div
                         className={`flex items-center gap-1 px-2 py-1 rounded-md border ${
                           item.targetLocation
@@ -521,7 +521,7 @@ export default function TransferTargetForm({
                       <span className="block text-xl font-black text-indigo-600 leading-none">
                         {item.qty}
                       </span>
-                      <span className="text-xs text-slate-500 font-medium">
+                      <span className="text-xs text-muted-foreground font-medium">
                         {item.sourceStock.product?.uom || 'Unit'}
                       </span>
                     </div>
@@ -529,7 +529,7 @@ export default function TransferTargetForm({
                 </div>
 
                 {/* Action Footer */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50 pl-3">
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border pl-3">
                   <div className="flex items-center gap-2">
                     {itemError && (
                       <span className="flex items-center gap-1 text-xs bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full font-bold border border-rose-100">
@@ -569,7 +569,7 @@ export default function TransferTargetForm({
 
                   <div className="flex items-center gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
-                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors touch-manipulation active:scale-95"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors touch-manipulation active:scale-95"
                       onClick={(e) => {
                         e.stopPropagation();
                         openEditPanel(item.id);
@@ -584,7 +584,7 @@ export default function TransferTargetForm({
                         e.stopPropagation();
                         removeFromQueue(item.id);
                       }}
-                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors touch-manipulation active:scale-95"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 rounded-lg transition-colors touch-manipulation active:scale-95"
                       title="ลบรายการ"
                       aria-label="ลบรายการ"
                     >
@@ -600,11 +600,11 @@ export default function TransferTargetForm({
 
       {/* Footer Actions */}
       {queue.length > 0 && (
-        <div className="p-6 border-t border-slate-200 bg-white space-y-3 z-10">
+        <div className="p-6 border-t border-border bg-card space-y-3 z-10">
           <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
             <button
               onClick={() => setIsBulkAssignOpen(true)}
-              className="py-2.5 px-4 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 touch-manipulation active:scale-[0.98] min-h-[48px]"
+              className="py-2.5 px-4 bg-muted text-foreground rounded-xl font-bold text-sm hover:bg-accent transition-colors flex items-center justify-center gap-2 touch-manipulation active:scale-[0.98] min-h-[48px]"
             >
               <MapPin size={16} /> Set Target All
             </button>
@@ -618,7 +618,7 @@ export default function TransferTargetForm({
           </div>
 
           {previewSummary && (
-            <div className="text-xs text-center text-slate-500 font-bold">
+            <div className="text-xs text-center text-muted-foreground font-bold">
               ผลการตรวจสอบ: <span className="text-emerald-500">{previewSummary.ok}</span> /{' '}
               {previewSummary.total}
             </div>
@@ -626,7 +626,7 @@ export default function TransferTargetForm({
 
           {/* Help text for Preview */}
           {!previewSummary && queue.length > 0 && (
-            <div className="text-xs text-center text-slate-500 italic">
+            <div className="text-xs text-center text-muted-foreground italic">
               💡 แนะนำ: คลิก "ตรวจสอบ (Preview)" เพื่อตรวจสอบความพร้อมก่อนย้ายจริง
             </div>
           )}
@@ -656,13 +656,13 @@ export default function TransferTargetForm({
         type="TRANSFER"
         confirmText="ยืนยันการย้าย"
         details={
-          <div className="flex flex-col gap-3 text-sm p-4 bg-slate-50 rounded-xl border border-slate-100">
-            <div className="flex justify-between border-b border-slate-200 pb-2">
-              <span className="text-slate-500 font-medium">จำนวนรายการ</span>
-              <span className="font-bold text-slate-900">{queue.length} รายการ</span>
+          <div className="flex flex-col gap-3 text-sm p-4 bg-muted rounded-xl border border-border">
+            <div className="flex justify-between border-b border-border pb-2">
+              <span className="text-muted-foreground font-medium">จำนวนรายการ</span>
+              <span className="font-bold text-foreground">{queue.length} รายการ</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500 font-medium">ประเภท</span>
+              <span className="text-muted-foreground font-medium">ประเภท</span>
               <span className="font-bold text-indigo-600">
                 {activeTab === 'INTERNAL' ? 'Internal Transfer' : 'Cross Transfer'}
               </span>
@@ -683,18 +683,20 @@ export default function TransferTargetForm({
           const item = queue.find((q) => q.id === editingItemId);
           if (!item) return null;
           return (
-            <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
-              <div className="w-full h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
+              <div className="w-full h-full bg-card shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-muted/50">
                   <div>
-                    <h4 className="font-black text-slate-800 text-lg">แก้ไขรายการ</h4>
-                    <p className="text-xs text-slate-500 font-medium">ปรับปรุงจำนวนหรือปลายทาง</p>
+                    <h4 className="font-black text-foreground text-lg">แก้ไขรายการ</h4>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      ปรับปรุงจำนวนหรือปลายทาง
+                    </p>
                   </div>
                   <button
                     onClick={closeEditPanel}
                     title="ปิด"
-                    className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all"
+                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-full transition-all"
                   >
                     <X size={20} />
                   </button>
@@ -703,19 +705,19 @@ export default function TransferTargetForm({
                 {/* Body */}
                 <div className="p-6 flex-1 overflow-y-auto space-y-6">
                   {/* Product Card */}
-                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <div className="text-label text-slate-500 mb-2">สินค้าที่เลือก</div>
-                    <div className="font-bold text-slate-800 text-lg leading-tight mb-1">
+                  <div className="bg-card p-4 rounded-2xl border border-border shadow-sm">
+                    <div className="text-label text-muted-foreground mb-2">สินค้าที่เลือก</div>
+                    <div className="font-bold text-foreground text-lg leading-tight mb-1">
                       {item.sourceStock.name || item.sourceStock.product?.name}
                     </div>
-                    <div className="text-xs text-slate-500 font-mono bg-slate-100 px-2 py-1 rounded w-fit">
+                    <div className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded w-fit">
                       {item.sourceStock.product?.sku}
                     </div>
                   </div>
 
                   {/* Quantity Input */}
                   <div>
-                    <label className="text-xs font-bold text-slate-700 mb-2 block uppercase tracking-wide">
+                    <label className="text-xs font-bold text-foreground mb-2 block uppercase tracking-wide">
                       จำนวนที่จะย้าย
                     </label>
                     <div className="relative">
@@ -729,9 +731,9 @@ export default function TransferTargetForm({
                           setEditingQty(e.target.value === '' ? '' : Number(e.target.value))
                         }
                         aria-label="จำนวนที่จะย้าย"
-                        className="w-full text-3xl font-black text-indigo-600 pl-4 pr-16 py-4 bg-indigo-50/30 border-2 border-indigo-100 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all outline-none touch-manipulation"
+                        className="w-full text-3xl font-black text-primary pl-4 pr-16 py-4 bg-primary/10 border-2 border-primary/20 rounded-2xl focus:border-primary focus:bg-background transition-all outline-none touch-manipulation"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-500">
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                         / {item.sourceStock.quantity} {item.sourceStock.product?.uom}
                       </span>
                     </div>
@@ -739,10 +741,10 @@ export default function TransferTargetForm({
 
                   {/* Target Selector */}
                   <div>
-                    <label className="text-xs font-bold text-slate-700 mb-2 block uppercase tracking-wide">
+                    <label className="text-xs font-bold text-foreground mb-2 block uppercase tracking-wide">
                       ตำแหน่งปลายทาง
                     </label>
-                    <div className="p-1 bg-slate-50 rounded-2xl border border-slate-200">
+                    <div className="p-1 bg-muted rounded-2xl border border-border">
                       <LocationSelector
                         warehouseId={
                           activeTab === 'CROSS' ? item.targetWarehouseId || '' : currentWarehouseId
@@ -755,7 +757,7 @@ export default function TransferTargetForm({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 bg-slate-50/50">
+                <div className="p-6 border-t border-border bg-muted/50">
                   <div className="flex flex-col-reverse sm:flex-row gap-3">
                     <button
                       onClick={() => {
@@ -769,7 +771,7 @@ export default function TransferTargetForm({
                       onClick={() => {
                         closeEditPanel();
                       }}
-                      className="py-3.5 px-6 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-all touch-manipulation active:scale-[0.98] min-h-[48px]"
+                      className="py-3.5 px-6 bg-card border border-border text-foreground rounded-xl font-bold hover:bg-accent transition-all touch-manipulation active:scale-[0.98] min-h-[48px]"
                     >
                       ยกเลิก
                     </button>
@@ -783,22 +785,22 @@ export default function TransferTargetForm({
       {/* Bulk Assign Modal - Improved UI */}
       {isBulkAssignOpen && (
         <div className="absolute inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 rounded-3xl">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-              <h3 className="text-lg font-black text-slate-800">กำหนดปลายทางให้ทุกรายการ</h3>
+          <div className="bg-card rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-5 border-b border-border bg-muted/50 flex justify-between items-center">
+              <h3 className="text-lg font-black text-foreground">กำหนดปลายทางให้ทุกรายการ</h3>
               <button
                 onClick={() => {
                   setIsBulkAssignOpen(false);
                 }}
                 title="ปิด"
-                className="text-slate-500 hover:text-slate-600"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-6">
-              <p className="text-sm text-slate-500 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 เลือกตำแหน่งปลายทางเพียงหนึ่งแห่งเพื่อนำไปใช้กับรายการสินค้าทั้งหมดในคิว (
                 {queue.length} รายการ)
               </p>
@@ -811,12 +813,12 @@ export default function TransferTargetForm({
               </div>
             </div>
 
-            <div className="px-6 py-5 border-t border-slate-100 bg-slate-50/30 flex gap-3 justify-end">
+            <div className="px-6 py-5 border-t border-border bg-muted/30 flex gap-3 justify-end">
               <button
                 onClick={() => {
                   setIsBulkAssignOpen(false);
                 }}
-                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                className="px-5 py-2.5 rounded-xl font-bold text-foreground hover:bg-accent transition-colors"
               >
                 ยกเลิก
               </button>

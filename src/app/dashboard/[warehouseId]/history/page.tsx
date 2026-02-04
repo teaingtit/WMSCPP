@@ -41,11 +41,11 @@ export default async function HistoryPage({
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+          <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
             <History className="text-indigo-600" />
             ประวัติการทำรายการ (Audit Log)
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Warehouse: <span className="font-bold text-indigo-600">{warehouseId}</span>
           </p>
         </div>
@@ -64,10 +64,10 @@ export default async function HistoryPage({
       {mode === 'detailed' ? (
         <TerminalLogView logs={logs} />
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table data-stack="true" className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase text-xs">
+              <thead className="bg-muted text-muted-foreground font-bold border-b border-border uppercase text-xs">
                 <tr>
                   <th className="px-6 py-4">Date/Time</th>
                   <th className="px-6 py-4">Type</th>
@@ -77,12 +77,12 @@ export default async function HistoryPage({
                   <th className="px-6 py-4">User</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {logs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                       <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
                           <History size={24} className="opacity-30" />
                         </div>
                         <p>ไม่พบรายการที่ค้นหา ({mode} mode)</p>
@@ -95,12 +95,12 @@ export default async function HistoryPage({
                     .map((log) => {
                       const tx = log as TransactionEntry;
                       return (
-                        <tr key={tx.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
-                            <div className="font-medium text-slate-700">
+                        <tr key={tx.id} className="hover:bg-accent/80 transition-colors">
+                          <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
+                            <div className="font-medium text-foreground">
                               {format(new Date(tx.date), 'dd MMM yyyy', { locale: th })}
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-xs text-muted-foreground">
                               {format(new Date(tx.date), 'HH:mm:ss')}
                             </div>
                           </td>
@@ -113,7 +113,7 @@ export default async function HistoryPage({
                                   ? 'bg-rose-50 text-rose-600 border-rose-100'
                                   : tx.type === 'TRANSFER' || tx.type === 'TRANSFER_OUT'
                                   ? 'bg-orange-50 text-orange-600 border-orange-100'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                                  : 'bg-muted text-muted-foreground border-border'
                               }`}
                             >
                               {tx.type === 'INBOUND' && <ArrowRight size={10} />}
@@ -128,9 +128,9 @@ export default async function HistoryPage({
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="font-bold text-slate-700">{tx.product}</div>
+                            <div className="font-bold text-foreground">{tx.product}</div>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              <div className="font-mono text-xs text-slate-500 bg-slate-100 inline-block px-1 rounded">
+                              <div className="font-mono text-xs text-muted-foreground bg-muted inline-block px-1 rounded">
                                 {tx.sku}
                               </div>
                               {tx.attributes &&
@@ -150,20 +150,20 @@ export default async function HistoryPage({
                             </div>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <span className="font-bold text-slate-800 text-base">
+                            <span className="font-bold text-foreground text-base">
                               {Number(tx.quantity).toLocaleString()}
                             </span>
-                            <span className="text-xs text-slate-500 ml-1">{tx.uom}</span>
+                            <span className="text-xs text-muted-foreground ml-1">{tx.uom}</span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2 text-xs font-mono">
                               <span
-                                className="text-slate-500 max-w-[120px] truncate"
+                                className="text-muted-foreground max-w-[120px] truncate"
                                 title={tx.from}
                               >
                                 {tx.from}
                               </span>
-                              <ArrowRight size={12} className="text-slate-300 shrink-0" />
+                              <ArrowRight size={12} className="text-muted-foreground shrink-0" />
                               <span
                                 className="font-bold text-indigo-600 bg-indigo-50 px-1 rounded max-w-[120px] truncate"
                                 title={tx.to}
@@ -175,18 +175,18 @@ export default async function HistoryPage({
                               tx.details &&
                               tx.details !== tx.from &&
                               tx.details !== tx.to && (
-                                <div className="text-xs text-slate-500 mt-1 max-w-[200px] truncate">
+                                <div className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">
                                   {tx.details}
                                 </div>
                               )}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                                 <User size={12} />
                               </div>
                               <span
-                                className="text-xs text-slate-600 truncate max-w-[100px]"
+                                className="text-xs text-muted-foreground truncate max-w-[100px]"
                                 title={tx.user}
                               >
                                 {tx.user.split('@')[0]}

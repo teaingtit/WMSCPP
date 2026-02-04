@@ -7,11 +7,9 @@ import {
   deleteReportSchedule,
   toggleReportSchedule,
   runReportScheduleNow,
-  CRON_PRESETS,
-  REPORT_TYPE_LABELS,
   type ReportSchedule,
-  type ReportType,
 } from '@/actions/report-actions';
+import { CRON_PRESETS, REPORT_TYPE_LABELS, type ReportType } from '@/lib/report-constants';
 import { Button } from '@/components/ui/button';
 import {
   Calendar,

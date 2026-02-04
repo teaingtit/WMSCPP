@@ -135,11 +135,11 @@ export function StatusManager({ statuses }: StatusManagerProps) {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+          <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
             <Tag className="text-indigo-600" />
             Status Design System
           </h3>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             จัดการรูปแบบสถานะสำหรับสินค้า (Items) และจุดเก็บ (Location/Lot)
           </p>
         </div>
@@ -178,25 +178,25 @@ export function StatusManager({ statuses }: StatusManagerProps) {
         onValueChange={(v) => setActiveTab(v as StatusType)}
         className="space-y-6"
       >
-        <div className="border-b border-slate-200">
+        <div className="border-b border-border">
           <TabsList className="bg-transparent p-0 h-auto gap-6">
             <TabsTrigger
               value="PRODUCT"
-              className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 hover:text-slate-700 transition-colors gap-2"
+              className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-muted-foreground hover:text-foreground transition-colors gap-2"
             >
               <Package size={18} />
               สถานะสินค้า (Item)
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs">
                 {productStatuses.length}
               </span>
             </TabsTrigger>
             <TabsTrigger
               value="LOCATION"
-              className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-cyan-600 data-[state=active]:text-cyan-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-slate-500 hover:text-slate-700 transition-colors gap-2"
+              className="px-0 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-cyan-600 data-[state=active]:text-cyan-700 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-bold text-muted-foreground hover:text-foreground transition-colors gap-2"
             >
               <MapPin size={18} />
               สถานะ Lot (Location)
-              <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
+              <span className="ml-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs">
                 {locationStatuses.length}
               </span>
             </TabsTrigger>
@@ -220,7 +220,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
             onEdit={handleEditClick}
             deleteAction={deleteAction}
             emptyMessage="ไม่พบสถานะรายสินค้า"
-            emptyIcon={<Package size={48} className="text-slate-300" />}
+            emptyIcon={<Package size={48} className="text-muted-foreground" />}
           />
         </TabsContent>
 
@@ -241,7 +241,7 @@ export function StatusManager({ statuses }: StatusManagerProps) {
             onEdit={handleEditClick}
             deleteAction={deleteAction}
             emptyMessage="No lot statuses defined."
-            emptyIcon={<MapPin size={48} className="text-slate-300" />}
+            emptyIcon={<MapPin size={48} className="text-muted-foreground" />}
           />
         </TabsContent>
       </Tabs>
@@ -288,10 +288,10 @@ function StatusList({
 }) {
   if (statuses.length === 0) {
     return (
-      <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+      <div className="text-center py-12 bg-muted rounded-xl border border-dashed border-border">
         <div className="mx-auto mb-4 flex justify-center">{emptyIcon}</div>
-        <p className="text-slate-500 font-medium">{emptyMessage}</p>
-        <p className="text-sm text-slate-500">Create a new status to get started</p>
+        <p className="text-muted-foreground font-medium">{emptyMessage}</p>
+        <p className="text-sm text-muted-foreground">Create a new status to get started</p>
       </div>
     );
   }
@@ -325,13 +325,13 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
 
   return (
     <div
-      className={`group bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-all border-l-4 ${styles['statusCardBorder']}`}
+      className={`group bg-card rounded-xl border border-border p-4 hover:shadow-md transition-all border-l-4 ${styles['statusCardBorder']}`}
       style={{ '--status-color': status.color } as React.CSSProperties}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <GripVertical size={16} className="text-slate-300 cursor-grab" />
+            <GripVertical size={16} className="text-muted-foreground cursor-grab" />
             <div
               className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shadow-sm ${styles['statusAvatar']}`}
               style={
@@ -347,7 +347,7 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-semibold text-slate-800 truncate">{status.name}</h4>
+              <h4 className="font-semibold text-foreground truncate">{status.name}</h4>
               {status.is_default && (
                 <span className="flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">
                   <Star size={10} fill="currentColor" />
@@ -356,7 +356,7 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
               )}
             </div>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+              <span className="text-xs font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border">
                 {status.code}
               </span>
               <span
@@ -377,7 +377,9 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
               </span>
             </div>
             {status.description && (
-              <p className="text-sm text-slate-500 mt-1 line-clamp-1">{status.description}</p>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                {status.description}
+              </p>
             )}
           </div>
         </div>
@@ -389,7 +391,7 @@ function StatusCard({ status, onEdit, deleteAction }: StatusCardProps) {
             onClick={onEdit}
             className="h-10 w-10 p-0 min-w-[44px] min-h-[44px] touch-manipulation active:scale-95"
           >
-            <Edit2 size={16} className="text-slate-500" />
+            <Edit2 size={16} className="text-muted-foreground" />
           </Button>
           {showDeleteConfirm ? (
             <div className="flex items-center gap-1">
@@ -476,7 +478,7 @@ function StatusForm({
 
       {/* Status Type Selection */}
       <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+        <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
           <Tag size={14} />
           ประเภทสถานะ (Status Type)
         </label>
@@ -489,14 +491,14 @@ function StatusForm({
               className={`text-left p-3 rounded-lg border-2 transition-all ${
                 selectedStatusType === option.value
                   ? 'border-indigo-500 bg-indigo-50'
-                  : 'border-slate-200 hover:border-slate-300 bg-white'
+                  : 'border-border hover:border-border bg-card'
               }`}
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">{option.icon}</span>
-                <span className="font-medium text-slate-800">{option.label}</span>
+                <span className="font-medium text-foreground">{option.label}</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 ml-7">{option.description}</p>
+              <p className="text-xs text-muted-foreground mt-1 ml-7">{option.description}</p>
             </button>
           ))}
         </div>
@@ -505,7 +507,7 @@ function StatusForm({
       {/* Name & Code */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อสถานะ *</label>
+          <label className="block text-sm font-medium text-foreground mb-1">ชื่อสถานะ *</label>
           <Input
             name="name"
             value={name}
@@ -515,7 +517,7 @@ function StatusForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             รหัส (Code) *
             {!initialData && (
               <button
@@ -544,7 +546,7 @@ function StatusForm({
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">คำอธิบาย</label>
+        <label className="block text-sm font-medium text-foreground mb-1">คำอธิบาย</label>
         <Input
           name="description"
           value={description}
@@ -555,7 +557,7 @@ function StatusForm({
 
       {/* Color Selection */}
       <div>
-        <label className="text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+        <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
           <Palette size={14} />
           สีสถานะ (Color)
         </label>
@@ -567,7 +569,7 @@ function StatusForm({
               onClick={() => setSelectedColor(color)}
               className={`w-8 h-8 rounded-lg border-2 transition-all ${styles['colorButton']} ${
                 selectedColor.value === color.value
-                  ? 'border-slate-800 ring-2 ring-slate-300 scale-110'
+                  ? 'border-foreground ring-2 ring-border scale-110'
                   : 'border-transparent hover:scale-105'
               }`}
               style={{ '--color-value': color.value } as React.CSSProperties}
@@ -576,7 +578,7 @@ function StatusForm({
           ))}
         </div>
         <div className="mt-2 flex items-center gap-2">
-          <span className="text-sm text-slate-500">Preview:</span>
+          <span className="text-sm text-muted-foreground">Preview:</span>
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${styles['statusPreview']}`}
             style={
@@ -595,20 +597,20 @@ function StatusForm({
       <EffectSelector value={selectedEffect} onChange={setSelectedEffect} />
 
       {/* Options Row */}
-      <div className="pt-4 border-t border-slate-100">
-        <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
+      <div className="pt-4 border-t border-border">
+        <div className="p-3 bg-muted rounded-lg border border-border flex items-center justify-between">
           <label className="flex items-center gap-2 cursor-pointer select-none w-full">
             <input
               type="checkbox"
               checked={isDefault}
               onChange={(e) => setIsDefault(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-4 h-4 rounded border-border text-indigo-600 focus:ring-indigo-500"
             />
             <div>
-              <span className="text-sm font-medium text-slate-800 block">
+              <span className="text-sm font-medium text-foreground block">
                 สถานะเริ่มต้น (Default)
               </span>
-              <span className="text-xs text-slate-500 block">
+              <span className="text-xs text-muted-foreground block">
                 ใช้สถานะนี้อัตโนมัติเมื่อมีการรับเข้าสินค้าใหม่
               </span>
             </div>

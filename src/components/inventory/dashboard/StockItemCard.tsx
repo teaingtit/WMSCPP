@@ -66,12 +66,12 @@ export const StockItemCard = ({
       className={`relative flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md active:scale-[0.99] touch-manipulation select-none
         ${
           isSelected
-            ? 'bg-indigo-50 border-indigo-300 ring-1 ring-indigo-200'
+            ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 ring-1 ring-indigo-200 dark:ring-indigo-700'
             : restricted
-            ? 'bg-red-50/50 border-red-200 hover:border-red-300'
+            ? 'bg-red-50/50 dark:bg-red-900/20 border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700'
             : warning
-            ? 'bg-amber-50/50 border-amber-200 hover:border-amber-300'
-            : 'bg-white border-slate-200 hover:border-indigo-200'
+            ? 'bg-amber-50/50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 hover:border-amber-300 dark:hover:border-amber-700'
+            : 'bg-card dark:bg-slate-800 border-border dark:border-slate-700 hover:border-primary/50'
         }`}
     >
       {/* Restriction Indicator */}
@@ -96,7 +96,7 @@ export const StockItemCard = ({
       </div>
 
       {/* Thumbnail */}
-      <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
+      <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 overflow-hidden flex items-center justify-center">
         {item.image_url ? (
           <img
             src={item.image_url}
@@ -104,23 +104,23 @@ export const StockItemCard = ({
             className="h-full w-full object-cover"
           />
         ) : (
-          <Package size={20} className="text-slate-300" />
+          <Package size={20} className="text-slate-300 dark:text-slate-500" />
         )}
       </div>
 
       {/* Main Info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 mb-0.5">
-          <div className="text-xs font-bold text-slate-500 truncate">
+          <div className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
             {item.product?.sku || 'Unknown SKU'}
           </div>
           {item.level && (
-            <span className="flex items-center gap-0.5 text-xs font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
+            <span className="flex items-center gap-0.5 text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-100 dark:border-indigo-800">
               <Layers size={10} /> {item.level}
             </span>
           )}
         </div>
-        <div className="text-sm font-bold text-slate-800 truncate">
+        <div className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
           {item.product?.name || 'Unknown Product'}
         </div>
 
@@ -164,12 +164,18 @@ export const StockItemCard = ({
 
       {/* Quantity - Compact Display */}
       <div className="shrink-0 text-right">
-        <div className="text-xs text-slate-500 font-medium mb-0.5">{item.product?.uom}</div>
-        <div className={`text-xl font-black ${restricted ? 'text-red-600' : 'text-indigo-600'}`}>
+        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-0.5">
+          {item.product?.uom}
+        </div>
+        <div
+          className={`text-xl font-black ${
+            restricted ? 'text-red-600 dark:text-red-400' : 'text-indigo-600 dark:text-indigo-400'
+          }`}
+        >
           {totalQty.toLocaleString()}
         </div>
         {status?.status && affectedQty > 0 && (
-          <div className="text-xs text-slate-500 mt-0.5">
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {affectedQty.toLocaleString()} affected
           </div>
         )}

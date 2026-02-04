@@ -132,7 +132,7 @@ export const StockItemCardV2 = React.memo(
               {item.product?.sku || 'Unknown SKU'}
             </div>
             {item.level && (
-              <span className="flex items-center gap-1 text-[11px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
+              <span className="flex items-center gap-1 text-xs font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
                 <Layers size={11} />
                 {item.level}
               </span>

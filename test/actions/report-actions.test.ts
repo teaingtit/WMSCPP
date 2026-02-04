@@ -7,9 +7,8 @@ import {
   deleteReportSchedule,
   toggleReportSchedule,
   runReportScheduleNow,
-  CRON_PRESETS,
-  REPORT_TYPE_LABELS,
 } from '@/actions/report-actions';
+import { CRON_PRESETS, REPORT_TYPE_LABELS } from '@/lib/report-constants';
 import { createMockSupabaseClient, createMockUser } from '../utils/test-helpers';
 
 vi.mock('next/cache', () => ({
@@ -394,6 +393,75 @@ describe('Report Actions', () => {
 
       expect(result.success).toBe(false);
       expect(result.message).toMatch(/รหัส|invalid|uuid/i);
+    });
+
+    it('should return fail when fetch returns !ok', async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        statusText: 'Server Error',
+        text: () => Promise.resolve(JSON.stringify({ error: 'Edge function failed' })),
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'manager' } }),
+      };
+      const mockScheduleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { id: validScheduleId }, error: null }),
+      };
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'user_roles') return mockRoleQuery;
+        return mockScheduleQuery;
+      });
+
+      const result = await runReportScheduleNow({ id: validScheduleId });
+
+      expect(result.success).toBe(false);
+      expect(result.message).toMatch(/Edge function failed|ส่งรายงานไม่สำเร็จ|Server Error/);
+
+      vi.unstubAllGlobals();
+    });
+
+    it('should handle non-JSON or empty response text', async () => {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        text: () => Promise.resolve(''),
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      mockSupabase.auth = {
+        getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }),
+      };
+      const mockRoleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { role: 'manager' } }),
+      };
+      const mockScheduleQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { id: validScheduleId }, error: null }),
+      };
+      mockSupabase.from = vi.fn((table: string) => {
+        if (table === 'user_roles') return mockRoleQuery;
+        return mockScheduleQuery;
+      });
+
+      const result = await runReportScheduleNow({ id: validScheduleId });
+
+      expect(result.success).toBe(true);
+      expect(result.data?.processed).toBe(1);
+
+      vi.unstubAllGlobals();
     });
   });
 

@@ -59,27 +59,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <GlobalLoadingProvider>
             <ShortcutsProvider>
-              <SkipLink />
+              <SkipLink key="skip-link" />
               {/* ARIA Live Region for Screen Readers */}
               <div
+                key="aria-live-announcements"
                 id="aria-live-announcements"
                 aria-live="polite"
                 aria-atomic="true"
                 className="sr-only"
               />
               <div
+                key="aria-live-assertive"
                 id="aria-live-assertive"
                 aria-live="assertive"
                 aria-atomic="true"
                 className="sr-only"
               />
-              <div className="app-container" id="main-content">
+              <div key="main-content" className="app-container" id="main-content">
                 {children}
               </div>
-              <TableStacker />
-              <Toaster position="top-center" richColors />
-              <OfflineIndicator />
-              <ServiceWorkerRegistration />
+              <TableStacker key="table-stacker" />
+              <Toaster key="toaster" position="top-center" richColors />
+              <OfflineIndicator key="offline-indicator" />
+              <ServiceWorkerRegistration key="service-worker" />
             </ShortcutsProvider>
           </GlobalLoadingProvider>
         </ThemeProvider>

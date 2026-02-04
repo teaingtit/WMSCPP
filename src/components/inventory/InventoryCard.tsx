@@ -26,7 +26,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
   };
 
   return (
-    <div className="group bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 relative overflow-hidden flex flex-col h-full cursor-pointer touch-manipulation select-none">
+    <div className="group bg-card rounded-2xl p-5 border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 relative overflow-hidden flex flex-col h-full cursor-pointer touch-manipulation select-none">
       {/* Decorative BG */}
       <div
         className={`absolute top-0 right-0 w-20 h-20 rounded-bl-full -mr-6 -mt-6 opacity-10 group-hover:opacity-20 transition-opacity ${
@@ -39,8 +39,8 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
         <span
           className={`text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider border ${
             item.product?.category_id === 'CHEMICAL'
-              ? 'bg-amber-50 text-amber-700 border-amber-100'
-              : 'bg-indigo-50 text-indigo-700 border-indigo-100'
+              ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-800'
+              : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-800'
           }`}
         >
           {item.product?.category_id || 'GEN'}
@@ -50,7 +50,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
             <MapPin size={10} /> {item.location?.code || 'N/A'}
           </span>
           {item.level && (
-            <span className="flex items-center gap-1 text-xs font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded border border-indigo-100">
+            <span className="flex items-center gap-1 text-xs font-bold bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">
               <Layers size={10} /> Lv.{item.level}
             </span>
           )}
@@ -59,7 +59,7 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
 
       {/* Product Image */}
       <div className="mb-3 relative z-10">
-        <div className="h-16 w-16 mx-auto rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center">
+        <div className="h-16 w-16 mx-auto rounded-xl bg-muted border border-border overflow-hidden flex items-center justify-center">
           {item.image_url ? (
             <img
               src={item.image_url}
@@ -67,18 +67,18 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
               className="h-full w-full object-cover"
             />
           ) : (
-            <Package size={28} className="text-slate-300" />
+            <Package size={28} className="text-muted-foreground" />
           )}
         </div>
       </div>
 
       {/* Content: Name & SKU */}
       <div className="mb-3 relative z-10 flex-1">
-        <h3 className="font-bold text-slate-800 text-base leading-snug mb-1 group-hover:text-indigo-600 transition-colors line-clamp-2 text-center">
-          {item.product?.name || 'Unknown Product'}
+        <h3 className="font-bold text-foreground text-base leading-snug mb-1 group-hover:text-primary transition-colors line-clamp-2 text-center">
+          {item.product?.name || 'ไม่ทราบชื่อสินค้า'}
         </h3>
-        <div className="flex items-center justify-center gap-1 text-xs text-slate-500 font-mono mb-2">
-          <Hash size={12} /> {item.product?.sku || '-'}
+        <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground font-mono mb-2">
+          <Hash size={12} /> {item.product?.sku || 'ไม่ระบุ'}
         </div>
 
         {/* LOT Attributes */}
@@ -89,22 +89,22 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
               .map(([key, value]) => (
                 <span
                   key={key}
-                  className="text-xs px-2 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 font-medium"
+                  className="text-xs px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800 font-medium"
                 >
                   {getAttributeLabel(key)}:{' '}
                   <span className="font-bold">{formatAttributeValue(value)}</span>
                 </span>
               ))}
             {Object.keys(item.attributes || {}).length > 3 && (
-              <span className="text-xs text-slate-500 px-1 py-0.5">...</span>
+              <span className="text-xs text-muted-foreground px-1 py-0.5">...</span>
             )}
           </div>
         )}
       </div>
 
       {/* Quantity Breakdown Section */}
-      <div className="pt-3 border-t border-slate-100 relative z-10 mt-auto">
-        <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+      <div className="pt-3 border-t border-border relative z-10 mt-auto">
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
           <span className="font-bold uppercase tracking-wide flex items-center gap-1">
             <Box size={10} /> สถานะจำนวน
           </span>
@@ -113,37 +113,37 @@ export default function InventoryCard({ item, categoryFormSchemas }: InventoryCa
 
         <div className="space-y-1.5">
           {/* Normal Quantity Row */}
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200">
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800">
             <div className="flex items-center gap-1.5">
               <CheckCircle size={12} className="text-emerald-500" />
-              <span className="text-xs font-medium text-emerald-700">ปกติ</span>
+              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                ปกติ
+              </span>
             </div>
-            <span className="text-sm font-bold text-emerald-700">
+            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
               {normalQuantity.toLocaleString()}
             </span>
           </div>
 
           {/* Affected Quantity Row */}
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-muted border border-border">
             <div className="flex items-center gap-1.5">
-              <Shield size={12} className="text-slate-300" />
-              <span className="text-xs font-medium text-slate-500">ติดสถานะ</span>
+              <Shield size={12} className="text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">ติดสถานะ</span>
             </div>
-            <span className="text-sm font-bold text-slate-500">
+            <span className="text-sm font-bold text-muted-foreground">
               {affectedQuantity.toLocaleString()}
             </span>
           </div>
         </div>
 
         {/* Total Row */}
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-slate-200">
-          <span className="text-xs font-bold text-slate-600">รวมทั้งหมด</span>
-          <span className="text-xl font-black text-indigo-600">
-            {totalQuantity.toLocaleString()}
-          </span>
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed border-border">
+          <span className="text-xs font-bold text-foreground">รวมทั้งหมด</span>
+          <span className="text-xl font-black text-primary">{totalQuantity.toLocaleString()}</span>
         </div>
 
-        <div className="mt-2 text-xs text-slate-300 flex items-center gap-1 justify-end">
+        <div className="mt-2 text-xs text-muted-foreground flex items-center gap-1 justify-end">
           <Calendar size={10} /> {new Date(item.updated_at).toLocaleDateString('th-TH')}
         </div>
       </div>

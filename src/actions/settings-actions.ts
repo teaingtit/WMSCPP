@@ -16,6 +16,19 @@ import {
 import { RPC, TABLES } from '@/lib/constants';
 import type { FormSchemaField } from '@/types/settings';
 
+/** Safe extraction of error message for catch blocks (avoids throw when err is undefined). */
+function toErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (
+    err &&
+    typeof err === 'object' &&
+    'message' in err &&
+    typeof (err as { message: unknown }).message === 'string'
+  )
+    return (err as { message: string }).message;
+  return String(err ?? 'Unknown error');
+}
+
 // --- Zod Schemas ---
 const CreateWarehouseSchema = z.object({
   code: z
@@ -139,8 +152,8 @@ export async function createProduct(formData: FormData): Promise<ActionResponse>
     }
     revalidatePath('/dashboard/settings');
     return ok('สร้างสินค้าสำเร็จ');
-  } catch (err: any) {
-    return fail(err.message);
+  } catch (err: unknown) {
+    return fail(toErrorMessage(err));
   }
 }
 
@@ -222,9 +235,9 @@ export async function createWarehouse(formData: FormData): Promise<ActionRespons
       return ok(result.message ?? 'สร้างคลังและตำแหน่งเก็บเรียบร้อย');
     }
     return fail(result?.error ?? result?.message ?? 'สร้างตำแหน่งเก็บไม่สำเร็จ');
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('RPC Error:', err);
-    return fail('System Error: ' + err.message);
+    return fail('System Error: ' + toErrorMessage(err));
   }
 }
 
@@ -255,15 +268,18 @@ export async function createCategory(formData: FormData): Promise<ActionResponse
     }
     revalidatePath('/dashboard/settings');
     return ok('สร้างประเภทสินค้าสำเร็จ');
-  } catch (err: any) {
-    return fail('Error: ' + err.message);
+  } catch (err: unknown) {
+    return fail('Error: ' + toErrorMessage(err));
   }
 }
 
 export async function deleteCategory(formData: FormData): Promise<ActionResponse> {
-  const supabase = await createClient();
-  const id = formData.get('id') as string;
+  const id = formData.get('id');
+  if (id == null || String(id).trim() === '') {
+    return fail('ไม่พบรหัสหมวดหมู่');
+  }
 
+  const supabase = await createClient();
   try {
     const { count } = await supabase
       .from(TABLES.PRODUCTS)
@@ -277,8 +293,8 @@ export async function deleteCategory(formData: FormData): Promise<ActionResponse
 
     revalidatePath('/dashboard/settings');
     return ok('ลบประเภทสินค้าสำเร็จ');
-  } catch (err: any) {
-    return fail(err.message);
+  } catch (err: unknown) {
+    return fail(toErrorMessage(err));
   }
 }
 
@@ -337,8 +353,8 @@ export async function updateCategory(formData: FormData): Promise<ActionResponse
     return ok(
       schemaChanged ? 'อัปเดตหมวดหมู่สำเร็จ (สร้าง schema version ใหม่)' : 'อัปเดตหมวดหมู่สำเร็จ',
     );
-  } catch (err: any) {
-    return fail('Error: ' + err.message);
+  } catch (err: unknown) {
+    return fail('Error: ' + toErrorMessage(err));
   }
 }
 
@@ -362,8 +378,8 @@ export async function updateCategoryUnits(formData: FormData): Promise<ActionRes
     if (error) throw error;
     revalidatePath('/dashboard/settings');
     return ok('อัปเดตหน่วยนับสำเร็จ');
-  } catch (err: any) {
-    return fail('Error: ' + err.message);
+  } catch (err: unknown) {
+    return fail('Error: ' + toErrorMessage(err));
   }
 }
 

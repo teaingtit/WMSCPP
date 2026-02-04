@@ -24,31 +24,36 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
       />
 
       {/* Drawer Panel - Account for bottom nav + safe area on mobile */}
-      <div className="relative w-full max-w-md bg-white shadow-2xl flex flex-col h-full pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl flex flex-col h-full pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-600 text-white p-2 rounded-lg shadow-md">
               <Package size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-800">ตะกร้าสินค้า (Cart)</h2>
-              <p className="text-xs text-slate-500">{items.length} รายการที่เลือก</p>
+              <h2 className="text-lg font-black text-slate-800 dark:text-slate-100">
+                ตะกร้าสินค้า (Cart)
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {items.length} รายการที่เลือก
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Close cart"
-            className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500 hover:text-slate-600"
+            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Content - List of Items */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/30 dark:bg-slate-950">
           {items.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-4">
+            <div className="h-full flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 gap-4">
               <Package size={48} className="opacity-20" />
               <p>ไม่มีสินค้าในตะกร้า</p>
             </div>
@@ -56,9 +61,9 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
             items.map((item) => (
               <div
                 key={item.id}
-                className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-indigo-200 transition-colors"
+                className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-start gap-3 group hover:border-indigo-200 dark:hover:border-indigo-700 transition-colors"
               >
-                <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center">
+                <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 overflow-hidden flex items-center justify-center">
                   {item.image_url ? (
                     <img
                       src={item.image_url}
@@ -66,13 +71,13 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <Package size={18} className="text-slate-300" />
+                    <Package size={18} className="text-slate-300 dark:text-slate-500" />
                   )}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
-                    <h4 className="font-bold text-slate-700 truncate text-sm">
+                    <h4 className="font-bold text-slate-700 dark:text-slate-200 truncate text-sm">
                       {item.product?.name}
                     </h4>
                     <button
@@ -82,19 +87,21 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
                           ? `Remove ${item.product.name}`
                           : `Remove item ${item.id}`
                       }
-                      className="text-slate-300 hover:text-red-500 transition-colors p-1 -mr-1"
+                      className="text-slate-300 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1 -mr-1"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
-                  <div className="text-xs text-slate-500 mb-1">{item.product?.sku}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                    {item.product?.sku}
+                  </div>
 
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-100 font-mono font-bold">
+                    <span className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-100 dark:border-indigo-800 font-mono font-bold">
                       {item.location?.code}
                     </span>
-                    <span className="text-slate-500">|</span>
-                    <span className="font-bold text-slate-700">
+                    <span className="text-slate-500 dark:text-slate-600">|</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-300">
                       {item.quantity.toLocaleString()} {item.product?.uom}
                     </span>
                   </div>
@@ -105,10 +112,10 @@ export const CartDrawer = ({ isOpen, onClose, items, onRemove, onAction }: CartD
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-white border-t border-slate-100 space-y-3 pb-safe">
-          <div className="flex justify-between items-center text-sm font-bold text-slate-600 mb-2">
+        <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 space-y-3 pb-safe">
+          <div className="flex justify-between items-center text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">
             <span>จำนวนรายการ:</span>
-            <span className="text-lg text-indigo-600">{items.length}</span>
+            <span className="text-lg text-indigo-600 dark:text-indigo-400">{items.length}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-2">

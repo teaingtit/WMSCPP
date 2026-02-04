@@ -211,13 +211,13 @@ export default function AuditDetailPage() {
           <button
             onClick={() => setIsCountingMode(false)}
             aria-label="ย้อนกลับ"
-            className="p-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-full transition-colors shadow-sm"
+            className="p-2 bg-card border border-border hover:bg-accent rounded-full transition-colors shadow-sm"
           >
-            <ArrowLeft className="text-slate-600" size={20} />
+            <ArrowLeft className="text-muted-foreground" size={20} />
           </button>
           <div>
-            <h1 className="text-xl font-black text-slate-800">โหมดการนับสินค้า</h1>
-            <p className="text-sm text-slate-500">{session.name}</p>
+            <h1 className="text-xl font-black text-foreground">โหมดการนับสินค้า</h1>
+            <p className="text-sm text-muted-foreground">{session.name}</p>
           </div>
         </div>
         <CountingInterface
@@ -246,18 +246,18 @@ export default function AuditDetailPage() {
           <button
             onClick={() => router.back()}
             aria-label="ย้อนกลับ"
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-2 hover:bg-accent rounded-full transition-colors"
           >
-            <ArrowLeft className="text-slate-600" />
+            <ArrowLeft className="text-muted-foreground" />
           </button>
           <div>
-            <h1 className="text-2xl font-black text-slate-800">{session.name}</h1>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
+            <h1 className="text-2xl font-black text-foreground">{session.name}</h1>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span
                 className={`px-2 py-0.5 rounded text-xs font-bold ${
                   session.status === 'OPEN'
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-slate-100 text-slate-600'
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400'
+                    : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {session.status}
@@ -270,7 +270,7 @@ export default function AuditDetailPage() {
         <button
           onClick={() => setIsCountingMode(true)}
           data-testid="counting-mode-btn"
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg active:scale-95"
         >
           <ScanBarcode size={20} />
           <span>เริ่มนับสินค้า (Counting Mode)</span>
@@ -278,15 +278,18 @@ export default function AuditDetailPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-card p-4 rounded-2xl shadow-sm border border-border">
         <div className="relative flex-1 w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            size={18}
+          />
           <input
             type="text"
             name="searchAuditItems"
             data-testid="search-audit-items"
             placeholder="ค้นหา SKU, ชื่อสินค้า, Location..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            className="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -300,11 +303,11 @@ export default function AuditDetailPage() {
 
       {/* Tabs & Table */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-slate-100 p-1 rounded-xl h-auto">
+        <TabsList className="bg-muted p-1 rounded-xl h-auto">
           <TabsTrigger
             value="pending"
             data-testid="tab-pending"
-            className="flex-1 sm:flex-none rounded-lg px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+            className="flex-1 sm:flex-none rounded-lg px-4 py-2 data-[state=active]:bg-card data-[state=active]:shadow-sm transition-all"
           >
             <Clock className="w-4 h-4 mr-2 text-amber-500" />
             รอการนับ ({pendingItems.length})
@@ -312,7 +315,7 @@ export default function AuditDetailPage() {
           <TabsTrigger
             value="completed"
             data-testid="tab-completed"
-            className="flex-1 sm:flex-none rounded-lg px-4 py-2 data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+            className="flex-1 sm:flex-none rounded-lg px-4 py-2 data-[state=active]:bg-card data-[state=active]:shadow-sm transition-all"
           >
             <CheckCircle2 className="w-4 h-4 mr-2 text-emerald-500" />
             นับเสร็จแล้ว ({completedItems.length})
@@ -322,7 +325,7 @@ export default function AuditDetailPage() {
         {/* Mobile Card View */}
         <div className="block md:hidden space-y-3">
           {currentList.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 bg-white rounded-2xl border border-dashed border-slate-200">
+            <div className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-dashed border-border">
               <div className="flex flex-col items-center gap-2">
                 <Box className="w-10 h-10 opacity-20" />
                 <span>ไม่พบรายการสินค้า</span>
@@ -332,16 +335,18 @@ export default function AuditDetailPage() {
             currentList.map((item) => (
               <div
                 key={item.id}
-                className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-3"
+                className="bg-card p-4 rounded-xl shadow-sm border border-border flex flex-col gap-3"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500 shrink-0">
+                    <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center text-muted-foreground shrink-0">
                       <Box size={20} />
                     </div>
                     <div>
-                      <div className="font-bold text-slate-800 text-sm">{item.product?.name}</div>
-                      <div className="text-xs text-slate-500 font-mono">{item.product?.sku}</div>
+                      <div className="font-bold text-foreground text-sm">{item.product?.name}</div>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        {item.product?.sku}
+                      </div>
                     </div>
                   </div>
                   <span
@@ -354,16 +359,16 @@ export default function AuditDetailPage() {
                     {item.status === 'COUNTED' ? 'นับแล้ว' : 'รอการนับ'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-                  <div className="flex items-center gap-1 text-slate-600 text-xs font-medium bg-slate-100 px-2 py-1 rounded-md">
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="flex items-center gap-1 text-muted-foreground text-xs font-medium bg-muted px-2 py-1 rounded-md">
                     <MapPin size={12} /> {item.location?.code}
                   </div>
                   <div className="text-right">
-                    <span className="text-xs text-slate-500 mr-2">Counted:</span>
+                    <span className="text-xs text-muted-foreground mr-2">Counted:</span>
                     {item.status === 'COUNTED' ? (
                       <span className="font-bold text-emerald-600 text-lg">{item.counted_qty}</span>
                     ) : (
-                      <span className="text-slate-300">-</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
                   </div>
                 </div>
@@ -373,21 +378,21 @@ export default function AuditDetailPage() {
         </div>
 
         {/* Desktop Table View */}
-        <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
+        <div className="hidden md:block bg-card rounded-2xl shadow-sm border border-border overflow-hidden min-h-[400px]">
           <div className="overflow-x-auto custom-scrollbar">
             <table data-stack="true" className="w-full text-left text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-muted border-b border-border">
                 <tr>
-                  <th className="p-4 font-bold text-slate-600">สินค้า</th>
-                  <th className="p-4 font-bold text-slate-600">Location</th>
-                  <th className="p-4 font-bold text-slate-600 text-center">สถานะ</th>
-                  <th className="p-4 font-bold text-slate-600 text-right">จำนวนที่นับ</th>
+                  <th className="p-4 font-bold text-muted-foreground">สินค้า</th>
+                  <th className="p-4 font-bold text-muted-foreground">Location</th>
+                  <th className="p-4 font-bold text-muted-foreground text-center">สถานะ</th>
+                  <th className="p-4 font-bold text-muted-foreground text-right">จำนวนที่นับ</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {currentList.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="p-12 text-center text-slate-500">
+                    <td colSpan={4} className="p-12 text-center text-muted-foreground">
                       <div className="flex flex-col items-center gap-2">
                         <Box className="w-10 h-10 opacity-20" />
                         <span>ไม่พบรายการสินค้าในหมวดหมู่นี้</span>
@@ -396,22 +401,22 @@ export default function AuditDetailPage() {
                   </tr>
                 ) : (
                   currentList.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={item.id} className="hover:bg-accent transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 shrink-0">
+                          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center text-muted-foreground shrink-0">
                             <Box size={20} />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-800">{item.product?.name}</div>
-                            <div className="text-xs text-slate-500 font-mono">
+                            <div className="font-bold text-foreground">{item.product?.name}</div>
+                            <div className="text-xs text-muted-foreground font-mono">
                               {item.product?.sku}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-1 text-slate-600 font-medium bg-slate-100 px-2 py-1 rounded-lg w-fit text-xs">
+                        <div className="flex items-center gap-1 text-muted-foreground font-medium bg-muted px-2 py-1 rounded-lg w-fit text-xs">
                           <MapPin size={14} /> {item.location?.code}
                         </div>
                       </td>
@@ -437,7 +442,7 @@ export default function AuditDetailPage() {
                             {item.counted_qty}
                           </span>
                         ) : (
-                          <span className="text-slate-300">-</span>
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </td>
                     </tr>
@@ -451,10 +456,10 @@ export default function AuditDetailPage() {
 
       {/* Finalize Button Section */}
       {session.status === 'OPEN' && isManager && (
-        <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center text-center gap-4">
+        <div className="mt-8 p-6 bg-muted rounded-2xl border border-border flex flex-col items-center text-center gap-4">
           <div className="space-y-1">
-            <h3 className="font-bold text-slate-800">ปิดรอบการนับ (Finalize Audit)</h3>
-            <p className="text-sm text-slate-500 max-w-md">
+            <h3 className="font-bold text-foreground">ปิดรอบการนับ (Finalize Audit)</h3>
+            <p className="text-sm text-muted-foreground max-w-md">
               เมื่อยืนยันการปิดรอบ ระบบจะทำการปรับยอดสต็อก (Adjustment) ตามผลต่างที่นับได้ทันที
               และจะไม่สามารถแก้ไขข้อมูลได้อีก
             </p>
@@ -463,7 +468,7 @@ export default function AuditDetailPage() {
             onClick={() => setShowFinalizeConfirm(true)}
             disabled={isFinalizing}
             data-testid="finalize-btn"
-            className="bg-slate-900 hover:bg-slate-800 text-white min-w-[200px] h-12 rounded-xl shadow-lg shadow-slate-200 active:scale-95 transition-all"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground min-w-[200px] h-12 rounded-xl shadow-lg active:scale-95 transition-all"
           >
             {isFinalizing ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -492,7 +497,7 @@ export default function AuditDetailPage() {
             <DialogTitle className="text-center text-xl">ยืนยันการปิดรอบการนับ?</DialogTitle>
             <DialogDescription className="text-center pt-2">
               เมื่อยืนยันแล้ว ระบบจะทำการ{' '}
-              <span className="font-bold text-slate-700">ปรับยอดสต็อก (Adjustment)</span>{' '}
+              <span className="font-bold text-foreground">ปรับยอดสต็อก (Adjustment)</span>{' '}
               ตามผลต่างที่นับได้ทันที
               <br />
               <br />

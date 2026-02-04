@@ -104,13 +104,52 @@ describe('action-utils', () => {
     });
 
     it('should include additional data when provided', () => {
-      const result = ok('Success', { data: { id: 123 } });
+      const result = ok('Success', { id: 123 });
 
       expect(result).toEqual({
         success: true,
         message: 'Success',
         data: { id: 123 },
       });
+    });
+
+    it('should not include data property when data is undefined', () => {
+      const result = ok('No data');
+
+      expect(result).not.toHaveProperty('data');
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('No data');
+    });
+
+    it('should handle complex typed data objects', () => {
+      interface ReportSchedule {
+        id: string;
+        name: string;
+        isActive: boolean;
+      }
+      const schedule: ReportSchedule = { id: '123', name: 'Daily Report', isActive: true };
+      const result = ok<ReportSchedule>('Created', schedule);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(schedule);
+      expect(result.data?.name).toBe('Daily Report');
+    });
+
+    it('should handle null as valid data', () => {
+      const result = ok('Null result', null);
+
+      expect(result).toEqual({
+        success: true,
+        message: 'Null result',
+        data: null,
+      });
+    });
+
+    it('should handle arrays as data', () => {
+      const items = [1, 2, 3];
+      const result = ok('List', items);
+
+      expect(result.data).toEqual([1, 2, 3]);
     });
   });
 
@@ -559,6 +598,16 @@ describe('action-utils', () => {
     });
 
     it('should return Internal Server Error when handler throws error without message', async () => {
+      mockSupabase = {
+        auth: {
+          getUser: vi.fn().mockResolvedValue({
+            data: { user: { id: 'user-123', email: 'test@example.com', created_at: '2024-01-01' } },
+          }),
+        },
+      };
+
+      (createClient as any).mockResolvedValue(mockSupabase);
+
       const handler = vi.fn().mockRejectedValue(new Error());
       const wrappedAction = withAuth(handler);
       const result = await wrappedAction({ test: 'data' });

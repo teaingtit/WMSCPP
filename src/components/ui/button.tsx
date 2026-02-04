@@ -1,17 +1,35 @@
 // components/ui/button.tsx
+'use client';
+
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { useHaptic, type HapticPattern } from '@/hooks/useHaptic';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'ghost' | 'destructive' | 'outline' | 'secondary' | 'link' | 'success';
   size?: 'default' | 'sm' | 'lg' | 'icon' | 'xl';
+  /** Optional haptic feedback pattern on click (mobile only) */
+  haptic?: HapticPattern | false;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
+  (
+    { className, variant = 'default', size = 'default', haptic = false, onClick, ...props },
+    ref,
+  ) => {
+    const { vibrate } = useHaptic();
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (haptic) {
+        vibrate(haptic);
+      }
+      onClick?.(e);
+    };
+
     return (
       <button
         ref={ref}
+        onClick={handleClick}
         className={cn(
           // Base Styles - Modern & Touch-friendly
           'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold',

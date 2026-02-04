@@ -2,14 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Home,
-  Package,
-  ClipboardCheck,
-  ArrowLeftRight,
-  Settings,
-  type LucideIcon,
-} from 'lucide-react';
+import { Home, ClipboardCheck, ArrowLeftRight, Settings, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -28,11 +21,6 @@ const NAV_ITEMS: NavItem[] = [
     href: '/dashboard',
     icon: Home,
     label: 'หน้าหลัก',
-  },
-  {
-    href: '/dashboard/[wh]/inventory',
-    icon: Package,
-    label: 'สต็อก',
   },
   {
     href: '/dashboard/[wh]/audit',

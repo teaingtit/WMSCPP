@@ -35,7 +35,7 @@ export default function PageHeader({
         {backHref && (
           <Link
             href={backHref}
-            className="p-2 -ml-2 text-slate-500 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 active:scale-95"
+            className="p-2 -ml-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all duration-200 active:scale-95"
           >
             <ChevronLeft size={24} />
           </Link>
@@ -50,10 +50,10 @@ export default function PageHeader({
 
         {/* Title & Subtitle */}
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight truncate">
             {title}
           </h1>
-          {subtitle && <p className="text-sm text-slate-500 mt-0.5 truncate">{subtitle}</p>}
+          {subtitle && <p className="text-sm text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export function PageHeaderCompact({
 }) {
   return (
     <div className={cn('flex items-center justify-between py-3 px-1', className)}>
-      <h1 className="text-lg font-bold text-white truncate">{title}</h1>
+      <h1 className="text-lg font-bold text-foreground truncate">{title}</h1>
       {action && <div className="flex-shrink-0">{action}</div>}
     </div>
   );

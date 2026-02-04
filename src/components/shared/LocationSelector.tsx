@@ -144,14 +144,14 @@ export default function LocationSelector({
     <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${className}`}>
       {/* LOT */}
       <div>
-        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wide">
+        <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">
           ล็อต (LOT)
         </label>
         <div className="relative">
           <select
             aria-label="เลือก Lot"
-            className="w-full p-3 min-h-[48px] bg-slate-50 border border-slate-200 rounded-xl
-                       font-bold text-sm outline-none
+            className="w-full p-3 min-h-[48px] bg-muted border border-border rounded-xl
+                       font-bold text-sm text-foreground outline-none
                        focus:border-primary focus:ring-2 focus:ring-primary/20
                        disabled:opacity-50 touch-manipulation
                        transition-all duration-200"
@@ -168,7 +168,7 @@ export default function LocationSelector({
           </select>
           {loadingLots && (
             <Loader2
-              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-500"
+              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground"
               size={16}
             />
           )}
@@ -177,14 +177,14 @@ export default function LocationSelector({
 
       {/* POSITION */}
       <div>
-        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wide">
+        <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">
           ตำแหน่ง (POSITION)
         </label>
         <div className="relative">
           <select
             aria-label="เลือก Position"
-            className="w-full p-3 min-h-[48px] bg-slate-50 border border-slate-200 rounded-xl
-                       font-bold text-sm outline-none
+            className="w-full p-3 min-h-[48px] bg-muted border border-border rounded-xl
+                       font-bold text-sm text-foreground outline-none
                        focus:border-primary focus:ring-2 focus:ring-primary/20
                        disabled:opacity-50 touch-manipulation
                        transition-all duration-200"
@@ -201,7 +201,7 @@ export default function LocationSelector({
           </select>
           {loadingPos && (
             <Loader2
-              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-500"
+              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground"
               size={16}
             />
           )}
@@ -210,7 +210,7 @@ export default function LocationSelector({
 
       {/* LEVEL */}
       <div>
-        <label className="text-xs font-semibold text-slate-500 mb-1.5 block uppercase tracking-wide">
+        <label className="text-xs font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wide">
           ชั้น (LEVEL)
         </label>
         <div className="relative">
@@ -220,8 +220,8 @@ export default function LocationSelector({
                         transition-all duration-200 disabled:opacity-50 touch-manipulation
               ${
                 selectedLevelId
-                  ? 'bg-emerald-50 border-emerald-400 text-emerald-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-muted border-border text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20'
               }`}
             value={selectedLevelId}
             onChange={(e) => handleLevelChange(e.target.value)}
@@ -236,7 +236,7 @@ export default function LocationSelector({
           </select>
           {loadingLevels && (
             <Loader2
-              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-500"
+              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground"
               size={16}
             />
           )}

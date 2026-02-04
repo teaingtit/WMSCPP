@@ -18,7 +18,7 @@ export const CartFloatingButton = ({
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 bg-indigo-600 text-white p-4 rounded-full shadow-2xl hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 animate-in slide-in-from-bottom-10 fade-in"
+      className="fixed right-5 bottom-[calc(4rem+env(safe-area-inset-bottom))] tablet:bottom-6 tablet:right-6 z-40 bg-indigo-600 text-white p-4 rounded-full shadow-2xl hover:bg-indigo-700 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 animate-in slide-in-from-bottom-10 fade-in"
     >
       <div className="relative">
         <ShoppingCart size={24} />

@@ -99,7 +99,7 @@ export const BulkTransferModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-dvh-90 flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-indigo-700">
+          <DialogTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
             <ArrowRightLeft size={20} />
             {mode === 'INTERNAL' ? 'ย้ายตำแหน่งภายในคลัง' : 'ย้ายข้ามคลังสินค้า'}
           </DialogTitle>
@@ -107,15 +107,15 @@ export const BulkTransferModal = ({
 
         <div className="flex-1 overflow-y-auto pr-2 space-y-6 py-2">
           {/* Target Section */}
-          <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+          <div className="space-y-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
             {mode === 'CROSS' && (
               <div>
-                <label className="text-xs font-bold text-slate-500 mb-1 block">
+                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 block">
                   คลังสินค้าปลายทาง
                 </label>
                 <select
                   aria-label="Select destination warehouse"
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                  className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 outline-none"
                   value={targetWarehouseId}
                   onChange={(e) => {
                     setTargetWarehouseId(e.target.value);
@@ -139,14 +139,16 @@ export const BulkTransferModal = ({
                 mode === 'CROSS' && !targetWarehouseId ? 'opacity-50 pointer-events-none' : ''
               }
             >
-              <label className="text-xs font-bold text-slate-500 mb-1 block">ตำแหน่งปลายทาง</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 block">
+                ตำแหน่งปลายทาง
+              </label>
               <LocationSelector warehouseId={effectiveWhId} onSelect={setSelectedLocation} />
             </div>
           </div>
 
           {/* Items List */}
           <div>
-            <h4 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <Package size={16} /> รายการสินค้า ({items.length})
             </h4>
             <StockQuantityList
@@ -157,7 +159,7 @@ export const BulkTransferModal = ({
           </div>
         </div>
 
-        <DialogFooter className="mt-4 pt-4 border-t border-slate-100">
+        <DialogFooter className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             ยกเลิก
           </Button>

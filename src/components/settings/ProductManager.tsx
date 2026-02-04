@@ -155,9 +155,9 @@ export default function ProductManager({ products, category }: ProductManagerPro
   return (
     <div className="space-y-6">
       {/* Actions Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-card p-4 rounded-xl border border-border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+          <h3 className="font-bold text-foreground flex items-center gap-2">
             รายชื่อสินค้าในระบบ ({filtered.length})
           </h3>
         </div>
@@ -198,7 +198,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
       </div>
 
       {/* Create Form */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm animate-in fade-in">
+      <div className="bg-card p-6 rounded-xl border border-border shadow-sm animate-in fade-in">
         <form
           ref={createFormRef}
           id="create-product-form"
@@ -206,7 +206,10 @@ export default function ProductManager({ products, category }: ProductManagerPro
           className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end"
         >
           <div className="md:col-span-3">
-            <label htmlFor="create-sku" className="text-xs font-bold text-slate-500 mb-1 block">
+            <label
+              htmlFor="create-sku"
+              className="text-xs font-bold text-muted-foreground mb-1 block"
+            >
               SKU *
             </label>
             <Input
@@ -214,12 +217,15 @@ export default function ProductManager({ products, category }: ProductManagerPro
               name="sku"
               required
               placeholder="A001"
-              className="uppercase font-mono text-sm border-slate-200"
+              className="uppercase font-mono text-sm border-border"
               errorMessage={getError('sku')}
             />
           </div>
           <div className="md:col-span-6">
-            <label htmlFor="create-name" className="text-xs font-bold text-slate-500 mb-1 block">
+            <label
+              htmlFor="create-name"
+              className="text-xs font-bold text-muted-foreground mb-1 block"
+            >
               ชื่อสินค้า *
             </label>
             <Input
@@ -227,12 +233,15 @@ export default function ProductManager({ products, category }: ProductManagerPro
               name="name"
               required
               placeholder="ระบุชื่อสินค้า..."
-              className="text-sm border-slate-200"
+              className="text-sm border-border"
               errorMessage={getError('name')}
             />
           </div>
           <div className="md:col-span-3">
-            <label htmlFor="uom-select" className="text-xs font-bold text-slate-500 mb-1 block">
+            <label
+              htmlFor="uom-select"
+              className="text-xs font-bold text-muted-foreground mb-1 block"
+            >
               หน่วยนับ
             </label>
             {category?.units && category.units.length > 0 ? (
@@ -240,7 +249,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                 id="uom-select"
                 name="uom"
                 title="เลือกหน่วยนับสินค้า"
-                className="w-full border border-slate-200 p-2.5 rounded-lg text-sm outline-none bg-white"
+                className="w-full border border-border p-2.5 rounded-lg text-sm outline-none bg-card"
                 defaultValue={category.units[0]}
               >
                 {category.units.map((unit: string) => (
@@ -255,7 +264,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                 name="uom"
                 placeholder="UNIT"
                 defaultValue="UNIT"
-                className="w-full border border-slate-200 p-2.5 rounded-lg text-sm outline-none uppercase"
+                className="w-full border border-border p-2.5 rounded-lg text-sm outline-none uppercase"
               />
             )}
           </div>
@@ -270,7 +279,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                   <div key={field.key}>
                     <label
                       htmlFor={field.key}
-                      className="text-xs font-bold text-slate-600 mb-1.5 block"
+                      className="text-xs font-bold text-muted-foreground mb-1.5 block"
                     >
                       {field.label}
                     </label>
@@ -280,7 +289,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                       type={
                         field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'
                       }
-                      className="text-sm bg-white border-indigo-200 focus:ring-2 focus:ring-indigo-500/20"
+                      className="text-sm bg-card border-indigo-200 focus:ring-2 focus:ring-indigo-500/20"
                       placeholder={field.label}
                       errorMessage={getError(field.key)}
                     />
@@ -300,9 +309,9 @@ export default function ProductManager({ products, category }: ProductManagerPro
       </div>
 
       {/* Product Table - Virtualized for performance */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm overflow-x-auto scroll-hint-horizontal">
-        <div className="p-4 border-b bg-slate-50 flex items-center gap-2">
-          <Search size={18} className="text-slate-500" />
+      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm overflow-x-auto scroll-hint-horizontal">
+        <div className="p-4 border-b bg-muted flex items-center gap-2">
+          <Search size={18} className="text-muted-foreground" />
           <input
             placeholder="ค้นหา SKU หรือ ชื่อสินค้า..."
             className="bg-transparent outline-none w-full text-sm"
@@ -311,7 +320,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
         </div>
 
         {/* Table Header (fixed) */}
-        <div className="bg-slate-50 border-b shadow-sm text-slate-500 font-semibold text-sm">
+        <div className="bg-muted border-b shadow-sm text-muted-foreground font-semibold text-sm">
           <div className="flex">
             <div className="p-4 w-32 flex-shrink-0">SKU</div>
             <div className="p-4 flex-1">สินค้า</div>
@@ -323,7 +332,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
         {/* Virtualized Table Body */}
         <div ref={parentRef} className="h-[500px] overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">ยังไม่มีสินค้าในหมวดนี้</div>
+            <div className="p-8 text-center text-muted-foreground">ยังไม่มีสินค้าในหมวดนี้</div>
           ) : (
             <div
               style={{
@@ -337,7 +346,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                 return (
                   <div
                     key={p.id}
-                    className="absolute top-0 left-0 w-full flex items-center border-b border-slate-100 hover:bg-slate-50 transition-colors group"
+                    className="absolute top-0 left-0 w-full flex items-center border-b border-border hover:bg-muted transition-colors group"
                     style={{
                       height: `${virtualRow.size}px`,
                       transform: `translateY(${virtualRow.start}px)`,
@@ -346,7 +355,7 @@ export default function ProductManager({ products, category }: ProductManagerPro
                     <div className="p-4 w-32 flex-shrink-0 font-mono font-bold text-indigo-700 text-sm">
                       {p.sku}
                     </div>
-                    <div className="p-4 flex-1 font-medium text-slate-800 text-sm truncate">
+                    <div className="p-4 flex-1 font-medium text-foreground text-sm truncate">
                       {p.name}
                     </div>
                     <div className="p-4 flex-[2]">
@@ -358,19 +367,21 @@ export default function ProductManager({ products, category }: ProductManagerPro
                               className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 font-medium"
                             >
                               {getAttrLabel(key)}:{' '}
-                              <span className="text-slate-600 font-normal">{String(val)}</span>
+                              <span className="text-muted-foreground font-normal">
+                                {String(val)}
+                              </span>
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-slate-300">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </div>
                     <div className="p-4 w-20 text-right flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => handleDelete(p.id)}
-                        className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg md:opacity-0 md:group-hover:opacity-100 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-95"
+                        className="p-2 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 rounded-lg md:opacity-0 md:group-hover:opacity-100 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation active:scale-95"
                         aria-label="Delete product"
                       >
                         <Trash2 size={18} />

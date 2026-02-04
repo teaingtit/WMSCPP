@@ -17,3 +17,8 @@ vi.mock('next/cache', () => ({
     // Mock implementation that doesn't throw
   }),
 }));
+
+// Mock server-only to prevent import errors in tests
+vi.mock('server-only', () => {
+  return {};
+});

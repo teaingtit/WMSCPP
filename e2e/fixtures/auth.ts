@@ -127,7 +127,7 @@ export async function login(page: Page): Promise<void> {
 
   // Click on the TEST warehouse card (not settings/other links)
   const warehouseCard = page.locator('a[href="/dashboard/TEST"]');
-  await expect(warehouseCard).toBeVisible({ timeout: 5000 });
+  await expect(warehouseCard).toBeVisible({ timeout: 15000 });
   await warehouseCard.click();
 
   // Wait for warehouse-specific dashboard

@@ -48,7 +48,10 @@ describe('ui-helpers', () => {
       const res = { success: true, message: 'Operation successful' };
       notify.ok(res);
 
-      expect(toast.success).toHaveBeenCalledWith('Operation successful', undefined);
+      expect(toast.success).toHaveBeenCalledWith(
+        'Operation successful',
+        expect.objectContaining({ id: expect.any(String) }),
+      );
       expect(toast.error).not.toHaveBeenCalled();
     });
 
@@ -56,7 +59,10 @@ describe('ui-helpers', () => {
       const res = { success: false, message: 'Operation failed' };
       notify.ok(res);
 
-      expect(toast.error).toHaveBeenCalledWith('Operation failed', undefined);
+      expect(toast.error).toHaveBeenCalledWith(
+        'Operation failed',
+        expect.objectContaining({ id: expect.any(String) }),
+      );
       expect(toast.success).not.toHaveBeenCalled();
     });
 
@@ -64,14 +70,20 @@ describe('ui-helpers', () => {
       const res = { success: true };
       notify.ok(res, { successMsg: 'Custom success' });
 
-      expect(toast.success).toHaveBeenCalledWith('Custom success', undefined);
+      expect(toast.success).toHaveBeenCalledWith(
+        'Custom success',
+        expect.objectContaining({ id: expect.any(String) }),
+      );
     });
 
     it('should use default error message if not provided', () => {
       const res = { success: false };
       notify.ok(res, { errorMsg: 'Custom error' });
 
-      expect(toast.error).toHaveBeenCalledWith('Custom error', undefined);
+      expect(toast.error).toHaveBeenCalledWith(
+        'Custom error',
+        expect.objectContaining({ id: expect.any(String) }),
+      );
     });
 
     it('should pass toast id option when provided', () => {
@@ -93,7 +105,10 @@ describe('ui-helpers', () => {
     it('should show success toast with message', () => {
       notify.success('Test success message');
 
-      expect(toast.success).toHaveBeenCalledWith('Test success message', undefined);
+      expect(toast.success).toHaveBeenCalledWith(
+        'Test success message',
+        expect.objectContaining({ id: expect.any(String) }),
+      );
     });
 
     it('should pass id option when provided', () => {
@@ -107,13 +122,19 @@ describe('ui-helpers', () => {
     it('should show error toast with message', () => {
       notify.error('Test error message');
 
-      expect(toast.error).toHaveBeenCalledWith('Test error message', undefined);
+      expect(toast.error).toHaveBeenCalledWith(
+        'Test error message',
+        expect.objectContaining({ id: expect.any(String) }),
+      );
     });
 
     it('should use default "Error" message when no message provided', () => {
       notify.error();
 
-      expect(toast.error).toHaveBeenCalledWith('Error', undefined);
+      expect(toast.error).toHaveBeenCalledWith(
+        'Error',
+        expect.objectContaining({ id: expect.any(String) }),
+      );
     });
 
     it('should pass id option when provided', () => {

@@ -50,23 +50,26 @@ export default function HistoryFilterBar() {
   }, [query, type, mode, startDate, endDate, pathname, router, searchParams]);
 
   return (
-    <div className="flex flex-col gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
+    <div className="flex flex-col gap-4 bg-card p-4 rounded-xl shadow-sm border border-border mb-6">
       <div className="flex flex-col md:flex-row gap-4 justify-between">
         {/* Left: Search & Type */}
         <div className="flex flex-1 gap-2">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search SKU, Product, User, Details..."
               value={text}
               onChange={(e) => setText(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
             {text && (
               <button
                 onClick={() => setText('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="Clear search"
               >
                 <X size={14} />
@@ -77,7 +80,7 @@ export default function HistoryFilterBar() {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 rounded-lg border border-border text-sm bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500"
             aria-label="Filter by transaction type"
           >
             <option value="ALL">ทุกประเภท (All Types)</option>
@@ -99,7 +102,7 @@ export default function HistoryFilterBar() {
             className={`px-3 py-2 rounded-lg border text-sm flex items-center gap-2 transition-colors ${
               showDateFilter || startDate
                 ? 'bg-indigo-50 border-indigo-200 text-indigo-600'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                : 'bg-card border-border text-muted-foreground hover:bg-accent'
             }`}
           >
             <Calendar size={16} />
@@ -108,13 +111,13 @@ export default function HistoryFilterBar() {
         </div>
 
         {/* Right: Mode Toggle */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-lg self-start md:self-auto">
+        <div className="flex items-center bg-muted p-1 rounded-lg self-start md:self-auto">
           <button
             onClick={() => setMode('simple')}
             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
               mode === 'simple'
-                ? 'bg-white text-indigo-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-card text-indigo-600 dark:text-indigo-400 shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Simple
@@ -123,8 +126,8 @@ export default function HistoryFilterBar() {
             onClick={() => setMode('detailed')}
             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
               mode === 'detailed'
-                ? 'bg-white text-indigo-600 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-card text-indigo-600 dark:text-indigo-400 shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Detailed / Terminal
@@ -134,24 +137,24 @@ export default function HistoryFilterBar() {
 
       {/* Expandable Date Filter */}
       {showDateFilter && (
-        <div className="flex items-center gap-4 pt-2 border-t border-slate-100 animate-in slide-in-from-top-2 fade-in duration-200">
+        <div className="flex items-center gap-4 pt-2 border-t border-border animate-in slide-in-from-top-2 fade-in duration-200">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500">From:</span>
+            <span className="text-xs font-bold text-muted-foreground">From:</span>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-2 py-1 rounded border border-slate-200 text-xs"
+              className="px-2 py-1 rounded border border-border bg-background text-foreground text-xs"
               aria-label="Start date"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500">To:</span>
+            <span className="text-xs font-bold text-muted-foreground">To:</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-2 py-1 rounded border border-slate-200 text-xs"
+              className="px-2 py-1 rounded border border-border bg-background text-foreground text-xs"
               aria-label="End date"
             />
           </div>

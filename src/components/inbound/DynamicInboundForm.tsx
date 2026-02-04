@@ -187,8 +187,8 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
       {/* --- Main Form --- */}
       <div>
         <form onSubmit={handleAddToQueue} className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
+          <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
+            <h3 className="font-bold text-foreground mb-6 flex items-center gap-2 text-lg border-b border-border pb-4">
               <Package className="text-indigo-600" /> ข้อมูลสินค้า
             </h3>
             <ProductAutocomplete
@@ -208,7 +208,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
                       <input
                         type={field.type}
                         aria-label={field.label}
-                        className="w-full p-2 bg-white border border-emerald-200 rounded-lg text-sm"
+                        className="w-full p-2 bg-card border border-emerald-200 dark:border-emerald-700 rounded-lg text-sm text-foreground"
                         onChange={(e) =>
                           setAttributes({ ...attributes, [field.key]: e.target.value })
                         }
@@ -221,8 +221,8 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
             )}
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-lg border-b border-slate-100 pb-4">
+          <div className="bg-card p-6 rounded-3xl shadow-sm border border-border">
+            <h3 className="font-bold text-foreground mb-6 flex items-center gap-2 text-lg border-b border-border pb-4">
               <MapPin className="text-indigo-600" /> ระบุพิกัด & จำนวน
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -234,7 +234,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">จำนวน</label>
+                <label className="block text-sm font-bold text-foreground mb-2">จำนวน</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -242,10 +242,10 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     disabled={!selectedLocation}
-                    className="w-full text-3xl font-black text-slate-900 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl"
+                    className="w-full text-3xl font-black text-foreground px-4 py-3 bg-muted border border-border rounded-xl"
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">
                     {selectedProduct?.uom || 'UNIT'}
                   </span>
                 </div>
@@ -264,38 +264,38 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
       </div>
 
       {/* --- Inline Queue Display --- */}
-      <div className="mt-8 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="mt-8 bg-card p-4 rounded-2xl border border-border shadow-sm">
         <div className="mb-4 flex items-center justify-between">
-          <h4 className="font-bold text-slate-800 flex items-center gap-2">
+          <h4 className="font-bold text-foreground flex items-center gap-2">
             <PackageCheck size={18} className="text-emerald-600" /> รายการรอรับเข้า ({queue.length})
           </h4>
-          <div className="text-sm text-slate-500">ตรวจสอบและแก้ไขรายการก่อนยืนยัน</div>
+          <div className="text-sm text-muted-foreground">ตรวจสอบและแก้ไขรายการก่อนยืนยัน</div>
         </div>
 
         <div className="flex flex-col gap-3">
-          <div className="flex-1 overflow-y-auto p-2 space-y-3 bg-slate-50/30 min-h-[200px] max-h-[60vh] custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-2 space-y-3 bg-muted/30 min-h-[200px] max-h-[60vh] custom-scrollbar">
             {queue.length === 0 ? (
-              <div className="text-sm text-slate-500 text-center py-6">ยังไม่มีรายการ</div>
+              <div className="text-sm text-muted-foreground text-center py-6">ยังไม่มีรายการ</div>
             ) : (
               queue.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-start gap-3 group hover:border-emerald-200 transition-colors"
+                  className="bg-card p-3 rounded-xl border border-border shadow-sm flex items-start gap-3 group hover:border-emerald-200 dark:hover:border-emerald-700 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <h4 className="font-bold text-slate-700 truncate text-sm">
+                      <h4 className="font-bold text-foreground truncate text-sm">
                         {idx + 1}. {item.product.name}
                       </h4>
                       <button
                         onClick={() => removeFromQueue(item.id)}
                         aria-label="ลบรายการ"
-                        className="text-slate-300 hover:text-rose-500 transition-colors p-1 -mr-1"
+                        className="text-muted-foreground hover:text-rose-500 transition-colors p-1 -mr-1"
                       >
                         <Trash2 size={14} />
                       </button>
                     </div>
-                    <div className="text-xs text-slate-500 font-mono mt-1">
+                    <div className="text-xs text-muted-foreground font-mono mt-1">
                       {item.location.code}
                     </div>
                     {lotSchema.length > 0 && Object.keys(item.attributes).length > 0 && (
@@ -305,7 +305,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
                           return value ? (
                             <span
                               key={field.key}
-                              className="bg-slate-100 text-slate-500 text-xs px-1.5 py-0.5 rounded border border-slate-200"
+                              className="bg-muted text-muted-foreground text-xs px-1.5 py-0.5 rounded border border-border"
                             >
                               {field.label}: {value}
                             </span>
@@ -323,7 +323,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
           </div>
 
           <div className="mt-4 space-y-3">
-            <div className="flex justify-between items-center text-sm font-bold text-slate-600">
+            <div className="flex justify-between items-center text-sm font-bold text-muted-foreground">
               <span>จำนวนรายการ:</span>
               <span className="text-lg text-emerald-600">{queue.length}</span>
             </div>
@@ -331,7 +331,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
               <button
                 onClick={() => setQueue([])}
                 disabled={queue.length === 0}
-                className="flex-1 py-3 border border-slate-200 rounded-xl bg-white font-bold text-sm disabled:opacity-50"
+                className="flex-1 py-3 border border-border rounded-xl bg-card font-bold text-sm text-foreground disabled:opacity-50"
               >
                 ล้างทั้งหมด
               </button>
@@ -360,12 +360,12 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
         details={
           <div className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-500">จำนวนรายการ</span>
-              <span className="font-medium text-slate-900">{queue.length} รายการ</span>
+              <span className="text-muted-foreground">จำนวนรายการ</span>
+              <span className="font-medium text-foreground">{queue.length} รายการ</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">ประเภท</span>
-              <span className="font-medium text-slate-900">รับเข้า (Inbound)</span>
+              <span className="text-muted-foreground">ประเภท</span>
+              <span className="font-medium text-foreground">รับเข้า (Inbound)</span>
             </div>
           </div>
         }

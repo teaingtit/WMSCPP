@@ -45,15 +45,18 @@ export default async function WarehouseLayout({
   }
 
   // Security Check (กัน Staff แอบเข้าคลังอื่น)
+  // allowed_warehouses may store UUID or code; URL param may be either
   if (user.role !== 'admin') {
-    const hasAccess = user.allowed_warehouses.includes(warehouseId);
+    const hasAccess =
+      user.allowed_warehouses.includes(warehouse.id) ||
+      user.allowed_warehouses.includes(warehouse.code);
     if (!hasAccess) {
       redirect('/dashboard');
     }
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 text-slate-900">
+    <div className="flex flex-col h-full bg-background text-foreground">
       <WarehouseHeader warehouse={warehouse} user={user} />
       <div className="flex-1 p-4 sm:p-6 overflow-auto">{children}</div>
     </div>

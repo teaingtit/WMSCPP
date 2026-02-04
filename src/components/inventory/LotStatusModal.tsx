@@ -97,7 +97,7 @@ export default function LotStatusModal({
       role="dialog"
       aria-modal="true"
     >
-      <div className="bg-white w-full max-w-md max-h-dvh-90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-md max-h-dvh-90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
         {/* Header */}
         <div className="relative bg-gradient-to-br from-cyan-600 to-cyan-700 p-5 text-white shrink-0">
           <button
@@ -128,8 +128,8 @@ export default function LotStatusModal({
             <>
               {/* Current Status */}
               {currentStatus?.status && (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                     Current Status
                   </div>
                   <div className="flex items-center justify-between">
@@ -157,10 +157,12 @@ export default function LotStatusModal({
                   {currentStatus?.status ? 'Change to' : 'Apply Status'}
                 </label>
                 {statusDefinitions.length === 0 ? (
-                  <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    <MapPin size={32} className="mx-auto text-slate-300 mb-2" />
-                    <p className="text-sm text-slate-500">No location status types defined</p>
-                    <p className="text-xs text-slate-500 mt-1">
+                  <div className="text-center py-8 bg-slate-50 dark:bg-slate-800 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                    <MapPin size={32} className="mx-auto text-slate-300 dark:text-slate-600 mb-2" />
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      No location status types defined
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Create location statuses in Settings → Status
                     </p>
                   </div>
@@ -180,10 +182,10 @@ export default function LotStatusModal({
                           disabled={isCurrent}
                           className={`p-3 rounded-xl border-2 text-left transition-all w-full min-w-0 overflow-hidden ${
                             isSelected
-                              ? 'border-cyan-500 ring-2 ring-cyan-200'
+                              ? 'border-cyan-500 ring-2 ring-cyan-200 dark:ring-cyan-900'
                               : isCurrent
-                              ? 'border-slate-200 opacity-50 cursor-not-allowed'
-                              : 'border-slate-200 hover:border-slate-300'
+                              ? 'border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed'
+                              : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                           }`}
                           style={isSelected ? createStatusStyle(status) : undefined}
                         >
@@ -219,7 +221,7 @@ export default function LotStatusModal({
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     placeholder="e.g., Quality inspection required..."
-                    className="w-full p-3 border border-slate-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                    className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm resize-none focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-900 focus:border-cyan-400 outline-none bg-white dark:bg-slate-950 dark:text-white"
                     rows={2}
                   />
                 </div>
@@ -263,10 +265,10 @@ export default function LotStatusModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 p-4 bg-slate-50 flex gap-3 shrink-0">
+        <div className="border-t border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-900/50 flex gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 active:scale-[0.98] transition-all"
+            className="flex-1 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 active:scale-[0.98] transition-all"
           >
             Cancel
           </button>

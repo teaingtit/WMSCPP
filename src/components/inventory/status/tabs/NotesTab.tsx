@@ -29,24 +29,24 @@ export default function NotesTab({
   return (
     <div className="space-y-5">
       {/* Add Note Form */}
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+      <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
           เพิ่มบันทึกใหม่
         </label>
         <textarea
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
           placeholder="เพิ่มบันทึกเกี่ยวกับสินค้านี้... (เช่น ข้อควรระวัง, รายงานความเสียหาย, หรือเงื่อนไขพิเศษ)"
-          className="w-full p-3 border border-slate-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none bg-white"
+          className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900 focus:border-indigo-400 outline-none bg-white dark:bg-slate-900 dark:text-white"
           rows={3}
         />
         <div className="flex items-center justify-between mt-3">
-          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
             <input
               type="checkbox"
               checked={newNotePinned}
               onChange={(e) => setNewNotePinned(e.target.checked)}
-              className="rounded border-slate-300"
+              className="rounded border-slate-300 dark:border-slate-600 dark:bg-slate-700"
             />
             <Pin size={14} />
             ปักหมุดบันทึกนี้
@@ -74,18 +74,22 @@ export default function NotesTab({
             <div
               key={note.id}
               className={`p-4 rounded-xl border ${
-                note.is_pinned ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'
+                note.is_pinned
+                  ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   {note.is_pinned && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full mb-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full mb-2">
                       <Pin size={10} /> ปักหมุด
                     </span>
                   )}
-                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.content}</p>
-                  <div className="mt-2 text-xs text-slate-500">
+                  <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">
+                    {note.content}
+                  </p>
+                  <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                     {new Date(note.created_at).toLocaleString('th-TH')} •{' '}
                     {note.created_by_user?.email || 'Unknown'}
                   </div>
@@ -93,14 +97,14 @@ export default function NotesTab({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleTogglePin(note.id, note.is_pinned)}
-                    className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                    className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-all"
                     title={note.is_pinned ? 'เลิกปักหมุด' : 'ปักหมุด'}
                   >
                     {note.is_pinned ? <PinOff size={16} /> : <Pin size={16} />}
                   </button>
                   <button
                     onClick={() => handleDeleteNote(note.id)}
-                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                     title="ลบ"
                   >
                     <Trash2 size={16} />

@@ -9,8 +9,12 @@ const nextConfig = {
   },
   // ปิด x-powered-by header เพื่อความปลอดภัยเล็กน้อย
   poweredByHeader: false,
-  // Standalone output สำหรับ Docker deployment
-  output: 'standalone',
+  // Standalone output สำหรับ Docker deployment (ปิดบน Windows เพื่อหลีกเลี่ยง EINVAL จาก path ที่มี [brackets])
+  ...(process.platform !== 'win32' && { output: 'standalone' }),
+  // Scroll Restoration - เก็บ scroll position เมื่อ navigate back
+  experimental: {
+    scrollRestoration: true,
+  },
   // จัดการ Image Optimization (ถ้าจำเป็นในอนาคต)
   images: {
     remotePatterns: [

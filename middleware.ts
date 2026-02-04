@@ -49,6 +49,21 @@ export async function middleware(request: NextRequest) {
 
     // Handle stale refresh token (getUser returns error in response, not thrown)
     if (error?.code === 'refresh_token_not_found' || error?.message?.includes('refresh_token')) {
+      const isLogin = request.nextUrl.pathname === '/login';
+
+      // If we are already on the login page, don't redirect, just clear cookies on the existing response
+      if (isLogin) {
+        const newResponse = NextResponse.next({
+          request: {
+            headers: request.headers,
+          },
+        });
+        request.cookies.getAll().forEach(({ name }) => {
+          if (name.startsWith('sb-')) newResponse.cookies.delete(name);
+        });
+        return newResponse;
+      }
+
       const resp = NextResponse.redirect(new URL('/login?error=session', request.url));
       request.cookies.getAll().forEach(({ name }) => {
         if (name.startsWith('sb-')) resp.cookies.delete(name);

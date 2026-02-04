@@ -82,17 +82,17 @@ function AuditItemCard({
       className={`group transition-all duration-300 border rounded-2xl p-5 shadow-sm hover:shadow-md ${
         isCounted
           ? 'bg-emerald-50/50 border-emerald-200 ring-1 ring-emerald-100'
-          : 'bg-white border-slate-200 hover:border-blue-200'
+          : 'bg-card border-border hover:border-blue-200 dark:hover:border-blue-700'
       }`}
     >
       <div className="flex justify-between items-start mb-3">
         <div className="space-y-1">
-          <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
+          <div className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-muted text-foreground">
             <MapPin className="w-3 h-3 mr-1" />
             {item.location?.code}
           </div>
-          <h4 className="font-semibold text-slate-900 leading-tight">{item.product?.name}</h4>
-          <div className="flex items-center text-xs text-slate-500 font-mono">
+          <h4 className="font-semibold text-foreground leading-tight">{item.product?.name}</h4>
+          <div className="flex items-center text-xs text-muted-foreground font-mono">
             <Box className="w-3 h-3 mr-1" />
             {item.product?.sku}
           </div>
@@ -100,17 +100,17 @@ function AuditItemCard({
       </div>
       <div className="grid grid-cols-2 gap-3 items-end">
         <div className="space-y-1.5">
-          <label className="text-xs uppercase tracking-wider font-semibold text-slate-500">
+          <label className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
             System
           </label>
-          <div className="font-mono font-bold text-lg h-12 flex items-center justify-center bg-slate-100 rounded-lg text-slate-500">
+          <div className="font-mono font-bold text-lg h-12 flex items-center justify-center bg-muted rounded-lg text-muted-foreground">
             {item.system_qty}
           </div>
         </div>
         <div className="space-y-1.5">
           <label
             className={`text-xs uppercase tracking-wider font-semibold ${
-              isCounted ? 'text-emerald-600' : 'text-slate-100'
+              isCounted ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
             }`}
           >
             Counted
@@ -129,7 +129,7 @@ function AuditItemCard({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSave();
                 }}
-                className="text-center font-bold text-lg h-12 bg-white border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all"
+                className="text-center font-bold text-lg h-12 bg-card border-border text-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl transition-all"
                 placeholder="0"
                 disabled={isSaving}
                 autoFocus
@@ -149,13 +149,13 @@ function AuditItemCard({
             </div>
           ) : (
             <div className="flex gap-2 items-center">
-              <div className="flex-1 font-mono font-bold text-lg h-12 flex items-center justify-center bg-white border-2 border-emerald-500/20 rounded-xl text-emerald-600 shadow-sm">
+              <div className="flex-1 font-mono font-bold text-lg h-12 flex items-center justify-center bg-card border-2 border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 shadow-sm">
                 {savedQty}
               </div>
               <button
                 onClick={() => setIsEditing(true)}
                 data-testid={`edit-qty-btn-${item.id}`}
-                className="h-12 w-12 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                className="h-12 w-12 flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-xl transition-colors active:scale-95"
                 aria-label="แก้ไข"
               >
                 <Pencil className="w-5 h-5" />
@@ -221,7 +221,9 @@ export default function CountingInterface({
 
   if (localItems.length === 0) {
     return (
-      <div className="text-center text-slate-500 p-8">No items found for this audit session.</div>
+      <div className="text-center text-muted-foreground p-8">
+        No items found for this audit session.
+      </div>
     );
   }
   const totalItems = localItems.length;
@@ -230,19 +232,19 @@ export default function CountingInterface({
   return (
     <div className="space-y-4 pb-20 animate-in fade-in duration-500">
       {/* Sticky Header for Mobile/Tablet */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b shadow-sm -mx-4 px-4 py-4 sm:mx-0 sm:rounded-2xl sm:border sm:top-4 transition-all landscape-compact">
+      <div className="sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b border-border shadow-sm -mx-4 px-4 py-4 sm:mx-0 sm:rounded-2xl sm:border sm:top-4 transition-all landscape-compact">
         <div className="space-y-3 landscape-reduce-spacing">
           <div className="flex justify-between items-center">
-            <div className="text-xs font-medium text-slate-600">
+            <div className="text-xs font-medium text-muted-foreground">
               Progress:{' '}
-              <span className="text-slate-900 font-bold">{Math.round(progressPercent)}%</span> (
+              <span className="text-foreground font-bold">{Math.round(progressPercent)}%</span> (
               {countedItems}/{totalItems})
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={onDashboardClick}
-              className="h-8 text-xs rounded-lg hover:bg-slate-50"
+              className="h-8 text-xs rounded-lg hover:bg-accent"
             >
               <BarChart3 className="w-3 h-3 mr-2" />
               Dashboard
@@ -251,18 +253,18 @@ export default function CountingInterface({
           <Progress
             value={progressPercent}
             data-testid="progress-bar"
-            className="h-2 [&>div]:bg-emerald-500 bg-slate-100"
+            className="h-2 [&>div]:bg-emerald-500 bg-muted"
           />
 
           <div className="flex flex-col sm:flex-row gap-3 pt-1">
             <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 name="searchItems"
                 placeholder="ค้นหา SKU, ชื่อสินค้า, Location..."
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="pl-9 bg-slate-50 border-slate-200 focus:bg-white rounded-xl h-10"
+                className="pl-9 bg-muted border-border focus:bg-card rounded-xl h-10"
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 items-center">
@@ -270,8 +272,8 @@ export default function CountingInterface({
                 onClick={() => setSelectedZone('ALL')}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   selectedZone === 'ALL'
-                    ? 'bg-slate-800 text-white shadow-md'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-primary text-primary-foreground shadow-md'
+                    : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
               >
                 All Zones
@@ -283,7 +285,7 @@ export default function CountingInterface({
                   className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                     selectedZone === zone
                       ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      : 'bg-muted text-muted-foreground hover:bg-accent'
                   }`}
                 >
                   {zone}
@@ -299,7 +301,7 @@ export default function CountingInterface({
           <AuditItemCard key={item.id} item={item} onUpdate={handleItemUpdate} />
         ))}
         {filteredItems.length === 0 && (
-          <div className="col-span-full py-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <div className="col-span-full py-12 text-center text-muted-foreground bg-muted rounded-xl border border-dashed border-border">
             <Search className="w-10 h-10 mx-auto mb-3 opacity-20" />
             <p>ไม่พบรายการสินค้าที่ค้นหา</p>
           </div>

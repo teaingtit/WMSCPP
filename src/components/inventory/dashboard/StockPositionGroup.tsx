@@ -27,39 +27,43 @@ const getLevelStyles = (level: string) => {
   // Level A / 1 -> Red (Rose)
   if (['A', '1'].includes(char)) {
     return {
-      text: 'text-rose-700',
-      icon: 'text-rose-500',
-      hoverBg: 'hover:bg-rose-50',
-      badge: 'bg-rose-100 text-rose-700 border border-rose-200',
+      text: 'text-rose-700 dark:text-rose-300',
+      icon: 'text-rose-500 dark:text-rose-400',
+      hoverBg: 'hover:bg-rose-50 dark:hover:bg-rose-900/20',
+      badge:
+        'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800',
     };
   }
 
   // Level B / 2 -> Blue
   if (['B', '2'].includes(char)) {
     return {
-      text: 'text-blue-700',
-      icon: 'text-blue-500',
-      hoverBg: 'hover:bg-blue-50',
-      badge: 'bg-blue-100 text-blue-700 border border-blue-200',
+      text: 'text-blue-700 dark:text-blue-300',
+      icon: 'text-blue-500 dark:text-blue-400',
+      hoverBg: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
+      badge:
+        'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
     };
   }
 
   // Level C / 3 -> Green (Emerald)
   if (['C', '3'].includes(char)) {
     return {
-      text: 'text-emerald-700',
-      icon: 'text-emerald-500',
-      hoverBg: 'hover:bg-emerald-50',
-      badge: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+      text: 'text-emerald-700 dark:text-emerald-300',
+      icon: 'text-emerald-500 dark:text-emerald-400',
+      hoverBg: 'hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
+      badge:
+        'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800',
     };
   }
 
   // Default -> Slate / Indigo
   return {
-    text: 'text-slate-600',
-    icon: 'text-indigo-400',
-    hoverBg: 'hover:bg-slate-50',
-    badge: 'bg-slate-50 text-slate-500 border border-slate-200',
+    text: 'text-slate-600 dark:text-slate-300',
+    icon: 'text-indigo-400 dark:text-indigo-400',
+    hoverBg: 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
+    badge:
+      'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700',
   };
 };
 
@@ -104,17 +108,17 @@ export const StockPositionGroup = React.memo(function StockPositionGroup({
   };
 
   return (
-    <div className="p-4 bg-white border-b border-slate-100 last:border-none">
+    <div className="p-4 bg-white dark:bg-transparent border-b border-slate-100 dark:border-slate-700 last:border-none">
       {/* Header ของ Position */}
       <div className="flex items-center gap-3 mb-4">
         <div className="p-1 -m-1">
           <InventoryCheckbox checked={isPosSelected} onClick={() => onTogglePos(lot, pos)} />
         </div>
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-lg">
-          <Grid3X3 size={16} className="text-indigo-500" />
-          <span className="font-bold text-indigo-700">{pos}</span>
+        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 px-3 py-1.5 rounded-lg">
+          <Grid3X3 size={16} className="text-indigo-500 dark:text-indigo-400" />
+          <span className="font-bold text-indigo-700 dark:text-indigo-300">{pos}</span>
         </div>
-        <span className="text-xs text-slate-500">({items.length} items)</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">({items.length} items)</span>
       </div>
 
       {/* Loop แสดง Level */}
@@ -153,7 +157,7 @@ export const StockPositionGroup = React.memo(function StockPositionGroup({
                   Level {lvl}
                 </span>
 
-                <div className="flex-1 h-px bg-slate-100 group-hover:bg-slate-200 transition-colors mx-2"></div>
+                <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors mx-2"></div>
 
                 <span
                   className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-sm ${styles.badge}`}

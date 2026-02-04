@@ -73,7 +73,7 @@ export const BulkOutboundModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-dvh-90 flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-rose-600">
+          <DialogTitle className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
             <Truck size={20} />
             ยืนยันการเบิกจ่ายสินค้า (Outbound)
           </DialogTitle>
@@ -81,12 +81,12 @@ export const BulkOutboundModal = ({
 
         <div className="flex-1 overflow-y-auto pr-2 space-y-6 py-2">
           {/* Note Section */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-            <label className="text-xs font-bold text-slate-500 mb-2 block">
+          <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 block">
               หมายเหตุ / เลขที่ใบเบิก / Reference
             </label>
             <textarea
-              className="w-full p-3 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-rose-500/20 outline-none"
+              className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-rose-500/20 dark:focus:ring-rose-400/20 outline-none dark:text-slate-200 dark:placeholder:text-slate-500"
               rows={3}
               placeholder="ระบุสาเหตุการเบิกจ่าย หรือหมายเลขอ้างอิง..."
               value={note}
@@ -96,7 +96,7 @@ export const BulkOutboundModal = ({
 
           {/* Items List */}
           <div>
-            <h4 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
               <Package size={16} /> รายการสินค้า ({items.length})
             </h4>
             <StockQuantityList
@@ -107,7 +107,7 @@ export const BulkOutboundModal = ({
           </div>
         </div>
 
-        <DialogFooter className="mt-4 pt-4 border-t border-slate-100">
+        <DialogFooter className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             ยกเลิก
           </Button>

@@ -56,8 +56,8 @@ export default async function DashboardPage() {
             <Building2 className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-white">คลังสินค้าของคุณ</h2>
-            <p className="text-sm text-slate-500">{warehouses.length} คลังสินค้า</p>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground">คลังสินค้าของคุณ</h2>
+            <p className="text-sm text-muted-foreground">{warehouses.length} คลังสินค้า</p>
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
                 <Building2 size={24} />
               </div>
               {wh.is_active && (
-                <span className="flex items-center gap-1.5 text-[11px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-500/20">
+                <span className="flex items-center gap-1.5 text-xs font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-500/20">
                   <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                   ออนไลน์
                 </span>

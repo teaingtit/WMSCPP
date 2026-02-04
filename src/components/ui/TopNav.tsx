@@ -55,8 +55,8 @@ function NavDropdown({
         className={cn(
           'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
           isActive || isOpen
-            ? 'bg-white/10 text-white shadow-sm'
-            : 'text-slate-300 hover:bg-white/5 hover:text-white',
+            ? 'bg-primary/10 text-foreground shadow-sm'
+            : 'text-muted-foreground hover:bg-accent hover:text-foreground',
         )}
       >
         <Icon size={18} />
@@ -68,7 +68,7 @@ function NavDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-64 glass-dark rounded-2xl shadow-2xl p-2 z-50 animate-scale-in">
+        <div className="absolute top-full left-0 mt-2 w-64 bg-card border border-border rounded-2xl shadow-2xl p-2 z-50 animate-scale-in">
           <div className="space-y-1">{children}</div>
         </div>
       )}
@@ -100,8 +100,8 @@ export default function TopNav() {
         className={cn(
           'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
           isActive
-            ? 'bg-primary/20 text-white'
-            : 'text-slate-300 hover:bg-white/5 hover:text-white',
+            ? 'bg-primary/20 text-primary-foreground'
+            : 'text-muted-foreground hover:bg-accent hover:text-foreground',
         )}
       >
         <item.icon size={16} />
@@ -111,23 +111,23 @@ export default function TopNav() {
   };
 
   return (
-    <header className="glass-dark hidden md:flex items-center justify-between px-6 py-3 sticky top-0 z-40">
+    <header className="bg-card/95 backdrop-blur-xl border-b border-border hidden md:flex items-center justify-between px-6 py-3 sticky top-0 z-40 shadow-sm">
       {/* Left: Brand & Main Nav */}
       <div className="flex items-center gap-10">
         {/* Brand */}
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <div className="relative">
             <div className="bg-gradient-to-br from-primary to-blue-600 p-2.5 rounded-xl shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-all duration-300 group-hover:scale-105">
-              <Package size={22} className="text-white" />
+              <Package size={22} className="text-primary-foreground" />
             </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full border-2 border-slate-900 animate-pulse" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full border-2 border-card animate-pulse" />
           </div>
           <div>
-            <h1 className="font-bold text-white text-lg tracking-tight leading-none flex items-center gap-2">
+            <h1 className="font-bold text-foreground text-lg tracking-tight leading-none flex items-center gap-2">
               {APP_CONFIG.name}
               <Sparkles size={14} className="text-primary" />
             </h1>
-            <span className="text-xs text-slate-500 font-medium">v{APP_CONFIG.version}</span>
+            <span className="text-xs text-muted-foreground font-medium">v{APP_CONFIG.version}</span>
           </div>
         </Link>
 
@@ -139,8 +139,8 @@ export default function TopNav() {
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
               pathname === '/dashboard'
-                ? 'bg-white/10 text-white shadow-sm'
-                : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                ? 'bg-primary/10 text-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground',
             )}
           >
             <LayoutGrid size={18} />
@@ -154,8 +154,8 @@ export default function TopNav() {
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 pathname.includes('/audit')
-                  ? 'bg-white/10 text-white shadow-sm'
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                  ? 'bg-primary/10 text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
               )}
             >
               <ClipboardList size={18} />
@@ -170,8 +170,8 @@ export default function TopNav() {
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 pathname.includes('/transfer')
-                  ? 'bg-white/10 text-white shadow-sm'
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                  ? 'bg-primary/10 text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
               )}
             >
               <ArrowLeftRight size={18} />
@@ -210,8 +210,8 @@ export default function TopNav() {
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200',
                 pathname.includes('/settings')
-                  ? 'bg-white/10 text-white shadow-sm'
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                  ? 'bg-primary/10 text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground',
               )}
             >
               <Settings size={18} />
@@ -229,20 +229,22 @@ export default function TopNav() {
         {/* Keyboard Shortcuts Help */}
         <button
           onClick={showHelp}
-          className="p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-200 active:scale-95"
+          className="p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 active:scale-95"
           title="คีย์ลัด (กด ?)"
         >
           <Keyboard size={20} />
         </button>
 
         {user && (
-          <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+          <div className="flex items-center gap-3 pl-4 border-l border-border">
             <div className="text-right hidden xl:block">
-              <div className="text-sm font-semibold text-white">{user.email.split('@')[0]}</div>
+              <div className="text-sm font-semibold text-foreground">
+                {user.email.split('@')[0]}
+              </div>
               <div
                 className={cn(
                   'text-xs font-bold uppercase tracking-wide',
-                  isAdmin ? 'text-primary' : 'text-emerald-400',
+                  isAdmin ? 'text-primary' : 'text-emerald-500 dark:text-emerald-400',
                 )}
               >
                 {user.role}
@@ -252,7 +254,7 @@ export default function TopNav() {
               className={cn(
                 'w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105',
                 isAdmin
-                  ? 'bg-gradient-to-br from-primary to-blue-600 text-white'
+                  ? 'bg-gradient-to-br from-primary to-blue-600 text-primary-foreground'
                   : 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white',
               )}
             >
@@ -264,7 +266,7 @@ export default function TopNav() {
         <form action={logout}>
           <button
             type="submit"
-            className="p-2.5 text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all duration-200 active:scale-95"
+            className="p-2.5 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all duration-200 active:scale-95"
             title="Sign Out"
           >
             <LogOut size={20} />

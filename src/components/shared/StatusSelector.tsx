@@ -43,7 +43,7 @@ export function StatusBadge({
   if (!status) {
     return (
       <span
-        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs ${className}`}
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs ${className}`}
       >
         <Tag size={10} />
         ไม่มีสถานะ
@@ -178,18 +178,18 @@ export function StatusSelector({
           <button
             className="flex items-center gap-1.5 p-2 min-h-[44px] rounded-lg
                            transition-colors touch-manipulation
-                           hover:bg-slate-100 active:bg-slate-200
+                           hover:bg-accent active:bg-accent
                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             {currentStatus?.status ? (
               <StatusBadge status={currentStatus.status} size="sm" />
             ) : (
-              <span className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5">
                 <Tag size={14} />
                 ตั้งสถานะ
               </span>
             )}
-            <ChevronDown size={14} className="text-slate-500" />
+            <ChevronDown size={14} className="text-muted-foreground" />
           </button>
         ) : (
           <Button variant="outline" size="sm" className="gap-2">
@@ -222,21 +222,21 @@ export function StatusSelector({
             <input type="hidden" name="entity_id" value={entityId} />
             <input type="hidden" name="status_id" value={selectedStatus.id} />
 
-            <div className="p-4 bg-slate-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">เปลี่ยนเป็น:</span>
+                <span className="text-sm text-muted-foreground">เปลี่ยนเป็น:</span>
                 <StatusBadge status={selectedStatus} showEffect />
               </div>
               {currentStatus?.status && (
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
-                  <span className="text-sm text-slate-500">จาก:</span>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+                  <span className="text-sm text-muted-foreground">จาก:</span>
                   <StatusBadge status={currentStatus.status} size="sm" />
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 เหตุผลการเปลี่ยน
               </label>
               <Input
@@ -248,7 +248,7 @@ export function StatusSelector({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
                 หมายเหตุเพิ่มเติม
               </label>
               <Input
@@ -277,10 +277,10 @@ export function StatusSelector({
           <div className="space-y-3">
             {/* Current Status Display */}
             {currentStatus?.status && (
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="p-3 bg-muted rounded-lg border border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs text-slate-500 block mb-1">สถานะปัจจุบัน</span>
+                    <span className="text-xs text-muted-foreground block mb-1">สถานะปัจจุบัน</span>
                     <StatusBadge status={currentStatus.status} showEffect />
                   </div>
                   <form action={removeAction}>
@@ -298,7 +298,7 @@ export function StatusSelector({
                   </form>
                 </div>
                 {currentStatus.notes && (
-                  <p className="text-xs text-slate-500 mt-2 italic">{currentStatus.notes}</p>
+                  <p className="text-xs text-muted-foreground mt-2 italic">{currentStatus.notes}</p>
                 )}
               </div>
             )}
@@ -324,8 +324,8 @@ export function StatusSelector({
                                   touch-manipulation active:scale-[0.98]
                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                                     isCurrentStatus
-                                      ? 'border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed'
-                                      : 'border-slate-200 hover:border-amber-300 hover:bg-amber-50 active:bg-amber-100'
+                                      ? 'border-border bg-muted opacity-50 cursor-not-allowed'
+                                      : 'border-border hover:border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30 active:bg-amber-100 dark:active:bg-amber-900/30'
                                   }`}
                       style={
                         {
@@ -348,7 +348,7 @@ export function StatusSelector({
                               } as React.CSSProperties
                             }
                           />
-                          <span className="font-semibold text-slate-800">{status.name}</span>
+                          <span className="font-semibold text-foreground">{status.name}</span>
                           {isCurrentStatus && <Check size={16} className="text-green-600" />}
                         </div>
                         <span
@@ -360,7 +360,9 @@ export function StatusSelector({
                         </span>
                       </div>
                       {status.description && (
-                        <p className="text-sm text-slate-600 mt-1.5 ml-6">{status.description}</p>
+                        <p className="text-sm text-muted-foreground mt-1.5 ml-6">
+                          {status.description}
+                        </p>
                       )}
                     </button>
                   );
@@ -381,11 +383,17 @@ interface StatusHistoryButtonProps {
 
 /**
  * Button to view status change history
+ * @remarks Status history feature is pending implementation
  */
 export function StatusHistoryButton(_props: StatusHistoryButtonProps) {
-  // TODO: Implement status history modal
   return (
-    <Button variant="ghost" size="sm" className="gap-1 text-slate-500">
+    <Button
+      variant="ghost"
+      size="sm"
+      className="gap-1 text-muted-foreground"
+      disabled
+      title="คุณสมบัตินี้ยังไม่พร้อมใช้งาน"
+    >
       <History size={14} />
       ประวัติ
     </Button>

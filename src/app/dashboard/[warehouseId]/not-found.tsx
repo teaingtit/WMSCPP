@@ -10,13 +10,13 @@ export default function WarehouseNotFound() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
-      <div className="bg-white/5 p-8 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 max-w-md w-full">
-        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+      <div className="bg-card/50 p-8 rounded-3xl border border-dashed border-border max-w-md w-full">
+        <div className="w-16 h-16 bg-muted text-muted-foreground rounded-2xl flex items-center justify-center mx-auto mb-6">
           <FileQuestion size={32} />
         </div>
 
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Section Not Found</h2>
-        <p className="text-slate-500 dark:text-slate-500 mb-8 text-sm">
+        <h2 className="text-xl font-bold text-foreground mb-2">Section Not Found</h2>
+        <p className="text-muted-foreground mb-8 text-sm">
           This section of the warehouse does not exist.
         </p>
 

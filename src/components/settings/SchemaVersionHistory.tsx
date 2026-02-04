@@ -94,7 +94,7 @@ export default function SchemaVersionHistory({
 
   if (versions.length === 0) {
     return (
-      <div className="text-center p-8 text-slate-500">
+      <div className="text-center p-8 text-muted-foreground">
         <FileText size={48} className="mx-auto mb-4 opacity-50" />
         <p>ยังไม่มีประวัติการเปลี่ยนแปลง Schema</p>
       </div>
@@ -136,7 +136,7 @@ export default function SchemaVersionHistory({
                 <div className="flex items-center gap-3">
                   <div
                     className={`px-3 py-1 rounded-lg font-bold text-sm ${
-                      isCurrent ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+                      isCurrent ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     v{version.version}
@@ -170,7 +170,7 @@ export default function SchemaVersionHistory({
 
               {/* Metadata */}
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-slate-600">
+                <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock size={14} />
                   <span>
                     {formatDistanceToNow(new Date(version.created_at), {
@@ -178,28 +178,28 @@ export default function SchemaVersionHistory({
                       locale: th,
                     })}
                   </span>
-                  <span className="text-slate-500">
+                  <span className="text-muted-foreground">
                     ({new Date(version.created_at).toLocaleString('th-TH')})
                   </span>
                 </div>
 
                 {version.created_by && (
-                  <div className="flex items-center gap-2 text-slate-600">
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <User size={14} />
-                    <span>User ID: {version.created_by.substring(0, 8)}...</span>
+                    <span>ผู้แก้ไข</span>
                   </div>
                 )}
 
                 {version.change_notes && (
-                  <div className="bg-slate-50 p-2 rounded border border-slate-200 text-slate-700">
+                  <div className="bg-muted p-2 rounded border border-border text-foreground">
                     <strong>หมายเหตุ:</strong> {version.change_notes}
                   </div>
                 )}
               </div>
 
               {/* Schema Summary */}
-              <div className="mt-3 pt-3 border-t border-slate-200">
-                <div className="text-xs text-slate-500">
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="text-xs text-muted-foreground">
                   จำนวนฟิลด์: {version.schema.length} ฟิลด์
                   {version.schema.length > 0 && (
                     <span className="ml-2">

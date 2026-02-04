@@ -40,7 +40,7 @@ export default function LoginForm() {
       <div>
         <label
           htmlFor="email"
-          className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider"
+          className="block text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider"
         >
           อีเมล (Email)
         </label>
@@ -50,7 +50,7 @@ export default function LoginForm() {
           type="email"
           required
           placeholder="admin@wms.com"
-          className="bg-slate-50 border-slate-200 font-medium text-slate-800"
+          className="bg-muted border-border font-medium text-foreground"
           errorMessage={getError('email')}
         />
       </div>
@@ -58,7 +58,7 @@ export default function LoginForm() {
       <div>
         <label
           htmlFor="password"
-          className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider"
+          className="block text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider"
         >
           รหัสผ่าน (Password)
         </label>
@@ -68,14 +68,14 @@ export default function LoginForm() {
           type="password"
           required
           placeholder="••••••••"
-          className="bg-slate-50 border-slate-200 font-medium text-slate-800"
+          className="bg-muted border-border font-medium text-foreground"
           errorMessage={getError('password')}
         />
       </div>
 
       <SubmitButton />
 
-      <p className="text-xs text-center text-slate-500 mt-4">
+      <p className="text-xs text-center text-muted-foreground mt-4">
         (ยังไม่มีบัญชี? กรุณาติดต่อ Admin เพื่อสร้าง User ใน Supabase)
       </p>
     </form>

@@ -68,7 +68,7 @@ export default function TransactionConfirmModal({
       aria-modal="true"
       aria-labelledby="transaction-confirm-modal-title"
     >
-      <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+      <div className="bg-card w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-border">
         {/* Header */}
         <div className={`${theme.bg} p-6 text-white flex justify-between items-start`}>
           <div className="flex gap-3">
@@ -115,12 +115,12 @@ export default function TransactionConfirmModal({
               <button
                 onClick={onSaveAndContinue}
                 disabled={isLoading}
-                className="w-full py-4 bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                className="w-full py-4 bg-card border-2 border-border text-foreground hover:bg-muted hover:border-border rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               >
                 {isLoading ? (
-                  <Loader2 className="animate-spin text-slate-500" />
+                  <Loader2 className="animate-spin text-muted-foreground" />
                 ) : (
-                  <Save className="text-slate-500" />
+                  <Save className="text-muted-foreground" />
                 )}
                 <span>บันทึกและทำรายการต่อ</span>
               </button>

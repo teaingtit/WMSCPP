@@ -28,7 +28,7 @@ function ReportsTabContent({ warehouses }: { warehouses: Warehouse[] }) {
   if (warehouses.length === 0) {
     return (
       <div className="flex items-center gap-3 mb-6 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
-        <p className="text-slate-600">ไม่มีคลังสินค้า กรุณาสร้างคลังก่อน</p>
+        <p className="text-muted-foreground">ไม่มีคลังสินค้า กรุณาสร้างคลังก่อน</p>
       </div>
     );
   }
@@ -40,14 +40,14 @@ function ReportsTabContent({ warehouses }: { warehouses: Warehouse[] }) {
           <Calendar size={20} />
         </div>
         <div className="flex-1">
-          <h2 className="text-lg font-bold text-slate-800">รายงานอัตโนมัติ</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-lg font-bold text-foreground">รายงานอัตโนมัติ</h2>
+          <p className="text-sm text-muted-foreground">
             ตั้งค่าการส่งรายงานทางอีเมลตามกำหนด (สรุปสินค้าคงคลัง, สรุปการเคลื่อนไหว)
           </p>
         </div>
         <label
           htmlFor="reports-warehouse"
-          className="flex items-center gap-2 text-sm font-medium text-slate-700"
+          className="flex items-center gap-2 text-sm font-medium text-foreground"
         >
           <span>คลัง:</span>
           <select
@@ -55,7 +55,7 @@ function ReportsTabContent({ warehouses }: { warehouses: Warehouse[] }) {
             aria-label="เลือกคลังสินค้า"
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="rounded-lg border border-border bg-card text-foreground px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             {warehouses.map((w) => (
               <option key={w.id} value={w.id}>
@@ -90,10 +90,10 @@ export function SettingsTabs({
   return (
     <Tabs defaultValue="users" className="w-full space-y-6">
       <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
-        <TabsList className="h-auto p-1 bg-slate-100/80 backdrop-blur rounded-xl border border-slate-200 inline-flex min-w-full md:min-w-fit justify-start md:justify-center gap-1">
+        <TabsList className="h-auto p-1 bg-muted/80 backdrop-blur rounded-xl border border-border inline-flex min-w-full md:min-w-fit justify-start md:justify-center gap-1">
           <TabsTrigger
             value="users"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-card data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-sm transition-all"
           >
             <Users size={16} />
             <span>User Management</span>
@@ -101,7 +101,7 @@ export function SettingsTabs({
 
           <TabsTrigger
             value="products"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-card data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-sm transition-all"
           >
             <Tags size={16} />
             <span>Product Master</span>
@@ -109,7 +109,7 @@ export function SettingsTabs({
 
           <TabsTrigger
             value="warehouses"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-card data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm transition-all"
           >
             <Boxes size={16} />
             <span>Warehouses</span>
@@ -117,7 +117,7 @@ export function SettingsTabs({
 
           <TabsTrigger
             value="statuses"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-card data-[state=active]:text-amber-600 dark:data-[state=active]:text-amber-400 data-[state=active]:shadow-sm transition-all"
           >
             <Palette size={16} />
             <span>Status Design</span>
@@ -125,7 +125,7 @@ export function SettingsTabs({
 
           <TabsTrigger
             value="reports"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg data-[state=active]:bg-card data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400 data-[state=active]:shadow-sm transition-all"
           >
             <Calendar size={16} />
             <span>รายงานอัตโนมัติ</span>
@@ -140,8 +140,8 @@ export function SettingsTabs({
               <Users size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">User Management</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-lg font-bold text-foreground">User Management</h2>
+              <p className="text-sm text-muted-foreground">
                 Manage system access, roles, and permissions.
               </p>
             </div>
@@ -155,8 +155,10 @@ export function SettingsTabs({
               <Tags size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Product Categories & Master Data</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-lg font-bold text-foreground">
+                Product Categories & Master Data
+              </h2>
+              <p className="text-sm text-muted-foreground">
                 Configure product categories, attributes, and global SKU list.
               </p>
             </div>
@@ -170,8 +172,8 @@ export function SettingsTabs({
               <Boxes size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Warehouse Structure</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-lg font-bold text-foreground">Warehouse Structure</h2>
+              <p className="text-sm text-muted-foreground">
                 Manage warehouse locations, zones, and shelving configurations.
               </p>
             </div>
@@ -185,8 +187,8 @@ export function SettingsTabs({
               <Palette size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">Status Design System</h2>
-              <p className="text-sm text-slate-500">
+              <h2 className="text-lg font-bold text-foreground">Status Design System</h2>
+              <p className="text-sm text-muted-foreground">
                 Define custom statuses with colors and transaction effects for inventory items.
               </p>
             </div>

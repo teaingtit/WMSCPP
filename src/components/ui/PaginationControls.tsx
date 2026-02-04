@@ -22,35 +22,35 @@ export default function PaginationControls({ totalPages }: { totalPages: number 
       {currentPage > 1 ? (
         <Link
           href={createPageURL(currentPage - 1)}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-indigo-300 transition-all"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-foreground bg-card border border-border rounded-lg hover:bg-accent hover:border-primary transition-all"
         >
           <ArrowLeft size={16} /> ก่อนหน้า
         </Link>
       ) : (
         <button
           disabled
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-lg cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-muted-foreground bg-muted border border-border rounded-lg cursor-not-allowed"
         >
           <ArrowLeft size={16} /> ก่อนหน้า
         </button>
       )}
 
-      <span className="text-sm font-medium text-slate-500">
-        หน้า <span className="text-indigo-600 font-bold">{currentPage}</span> จาก {totalPages}
+      <span className="text-sm font-medium text-muted-foreground">
+        หน้า <span className="text-primary font-bold">{currentPage}</span> จาก {totalPages}
       </span>
 
       {/* ปุ่ม Next */}
       {currentPage < totalPages ? (
         <Link
           href={createPageURL(currentPage + 1)}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-indigo-300 transition-all"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-foreground bg-card border border-border rounded-lg hover:bg-accent hover:border-primary transition-all"
         >
           ถัดไป <ArrowRight size={16} />
         </Link>
       ) : (
         <button
           disabled
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-lg cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-muted-foreground bg-muted border border-border rounded-lg cursor-not-allowed"
         >
           ถัดไป <ArrowRight size={16} />
         </button>

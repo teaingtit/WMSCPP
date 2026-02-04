@@ -6,11 +6,9 @@ import { withAuth, ok, fail, validateFormData } from '@/lib/action-utils';
 import type { ActionResponse } from '@/types/action-response';
 import { z } from 'zod';
 
-// ==========================================
-// Types
-// ==========================================
-
-export type ReportType = 'INVENTORY_SUMMARY' | 'TRANSACTION_SUMMARY';
+// Re-export types and constants from shared file for backwards compatibility
+export type { ReportType } from '@/lib/report-constants';
+import type { ReportType } from '@/lib/report-constants';
 
 export interface ReportSchedule {
   id: string;
@@ -118,9 +116,10 @@ export const createReportSchedule = withAuth<z.infer<typeof CreateScheduleSchema
       if (error) throw error;
 
       revalidatePath('/dashboard/settings');
-      return ok('สร้างกำหนดการรายงานสำเร็จ', {
-        data: mapToReportSchedule(result),
-      }) as unknown as ActionResponse<ReportSchedule>;
+      return ok(
+        'สร้างกำหนดการรายงานสำเร็จ',
+        mapToReportSchedule(result),
+      ) as unknown as ActionResponse<ReportSchedule>;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return fail(
@@ -159,9 +158,10 @@ export const updateReportSchedule = withAuth<z.infer<typeof UpdateScheduleSchema
       if (error) throw error;
 
       revalidatePath('/dashboard/settings');
-      return ok('อัปเดตกำหนดการรายงานสำเร็จ', {
-        data: mapToReportSchedule(result),
-      }) as unknown as ActionResponse<ReportSchedule>;
+      return ok(
+        'อัปเดตกำหนดการรายงานสำเร็จ',
+        mapToReportSchedule(result),
+      ) as unknown as ActionResponse<ReportSchedule>;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return fail(
@@ -268,7 +268,7 @@ export const runReportScheduleNow = withAuth<{ id: string }, RunReportResult>(
       }
       revalidatePath('/dashboard/settings');
       return ok('กำลังส่งรายงาน', {
-        data: { processed: json.processed ?? 1 },
+        processed: json.processed ?? 1,
       }) as unknown as ActionResponse<RunReportResult>;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -302,17 +302,3 @@ function mapToReportSchedule(row: any): ReportSchedule {
     updatedAt: row.updated_at,
   };
 }
-
-// Cron presets for UI
-export const CRON_PRESETS = [
-  { label: 'ทุกวัน เวลา 8:00', value: '0 8 * * *' },
-  { label: 'ทุกวันจันทร์ เวลา 8:00', value: '0 8 * * 1' },
-  { label: 'วันที่ 1 ของเดือน เวลา 8:00', value: '0 8 1 * *' },
-  { label: 'ทุกวันศุกร์ เวลา 17:00', value: '0 17 * * 5' },
-] as const;
-
-// Report type labels in Thai
-export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
-  INVENTORY_SUMMARY: 'สรุปสินค้าคงคลัง',
-  TRANSACTION_SUMMARY: 'สรุปการเคลื่อนไหวสินค้า',
-};

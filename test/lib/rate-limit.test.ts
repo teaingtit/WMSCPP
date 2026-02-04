@@ -4,6 +4,7 @@ import {
   checkRateLimit,
   enforceRateLimit,
   withRateLimit,
+  withRateLimitAuth,
   type RateLimitType,
 } from '@/lib/rate-limit';
 
@@ -178,6 +179,88 @@ describe('rate-limit', () => {
       expect(handler).not.toHaveBeenCalled();
       expect(out.success).toBe(false);
       expect(out.message).toContain('คำขอถูกจำกัด');
+    });
+
+    it('uses default 60 when retry_after is null', async () => {
+      mockRpc.mockResolvedValue({
+        data: {
+          allowed: false,
+          remaining: 0,
+          reset_at: new Date().toISOString(),
+          retry_after: null,
+        },
+        error: null,
+      });
+
+      const wrapped = withRateLimit('TRANSACTION', () => 'u1', vi.fn());
+      const out = await wrapped({});
+
+      expect(out.success).toBe(false);
+      expect(out.message).toContain('60');
+    });
+  });
+
+  describe('withRateLimitAuth', () => {
+    const ctx = { user: { id: 'user-auth-1', email: 'a@b.com' }, supabase: {} };
+
+    it('calls handler when allowed', async () => {
+      mockRpc.mockResolvedValue({
+        data: {
+          allowed: true,
+          remaining: 1,
+          reset_at: new Date().toISOString(),
+          retry_after: null,
+        },
+        error: null,
+      });
+
+      const handler = vi.fn().mockResolvedValue({ success: true, data: {} });
+      const wrapped = withRateLimitAuth('REPORT', handler);
+
+      const out = await wrapped({}, ctx);
+
+      expect(handler).toHaveBeenCalledWith({}, ctx);
+      expect(out.success).toBe(true);
+    });
+
+    it('returns rate limit message when not allowed', async () => {
+      mockRpc.mockResolvedValue({
+        data: {
+          allowed: false,
+          remaining: 0,
+          reset_at: new Date().toISOString(),
+          retry_after: 45,
+        },
+        error: null,
+      });
+
+      const handler = vi.fn();
+      const wrapped = withRateLimitAuth('BULK_IMPORT', handler);
+
+      const out = await wrapped({}, ctx);
+
+      expect(handler).not.toHaveBeenCalled();
+      expect(out.success).toBe(false);
+      expect(out.message).toContain('45');
+      expect(out.message).toContain('วินาที');
+    });
+
+    it('uses default 60 when retry_after is null', async () => {
+      mockRpc.mockResolvedValue({
+        data: {
+          allowed: false,
+          remaining: 0,
+          reset_at: new Date().toISOString(),
+          retry_after: null,
+        },
+        error: null,
+      });
+
+      const wrapped = withRateLimitAuth('SEARCH', vi.fn());
+      const out = await wrapped({}, ctx);
+
+      expect(out.success).toBe(false);
+      expect(out.message).toContain('60');
     });
   });
 });

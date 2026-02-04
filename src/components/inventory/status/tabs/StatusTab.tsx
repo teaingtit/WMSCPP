@@ -67,8 +67,8 @@ export default function StatusTab({
   return (
     <div className="space-y-5">
       {/* Current Status Display */}
-      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+      <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
           สถานะปัจจุบัน
         </div>
         {currentStatus?.status ? (
@@ -89,35 +89,37 @@ export default function StatusTab({
 
             {/* Show affected quantity for product status */}
             {isProductStatus && currentAffectedQty < totalQuantity && (
-              <div className="text-sm text-slate-600 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                <span className="font-bold text-amber-700">{currentAffectedQty}</span> จาก{' '}
-                <span className="font-bold">{totalQuantity}</span> {uom} ที่ติดสถานะนี้
+              <div className="text-sm text-slate-600 dark:text-slate-300 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg border border-amber-200 dark:border-amber-800">
+                <span className="font-bold text-amber-700 dark:text-amber-400">
+                  {currentAffectedQty}
+                </span>{' '}
+                จาก <span className="font-bold">{totalQuantity}</span> {uom} ที่ติดสถานะนี้
               </div>
             )}
 
             {/* Location status info */}
             {!isProductStatus && (
-              <div className="text-sm text-slate-600 bg-cyan-50 p-2 rounded-lg border border-cyan-200 flex items-center gap-2">
-                <MapPin size={14} className="text-cyan-600" />
+              <div className="text-sm text-slate-600 dark:text-slate-300 bg-cyan-50 dark:bg-cyan-900/20 p-2 rounded-lg border border-cyan-200 dark:border-cyan-800 flex items-center gap-2">
+                <MapPin size={14} className="text-cyan-600 dark:text-cyan-400" />
                 สถานะนี้มีผลกับทั้ง Location สินค้าทั้งหมด {totalQuantity} {uom} จะถูกติดสถานะ
               </div>
             )}
 
             {/* Remove Status Actions */}
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
               {isProductStatus && handlePartialRemove && currentAffectedQty > 1 ? (
                 <>
                   <button
                     onClick={() => setShowPartialRemove(!showPartialRemove)}
                     disabled={isPending}
-                    className="text-xs text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-amber-50"
+                    className="text-xs text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-amber-50 dark:hover:bg-amber-900/20"
                   >
                     <Minus size={14} /> นำออกบางส่วน
                   </button>
                   <button
                     onClick={handleRemoveStatus}
                     disabled={isPending}
-                    className="text-xs text-red-600 hover:text-red-700 font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50"
+                    className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
                     <X size={14} /> นำออกทั้งหมด
                   </button>
@@ -126,7 +128,7 @@ export default function StatusTab({
                 <button
                   onClick={handleRemoveStatus}
                   disabled={isPending}
-                  className="text-xs text-red-600 hover:text-red-700 font-bold flex items-center gap-1"
+                  className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-bold flex items-center gap-1"
                 >
                   <X size={14} /> ลบสถานะ
                 </button>
@@ -135,10 +137,10 @@ export default function StatusTab({
 
             {/* Partial Remove UI */}
             {showPartialRemove && isProductStatus && (
-              <div className="animate-in slide-in-from-top-2 p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
+              <div className="animate-in slide-in-from-top-2 p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800 space-y-3">
                 <div className="flex items-center gap-2">
-                  <Minus size={16} className="text-amber-600" />
-                  <span className="text-sm font-bold text-slate-700">
+                  <Minus size={16} className="text-amber-600 dark:text-amber-400" />
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
                     ระบุจำนวนที่ต้องการปลดสถานะ
                   </span>
                 </div>
@@ -153,11 +155,13 @@ export default function StatusTab({
                     min="1"
                     max={currentAffectedQty}
                     aria-label="Quantity to remove status from"
-                    className="w-24 px-3 py-2 border border-slate-200 rounded-lg text-lg font-bold text-center focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
+                    className="w-24 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-lg font-bold text-center focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-800 focus:border-amber-400 outline-none bg-white dark:bg-slate-900 dark:text-white"
                   />
-                  <span className="text-sm text-slate-500">จาก</span>
-                  <span className="text-lg font-bold text-slate-700">{currentAffectedQty}</span>
-                  <span className="text-sm text-slate-500">{uom}</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">จาก</span>
+                  <span className="text-lg font-bold text-slate-700 dark:text-slate-200">
+                    {currentAffectedQty}
+                  </span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">{uom}</span>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -166,7 +170,7 @@ export default function StatusTab({
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                       quantityToRemove === currentAffectedQty
                         ? 'bg-amber-600 text-white'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     ทั้งหมด ({currentAffectedQty})
@@ -178,7 +182,7 @@ export default function StatusTab({
                       className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                         quantityToRemove === Math.ceil(currentAffectedQty / 2)
                           ? 'bg-amber-600 text-white'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                          : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                       }`}
                     >
                       ครึ่งหนึ่ง ({Math.ceil(currentAffectedQty / 2)})
@@ -190,7 +194,7 @@ export default function StatusTab({
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                       quantityToRemove === 1
                         ? 'bg-amber-600 text-white'
-                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     1 ชิ้น
@@ -201,7 +205,7 @@ export default function StatusTab({
                   value={removeReason}
                   onChange={(e) => setRemoveReason(e.target.value)}
                   placeholder="เหตุผล (ไม่บังคับ)"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-800 focus:border-amber-400 outline-none bg-white dark:bg-slate-900 dark:text-white"
                 />
                 <div className="flex gap-2">
                   <button
@@ -227,13 +231,13 @@ export default function StatusTab({
             )}
           </div>
         ) : (
-          <span className="text-slate-500 text-sm">ปกติ (ไม่มีสถานะ)</span>
+          <span className="text-slate-500 dark:text-slate-400 text-sm">ปกติ (ไม่มีสถานะ)</span>
         )}
       </div>
 
       {/* Status Selection */}
       <div>
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
           เลือกสถานะใหม่
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -248,8 +252,8 @@ export default function StatusTab({
                 onClick={() => setSelectedStatusId(status.id)}
                 className={`p-3 rounded-xl border-2 text-left transition-all ${
                   isSelected
-                    ? 'border-indigo-500 ring-2 ring-indigo-200'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                 }`}
                 style={isSelected ? createStatusStyle(status) : undefined}
               >
@@ -265,7 +269,7 @@ export default function StatusTab({
                     <Package size={12} className="text-violet-500 flex-shrink-0" />
                   )}
                 </div>
-                <div className="text-xs text-slate-500 flex items-center gap-1">
+                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                   {effectOption?.icon} {effectOption?.label}
                 </div>
               </button>
@@ -276,10 +280,10 @@ export default function StatusTab({
 
       {/* Quantity Selector - Only show for PRODUCT status types */}
       {isNewStatus && selectedStatus?.status_type === 'PRODUCT' && (
-        <div className="animate-in slide-in-from-top-2 p-4 bg-amber-50 rounded-xl border border-amber-200">
+        <div className="animate-in slide-in-from-top-2 p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800">
           <div className="flex items-center gap-2 mb-3">
             <Hash size={16} className="text-amber-500" />
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               ระบุจำนวนที่ต้องการติดสถานะ
             </span>
           </div>
@@ -294,13 +298,13 @@ export default function StatusTab({
               min="1"
               max={totalQuantity}
               aria-label="Affected quantity"
-              className="w-24 px-3 py-2 border border-slate-200 rounded-lg text-lg font-bold text-center focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none"
+              className="w-24 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-lg font-bold text-center focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900 focus:border-indigo-400 outline-none bg-white dark:bg-slate-900 dark:text-white"
             />
-            <span className="text-sm text-slate-500">จาก</span>
-            <span className="text-lg font-bold text-slate-700">
+            <span className="text-sm text-slate-500 dark:text-slate-400">จาก</span>
+            <span className="text-lg font-bold text-slate-700 dark:text-slate-200">
               {totalQuantity.toLocaleString()}
             </span>
-            <span className="text-sm text-slate-500">{uom}</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">{uom}</span>
           </div>
           <div className="flex gap-2 mt-3">
             <button
@@ -309,7 +313,7 @@ export default function StatusTab({
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                 affectedQuantity === totalQuantity
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
               ทั้งหมด ({totalQuantity})
@@ -321,7 +325,7 @@ export default function StatusTab({
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                   affectedQuantity === Math.ceil(totalQuantity / 2)
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 ครึ่งหนึ่ง ({Math.ceil(totalQuantity / 2)})
@@ -333,7 +337,7 @@ export default function StatusTab({
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
                 affectedQuantity === 1
                   ? 'bg-indigo-600 text-white'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
               1 ชิ้น
@@ -350,12 +354,14 @@ export default function StatusTab({
 
       {/* Location Status Info - Show when location status is selected */}
       {isNewStatus && selectedStatus?.status_type === 'LOCATION' && (
-        <div className="animate-in slide-in-from-top-2 p-4 bg-cyan-50 rounded-xl border border-cyan-200">
+        <div className="animate-in slide-in-from-top-2 p-4 bg-cyan-50 dark:bg-cyan-900/10 rounded-xl border border-cyan-200 dark:border-cyan-800">
           <div className="flex items-center gap-2 mb-2">
-            <MapPin size={16} className="text-cyan-600" />
-            <span className="text-sm font-bold text-cyan-800">สถานะแบบ Location</span>
+            <MapPin size={16} className="text-cyan-600 dark:text-cyan-400" />
+            <span className="text-sm font-bold text-cyan-800 dark:text-cyan-300">
+              สถานะแบบ Location
+            </span>
           </div>
-          <p className="text-sm text-cyan-700">
+          <p className="text-sm text-cyan-700 dark:text-cyan-400">
             สถานะนี้จะมีผลกับทั้ง Lot/Location สินค้าทั้งหมด{' '}
             <span className="font-bold">{totalQuantity}</span> {uom}
             จะถูกติดสถานะ หากต้องการลบสถานะ ต้องลบออกจากทั้ง Location
@@ -373,7 +379,7 @@ export default function StatusTab({
             value={statusReason}
             onChange={(e) => setStatusReason(e.target.value)}
             placeholder="เช่น พบความเสียหายจากการขนส่ง, รอตรวจสอบคุณภาพ..."
-            className="w-full p-3 border border-slate-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none"
+            className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900 focus:border-indigo-400 outline-none bg-white dark:bg-slate-900 dark:text-white"
             rows={3}
           />
         </div>

@@ -37,9 +37,9 @@ export function StockItemCard({
 
   if (variant === 'compact') {
     return (
-      <div className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200 hover:shadow-sm transition-all">
+      <div className="flex items-center justify-between p-2 bg-card rounded-lg border border-border hover:shadow-sm transition-all">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 bg-slate-100 rounded-md flex items-center justify-center">
+          <div className="w-8 h-8 bg-muted rounded-md flex items-center justify-center">
             {stock.product.image_url ? (
               <img
                 src={stock.product.image_url}
@@ -47,21 +47,21 @@ export function StockItemCard({
                 className="w-full h-full object-cover rounded-md"
               />
             ) : (
-              <Package size={14} className="text-slate-500" />
+              <Package size={14} className="text-muted-foreground" />
             )}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-slate-800 truncate text-sm">
+              <span className="font-medium text-foreground truncate text-sm">
                 {stock.product.sku}
               </span>
               {currentStatus?.status && <StatusBadge status={currentStatus.status} size="sm" />}
             </div>
-            <p className="text-xs text-slate-500 truncate">{stock.product.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{stock.product.name}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-slate-700">
+          <span className="text-sm font-semibold text-foreground">
             {stock.quantity} {stock.product.uom}
           </span>
           {showActions && (
@@ -90,10 +90,10 @@ export function StockItemCard({
 
   if (variant === 'row') {
     return (
-      <tr className="group hover:bg-slate-50 transition-colors">
+      <tr className="group hover:bg-accent transition-colors">
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
+            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
               {stock.product.image_url ? (
                 <img
                   src={stock.product.image_url}
@@ -101,30 +101,30 @@ export function StockItemCard({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <Package size={16} className="text-slate-500" />
+                <Package size={16} className="text-muted-foreground" />
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-800">{stock.product.sku}</span>
+                <span className="font-semibold text-foreground">{stock.product.sku}</span>
                 {currentStatus?.status && <StatusBadge status={currentStatus.status} size="sm" />}
                 {notes.length > 0 && (
                   <NotesBadge count={notes.length} hasPinned={pinnedNotesCount > 0} />
                 )}
               </div>
-              <p className="text-sm text-slate-500">{stock.product.name}</p>
+              <p className="text-sm text-muted-foreground">{stock.product.name}</p>
             </div>
           </div>
         </td>
         <td className="px-4 py-3">
-          <div className="flex items-center gap-1.5 text-sm text-slate-600">
-            <MapPin size={12} className="text-slate-500" />
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin size={12} className="text-muted-foreground" />
             {stock.location.code}
           </div>
         </td>
         <td className="px-4 py-3 text-center">
-          <span className="font-semibold text-slate-800">{stock.quantity}</span>
-          <span className="text-slate-500 text-sm ml-1">{stock.product.uom}</span>
+          <span className="font-semibold text-foreground">{stock.quantity}</span>
+          <span className="text-muted-foreground text-sm ml-1">{stock.product.uom}</span>
         </td>
         {showActions && (
           <td className="px-4 py-3">
@@ -153,12 +153,12 @@ export function StockItemCard({
 
   // Default card variant
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all group">
+    <div className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all group">
       {/* Header with Status */}
-      <div className="p-4 border-b border-slate-100">
+      <div className="p-4 border-b border-border">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
+            <div className="w-14 h-14 bg-muted rounded-xl flex items-center justify-center overflow-hidden shrink-0">
               {stock.product.image_url ? (
                 <img
                   src={stock.product.image_url}
@@ -166,18 +166,18 @@ export function StockItemCard({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <Package size={24} className="text-slate-300" />
+                <Package size={24} className="text-muted-foreground" />
               )}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-slate-800">{stock.product.sku}</span>
+                <span className="font-bold text-foreground">{stock.product.sku}</span>
                 {currentStatus?.status && (
                   <StatusBadge status={currentStatus.status} size="sm" showEffect />
                 )}
               </div>
-              <p className="text-sm text-slate-600 truncate">{stock.product.name}</p>
-              <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+              <p className="text-sm text-muted-foreground truncate">{stock.product.name}</p>
+              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <MapPin size={10} />
                   {stock.location.code}
@@ -192,15 +192,15 @@ export function StockItemCard({
             </div>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-2xl font-bold text-slate-800">{stock.quantity}</p>
-            <p className="text-xs text-slate-500">{stock.product.uom}</p>
+            <p className="text-2xl font-bold text-foreground">{stock.quantity}</p>
+            <p className="text-xs text-muted-foreground">{stock.product.uom}</p>
           </div>
         </div>
       </div>
 
       {/* Status and Notes Actions */}
       {showActions && (
-        <div className="px-4 py-3 bg-slate-50 flex items-center justify-between gap-2">
+        <div className="px-4 py-3 bg-muted flex items-center justify-between gap-2">
           <StatusSelector
             entityType={entityType}
             entityId={entityId}
@@ -210,7 +210,7 @@ export function StockItemCard({
           />
           <div className="flex items-center gap-2">
             {notes.length > 0 && (
-              <span className="text-xs text-slate-500 flex items-center gap-1">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <MessageSquare size={12} />
                 {notes.length} note{notes.length !== 1 ? 's' : ''}
                 {pinnedNotesCount > 0 && ` (${pinnedNotesCount} pinned)`}
@@ -228,19 +228,21 @@ export function StockItemCard({
 
       {/* Status Notes Preview */}
       {currentStatus?.notes && (
-        <div className="px-4 py-2 bg-amber-50 border-t border-amber-100">
-          <p className="text-xs text-amber-800 italic line-clamp-2">📝 {currentStatus.notes}</p>
+        <div className="px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border-t border-amber-100 dark:border-amber-800/50">
+          <p className="text-xs text-amber-800 dark:text-amber-200 italic line-clamp-2">
+            📝 {currentStatus.notes}
+          </p>
         </div>
       )}
 
       {/* Pinned Notes Preview */}
       {pinnedNotesCount > 0 && (
-        <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
+        <div className="px-4 py-2 bg-muted border-t border-border">
           {notes
             .filter((n) => n.is_pinned)
             .slice(0, 2)
             .map((note) => (
-              <p key={note.id} className="text-xs text-slate-600 truncate">
+              <p key={note.id} className="text-xs text-muted-foreground truncate">
                 📌 {note.content}
               </p>
             ))}
@@ -282,16 +284,16 @@ export function LocationStatusCard({
   const entityId = location.id;
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-4 hover:shadow-md transition-all">
+    <div className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-all">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
             <MapPin size={16} className="text-blue-500" />
-            <span className="font-bold text-slate-800">{location.code}</span>
+            <span className="font-bold text-foreground">{location.code}</span>
             {currentStatus?.status && <StatusBadge status={currentStatus.status} size="sm" />}
           </div>
           {(location.lot || location.cart || location.level) && (
-            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
               {location.lot && <span>Lot: {location.lot}</span>}
               {location.cart && <span>Cart: {location.cart}</span>}
               {location.level && <span>Level: {location.level}</span>}
@@ -299,12 +301,12 @@ export function LocationStatusCard({
           )}
         </div>
         <div className="text-right">
-          <p className="text-lg font-semibold text-slate-700">{stockCount}</p>
-          <p className="text-xs text-slate-500">items</p>
+          <p className="text-lg font-semibold text-foreground">{stockCount}</p>
+          <p className="text-xs text-muted-foreground">items</p>
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
         <StatusSelector
           entityType={entityType}
           entityId={entityId}

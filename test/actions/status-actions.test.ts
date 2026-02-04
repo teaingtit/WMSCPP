@@ -24,6 +24,15 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(),
 }));
 
+// Mock supabaseAdmin to prevent real network calls in applyEntityStatus
+vi.mock('@/lib/supabase/admin', () => ({
+  supabaseAdmin: {
+    from: vi.fn(() => ({
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+    })),
+  },
+}));
+
 describe('Status Actions', () => {
   let mockSupabase: any;
   let mockUser: any;

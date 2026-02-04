@@ -5,6 +5,7 @@ import {
   generateProductTemplate,
   generateCategoryTemplate,
   generateInboundTemplate,
+  generateOutboundTemplate,
   parseExcel,
   parseAttributeString,
 } from '@/lib/utils/excel-utils';
@@ -70,6 +71,45 @@ describe('excel-utils', () => {
       // SKU, Qty, Lot, Cart, Level + schema(1) = 5 + 1 = 6
       expect(sheet?.columnCount).toBe(6);
       expect(sheet?.getRow(1).getCell(6).text).toBe('Batch');
+    });
+
+    it('should use key as label when label is not provided', async () => {
+      const schema = [{ key: 'serial_number' }]; // No label
+      const result = await generateInboundTemplate('WH', 'Cat', schema);
+      const buffer = Buffer.from(result, 'base64');
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const sheet = workbook.getWorksheet('Inbound');
+
+      expect(sheet?.getRow(1).getCell(6).text).toBe('serial_number');
+    });
+  });
+
+  describe('generateOutboundTemplate', () => {
+    it('should return base64 string and valid structure', async () => {
+      const result = await generateOutboundTemplate('WH001');
+      const buffer = Buffer.from(result, 'base64');
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const sheet = workbook.getWorksheet('Outbound');
+
+      expect(sheet).toBeDefined();
+      expect(sheet?.getRow(1).getCell(1).text).toContain('SKU');
+      expect(sheet?.getRow(1).getCell(2).text).toContain('Qty');
+      // SKU, Qty, Location, Note = 4 columns
+      expect(sheet?.columnCount).toBe(4);
+    });
+
+    it('should include warehouse code in instruction row', async () => {
+      const result = await generateOutboundTemplate('TEST-WH');
+      const buffer = Buffer.from(result, 'base64');
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const sheet = workbook.getWorksheet('Outbound');
+
+      // Row 2 should be instruction row with warehouse code
+      const infoCell = sheet?.getRow(2).getCell(1).text;
+      expect(infoCell).toContain('TEST-WH');
     });
   });
 

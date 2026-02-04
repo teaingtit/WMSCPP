@@ -24,13 +24,13 @@ export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProp
   const isAdmin = user?.role === 'admin';
 
   return (
-    <header className="bg-white border-b border-slate-200 px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm min-h-[4.5rem]">
+    <header className="bg-card border-b border-border px-4 py-3 sm:px-6 sm:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm min-h-[4.5rem]">
       <div className="flex items-center gap-4">
         {/* 1. ปุ่มย้อนกลับ */}
         {!isRoot && (
           <Link
             href={`/dashboard/${warehouse.code}`}
-            className="p-2 -ml-2 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="p-2 -ml-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             title="กลับหน้าหลักคลังสินค้า"
           >
             <ArrowLeft size={24} />
@@ -39,15 +39,17 @@ export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProp
 
         {/* 2. Logo/Title */}
         <div className="flex flex-col">
-          <h2 className="text-xl font-bold text-slate-800 leading-none mb-1">{warehouse.name}</h2>
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">
+          <h2 className="text-xl font-bold text-foreground leading-none mb-1">{warehouse.name}</h2>
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
               {warehouse.code}
             </span>
-            <span className="text-slate-300">•</span>
+            <span className="text-muted-foreground/60">•</span>
             <span
               className={`flex items-center gap-1 ${
-                warehouse.is_active ? 'text-emerald-600' : 'text-rose-600'
+                warehouse.is_active
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-600 dark:text-rose-400'
               }`}
             >
               <span
@@ -62,12 +64,12 @@ export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProp
       </div>
 
       {/* 3. Right Side: User Profile */}
-      <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
+      <div className="flex items-center gap-3 pl-6 border-l border-border">
         <div className="text-right hidden md:block">
-          <div className="text-xs font-bold text-slate-700">{user?.email || 'Guest'}</div>
+          <div className="text-xs font-bold text-foreground">{user?.email || 'Guest'}</div>
           <div
             className={`text-xs font-bold uppercase tracking-wider ${
-              isAdmin ? 'text-purple-600' : 'text-slate-500'
+              isAdmin ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
             {isAdmin ? 'Administrator' : 'Staff Member'}
@@ -76,8 +78,8 @@ export default function WarehouseHeader({ warehouse, user }: WarehouseHeaderProp
         <div
           className={`w-10 h-10 rounded-full flex items-center justify-center border shadow-sm ${
             isAdmin
-              ? 'bg-purple-50 text-purple-600 border-purple-100'
-              : 'bg-slate-50 text-slate-500 border-slate-200'
+              ? 'bg-primary/10 text-primary border-primary/20'
+              : 'bg-muted text-muted-foreground border-border'
           }`}
         >
           {isAdmin ? <Shield size={20} /> : <UserCircle size={24} />}

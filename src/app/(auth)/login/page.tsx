@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-slate-900 p-4 overflow-y-auto">
-      <div className="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl overflow-hidden relative flex-shrink-0 my-auto">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-background p-4 overflow-y-auto">
+      <div className="bg-card w-full max-w-md rounded-3xl p-8 shadow-2xl overflow-hidden relative flex-shrink-0 my-auto border border-border">
         {/* Decorative Circle */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500 rounded-full blur-2xl opacity-20"></div>
 
@@ -19,8 +19,8 @@ export default function LoginPage() {
           <div className="inline-flex p-3 bg-indigo-50 text-indigo-600 rounded-2xl mb-4 shadow-sm">
             <Box size={32} />
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">WMS DEMO Portal</h1>
-          <p className="text-slate-500 mt-2">เข้าสู่ระบบจัดการคลังสินค้า</p>
+          <h1 className="text-2xl font-black text-foreground tracking-tight">WMS DEMO Portal</h1>
+          <p className="text-muted-foreground mt-2">เข้าสู่ระบบจัดการคลังสินค้า</p>
         </div>
 
         {/* เรียกใช้ Client Component */}

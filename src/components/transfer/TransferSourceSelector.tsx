@@ -88,9 +88,9 @@ export default function TransferSourceSelector({
 
   return (
     <div
-      className={`p-6 rounded-3xl border transition-all bg-white shadow-sm duration-300 border-slate-200`}
+      className={`p-6 rounded-3xl border transition-all bg-card shadow-sm duration-300 border-border`}
     >
-      <h3 className={`font-bold text-slate-700 mb-4 flex items-center gap-2`}>
+      <h3 className={`font-bold text-foreground mb-4 flex items-center gap-2`}>
         <div className={`p-2 rounded-lg ${themeColors.bg} ${themeColors.text}`}>
           <PackageSearch size={20} />
         </div>
@@ -100,11 +100,11 @@ export default function TransferSourceSelector({
       {/* Search Input - Always visible */}
       <div className="relative group z-10">
         <div className="relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-slate-600">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-foreground">
             {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
           </div>
           <input
-            className={`w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:bg-white transition-all font-medium ${themeColors.ring} ${themeColors.borderFocus} focus:ring-4`}
+            className={`w-full pl-12 pr-4 py-4 bg-muted border border-border rounded-2xl outline-none focus:bg-background text-foreground transition-all font-medium ${themeColors.ring} ${themeColors.borderFocus} focus:ring-4`}
             placeholder="ค้นหาชื่อสินค้า, SKU หรือ พิกัด..."
             ref={inputRef}
             value={searchTerm}
@@ -124,7 +124,7 @@ export default function TransferSourceSelector({
                   onSelect(null);
                   setTimeout(() => inputRef.current?.focus(), 100);
                 }}
-                className="absolute top-2 right-2 text-slate-500 hover:text-red-500 text-xs font-bold underline"
+                className="absolute top-2 right-2 text-muted-foreground hover:text-red-500 text-xs font-bold underline"
               >
                 ยกเลิก
               </button>
@@ -133,17 +133,17 @@ export default function TransferSourceSelector({
               >
                 กำลังทำรายการ:
               </div>
-              <div className="font-black text-slate-800 text-lg leading-snug pr-16">
+              <div className="font-black text-foreground text-lg leading-snug pr-16">
                 {selectedStock?.product?.name}
               </div>
               <div className="flex items-center gap-3 mt-2 text-xs">
-                <span className="font-mono bg-white/50 text-slate-600 px-1.5 py-0.5 rounded border">
+                <span className="font-mono bg-card/50 text-muted-foreground px-1.5 py-0.5 rounded border border-border">
                   {selectedStock?.product?.sku}
                 </span>
                 <span className={`flex items-center gap-1 ${themeColors.text}`}>
                   <MapPin size={12} /> {selectedStock?.location?.code}
                 </span>
-                <span className="font-bold text-slate-700 ml-auto">
+                <span className="font-bold text-foreground ml-auto">
                   {selectedStock?.quantity} {selectedStock?.product?.uom}
                 </span>
               </div>
@@ -170,8 +170,8 @@ export default function TransferSourceSelector({
 
         {/* Search Results - Always visible when there are results */}
         {searchResults.length > 0 && (
-          <div className="mt-3 max-h-[280px] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-100 custom-scrollbar animate-in fade-in slide-in-from-top-2 ring-1 ring-slate-900/5">
-            <div className="px-4 py-3 text-[11px] font-bold text-slate-500 uppercase bg-slate-50/80 backdrop-blur-sm border-b border-slate-100 sticky top-0">
+          <div className="mt-3 max-h-[280px] overflow-y-auto bg-card rounded-2xl shadow-xl border border-border custom-scrollbar animate-in fade-in slide-in-from-top-2 ring-1 ring-foreground/5">
+            <div className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase bg-muted/80 backdrop-blur-sm border-b border-border sticky top-0">
               ผลการค้นหา ({searchResults.length})
             </div>
             {searchResults.map((stock) => (
@@ -181,23 +181,23 @@ export default function TransferSourceSelector({
                   onSelect(stock);
                   // Don't clear search term or results - allow continuous adding
                 }}
-                className="p-4 border-b border-slate-50 hover:bg-slate-50 cursor-pointer group transition-colors flex items-center gap-3"
+                className="p-4 border-b border-border hover:bg-accent cursor-pointer group transition-colors flex items-center gap-3"
               >
-                <div className="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
+                <div className="h-10 w-10 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground">
                   <Box size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-slate-700 group-hover:text-slate-900 truncate">
+                  <div className="font-bold text-foreground group-hover:text-foreground truncate">
                     {stock.product?.name || 'Unknown Product'}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">
+                    <span className="text-xs font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded border border-border">
                       {stock.product?.sku || 'NO SKU'}
                     </span>
-                    <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                    <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                       <MapPin size={10} /> {stock.location?.code || '?'}
                     </span>
-                    <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded ml-auto">
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded ml-auto">
                       Qty: {stock.quantity} {stock.product?.uom}
                     </span>
                   </div>
@@ -208,7 +208,7 @@ export default function TransferSourceSelector({
         )}
 
         {searchTerm && searchResults.length === 0 && !isSearching && (
-          <div className="mt-4 text-center text-slate-500 text-sm">
+          <div className="mt-4 text-center text-muted-foreground text-sm">
             {queuedStockIds.size > 0
               ? 'รายการที่ตรงกันอยู่ในคิวแล้ว หรือไม่พบสินค้า'
               : 'ไม่พบสินค้าที่มีสต็อก'}

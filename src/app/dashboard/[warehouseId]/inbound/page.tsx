@@ -18,7 +18,7 @@ export default async function InboundMenuPage({ params }: PageProps) {
 
   return (
     <div className="max-w-5xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
-      <h1 className="text-2xl font-bold text-slate-900 mb-8">รับสินค้าเข้าคลัง (Inbound)</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-8">รับสินค้าเข้าคลัง (Inbound)</h1>
 
       {/* 1. Bulk Import Section (Context-Aware) */}
       <BulkInboundManager
@@ -28,11 +28,11 @@ export default async function InboundMenuPage({ params }: PageProps) {
       />
 
       <div className="relative flex items-center py-8">
-        <div className="flex-grow border-t border-slate-200"></div>
-        <span className="flex-shrink-0 mx-4 text-slate-500 text-xs font-bold uppercase tracking-wider">
+        <div className="flex-grow border-t border-border"></div>
+        <span className="flex-shrink-0 mx-4 text-muted-foreground text-xs font-bold uppercase tracking-wider">
           หรือรับเข้าทีละรายการ (Manual)
         </span>
-        <div className="flex-grow border-t border-slate-200"></div>
+        <div className="flex-grow border-t border-border"></div>
       </div>
 
       {/* 2. Manual Selection Grid */}
@@ -42,7 +42,7 @@ export default async function InboundMenuPage({ params }: PageProps) {
             <Link
               key={cat.id}
               href={`/dashboard/${warehouseId}/inbound/${cat.id}`}
-              className="flex items-center p-6 bg-white rounded-2xl border border-slate-200 hover:border-indigo-500 hover:shadow-lg transition-all group"
+              className="flex items-center p-6 bg-card rounded-2xl border border-border hover:border-indigo-500 hover:shadow-lg transition-all group"
             >
               <div
                 className={`p-4 rounded-xl mr-4 ${
@@ -55,18 +55,18 @@ export default async function InboundMenuPage({ params }: PageProps) {
               </div>
 
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                <h3 className="text-lg font-bold text-foreground group-hover:text-indigo-600 transition-colors">
                   {cat.name}
                 </h3>
-                <p className="text-sm text-slate-500">Manual Entry</p>
+                <p className="text-sm text-muted-foreground">Manual Entry</p>
               </div>
 
-              <ArrowRight className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+              <ArrowRight className="text-muted-foreground group-hover:text-indigo-500 transition-colors" />
             </Link>
           ))
         ) : (
-          <div className="col-span-2 p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-            <p className="text-slate-500">ยังไม่มีหมวดหมู่สินค้าในระบบ</p>
+          <div className="col-span-2 p-8 text-center bg-muted rounded-2xl border border-dashed border-border">
+            <p className="text-muted-foreground">ยังไม่มีหมวดหมู่สินค้าในระบบ</p>
           </div>
         )}
       </div>

@@ -32,7 +32,7 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
       targetWhId = wh.id;
     }
 
-    // 2. Fetch Data (Stocks)
+    // 2. Fetch Data (Stocks) - filter by warehouse through locations
     const { data: stocks, error } = await supabase
       .from('stocks')
       .select(
@@ -47,12 +47,13 @@ export async function exportInventoryToExcel(warehouseIdentifier: string): Promi
           category_id,
           attributes
         ),
-        locations (
-          code
+        locations!inner (
+          code,
+          warehouse_id
         )
       `,
       )
-      .eq('warehouse_id', targetWhId)
+      .eq('locations.warehouse_id', targetWhId)
       .gt('quantity', 0)
       .order('updated_at', { ascending: false });
 

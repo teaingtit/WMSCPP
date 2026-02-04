@@ -69,7 +69,7 @@ describe('ReportScheduleManager', () => {
       expect(screen.getByText('Daily Report')).toBeInTheDocument();
     });
     expect(screen.getByText('สรุปสินค้าคงคลัง')).toBeInTheDocument();
-    expect(screen.getByText('ทุกวัน 8:00')).toBeInTheDocument();
+    expect(screen.getByText('ทุกวัน เวลา 8:00')).toBeInTheDocument();
     expect(screen.getByText(/1 ผู้รับ/)).toBeInTheDocument();
   });
 

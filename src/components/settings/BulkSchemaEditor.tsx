@@ -26,8 +26,15 @@ export default function BulkSchemaEditor({ categories, onClose }: BulkSchemaEdit
       return;
     }
 
+    let fields: any[];
+    try {
+      fields = JSON.parse(schemaJson);
+    } catch {
+      notify.ok({ success: false, message: 'รูปแบบ Schema ไม่ถูกต้อง (Invalid JSON)' });
+      return;
+    }
+
     setLoading(true);
-    const fields = JSON.parse(schemaJson);
     const result = await previewBulkEdit(selectedCategories, mode, fields);
     setLoading(false);
 
@@ -52,8 +59,15 @@ export default function BulkSchemaEditor({ categories, onClose }: BulkSchemaEdit
       return;
     }
 
+    let fields: any[];
+    try {
+      fields = JSON.parse(schemaJson);
+    } catch {
+      notify.ok({ success: false, message: 'รูปแบบ Schema ไม่ถูกต้อง (Invalid JSON)' });
+      return;
+    }
+
     setLoading(true);
-    const fields = JSON.parse(schemaJson);
     const result = await bulkEditSchemas(selectedCategories, mode, fields, changeNotes);
     setLoading(false);
 

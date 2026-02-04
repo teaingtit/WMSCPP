@@ -192,7 +192,7 @@ export default async function InventoryPage({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/30 pb-32 p-3 md:p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="min-h-screen pb-32 p-3 md:p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="mx-auto max-w-7xl">
         <InventoryDashboard
           stocks={formattedStocks}

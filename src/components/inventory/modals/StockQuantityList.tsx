@@ -27,10 +27,10 @@ export const StockQuantityList = ({
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex items-start gap-4 p-3 border border-slate-100 rounded-xl bg-white shadow-sm"
+          className="flex items-start gap-4 p-3 border border-slate-100 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 shadow-sm"
         >
           {/* Thumbnail */}
-          <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center">
+          <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center">
             {item.image_url ? (
               <img
                 src={item.image_url}
@@ -38,19 +38,19 @@ export const StockQuantityList = ({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <Package size={18} className="text-slate-300" />
+              <Package size={18} className="text-slate-300 dark:text-slate-600" />
             )}
           </div>
 
           {/* Product Info */}
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-slate-800 truncate">
+            <div className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">
               {item.product?.name || 'Unknown Product'}
             </div>
-            <div className="text-xs text-slate-500 flex items-center gap-2 mt-1">
+            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-1">
               <span className="font-mono">{item.product?.sku}</span>
-              <span className="w-px h-3 bg-slate-300"></span>
-              <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-medium">
+              <span className="w-px h-3 bg-slate-300 dark:bg-slate-700"></span>
+              <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-300 font-medium">
                 {item.location?.code}
               </span>
             </div>
@@ -59,12 +59,14 @@ export const StockQuantityList = ({
 
           {/* Quantity Input */}
           <div className="shrink-0 text-right">
-            <div className="text-xs text-slate-500 mb-1">Max: {item.quantity.toLocaleString()}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+              Max: {item.quantity.toLocaleString()}
+            </div>
             <div className="flex items-center gap-1">
               <input
                 type="number"
                 aria-label={`Quantity for ${item.product?.name || 'item'}`}
-                className="w-20 p-1.5 text-right border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                className="w-20 p-1.5 text-right border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 outline-none bg-white dark:bg-slate-800 dark:text-white"
                 value={quantities[item.id] || 0}
                 min={0}
                 max={item.quantity}
@@ -74,7 +76,9 @@ export const StockQuantityList = ({
                   onQuantityChange(item.id, Math.min(num, item.quantity));
                 }}
               />
-              <span className="text-xs text-slate-500 font-medium">{item.product?.uom}</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                {item.product?.uom}
+              </span>
             </div>
           </div>
         </div>

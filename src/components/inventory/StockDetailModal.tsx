@@ -129,7 +129,7 @@ export default function StockDetailModal({
         aria-modal="true"
         aria-labelledby="stock-detail-modal-title"
       >
-        <div className="bg-white w-full max-w-lg max-h-dvh-90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
+        <div className="bg-card w-full max-w-lg max-h-dvh-90 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 flex flex-col">
           {/* Header */}
           <div
             className={`relative h-28 flex items-center justify-center overflow-hidden shrink-0 ${headerGradient}`}
@@ -176,7 +176,7 @@ export default function StockDetailModal({
               </div>
               <button
                 onClick={() => setShowStatusModal(true)}
-                className="text-xs font-bold px-2 py-1 rounded-md bg-white/50 hover:bg-white/80 transition-colors"
+                className="text-xs font-bold px-2 py-1 rounded-md bg-white/20 hover:bg-white/30 dark:bg-black/20 dark:hover:bg-black/30 transition-colors"
                 style={statusTextStyle}
               >
                 จัดการ
@@ -187,33 +187,33 @@ export default function StockDetailModal({
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Product Details Card */}
-            <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-              <div className="text-label text-slate-500 mb-3 flex items-center gap-1.5">
+            <div className="bg-muted rounded-xl border border-border p-4">
+              <div className="text-label text-muted-foreground mb-3 flex items-center gap-1.5">
                 <Box size={12} /> ข้อมูลสินค้า
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <span className="text-caption-subtle block">SKU</span>
-                  <span className="font-mono font-bold text-slate-700 text-sm">
+                  <span className="font-mono font-bold text-foreground text-sm">
                     {item.product?.sku || '-'}
                   </span>
                 </div>
                 <div>
                   <span className="text-caption-subtle block">หมวดหมู่</span>
-                  <span className="font-bold text-slate-700 text-sm">
+                  <span className="font-bold text-foreground text-sm">
                     {item.product?.category_id ? getCategoryName(item.product.category_id) : '-'}
                   </span>
                 </div>
                 <div>
                   <span className="text-caption-subtle block">หน่วย</span>
-                  <span className="font-bold text-slate-700 text-sm">
+                  <span className="font-bold text-foreground text-sm">
                     {item.product?.uom || '-'}
                   </span>
                 </div>
                 <div>
                   <span className="text-caption-subtle block">อัปเดตล่าสุด</span>
-                  <span className="font-bold text-slate-700 text-sm flex items-center gap-1">
-                    <Clock size={10} className="text-slate-500" />
+                  <span className="font-bold text-foreground text-sm flex items-center gap-1">
+                    <Clock size={10} className="text-muted-foreground" />
                     {new Date(item.updated_at).toLocaleDateString('th-TH')}
                   </span>
                 </div>
@@ -221,50 +221,52 @@ export default function StockDetailModal({
             </div>
 
             {/* Location Details */}
-            <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-              <div className="text-label text-slate-500 mb-3 flex items-center gap-1.5">
+            <div className="bg-muted rounded-xl border border-border p-4">
+              <div className="text-label text-muted-foreground mb-3 flex items-center gap-1.5">
                 <MapPin size={12} /> ข้อมูลตำแหน่ง
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4.5rem]">
-                  <span className="text-label text-slate-500">ตำแหน่ง</span>
-                  <span className="font-bold text-slate-700">{item.location?.code || '-'}</span>
+                <div className="px-3 py-2 bg-card rounded-lg border border-border flex flex-col items-center min-w-[4.5rem]">
+                  <span className="text-label text-muted-foreground">ตำแหน่ง</span>
+                  <span className="font-bold text-foreground">
+                    {item.location?.code || 'ไม่ระบุ'}
+                  </span>
                 </div>
-                <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-label text-slate-500">Lot</span>
-                  <span className="font-bold text-slate-700">{item.lot || '-'}</span>
+                <div className="px-3 py-2 bg-card rounded-lg border border-border flex flex-col items-center min-w-[4rem]">
+                  <span className="text-label text-muted-foreground">ล็อต</span>
+                  <span className="font-bold text-foreground">{item.lot || 'ไม่ระบุ'}</span>
                 </div>
-                <div className="px-3 py-2 bg-white rounded-lg border border-slate-200 flex flex-col items-center min-w-[4rem]">
-                  <span className="text-label text-slate-500">Position</span>
-                  <span className="font-bold text-slate-700">{item.cart || '-'}</span>
+                <div className="px-3 py-2 bg-card rounded-lg border border-border flex flex-col items-center min-w-[4rem]">
+                  <span className="text-label text-muted-foreground">ตำแหน่งย่อย</span>
+                  <span className="font-bold text-foreground">{item.cart || 'ไม่ระบุ'}</span>
                 </div>
                 {item.level && (
-                  <div className="px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-200 flex flex-col items-center min-w-[4rem]">
-                    <span className="text-label text-indigo-400 flex items-center gap-0.5">
+                  <div className="px-3 py-2 bg-primary/10 rounded-lg border border-primary/20 flex flex-col items-center min-w-[4rem]">
+                    <span className="text-label text-primary flex items-center gap-0.5">
                       <Layers size={9} /> ชั้น
                     </span>
-                    <span className="font-bold text-indigo-700">{item.level}</span>
+                    <span className="font-bold text-primary">{item.level}</span>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Quantity Status Breakdown */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-label text-slate-500 mb-3 flex items-center gap-1.5">
+            <div className="bg-card rounded-xl border border-border p-4">
+              <div className="text-label text-muted-foreground mb-3 flex items-center gap-1.5">
                 <Tag size={12} /> รายละเอียดจำนวน
               </div>
 
               {/* Total Quantity */}
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                <span className="text-sm text-slate-600 font-medium">รวมทั้งหมด</span>
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+                <span className="text-sm text-muted-foreground font-medium">รวมทั้งหมด</span>
                 <span
                   className={`text-2xl font-black ${
-                    restricted ? 'text-red-600' : 'text-slate-800'
+                    restricted ? 'text-red-600 dark:text-red-400' : 'text-foreground'
                   }`}
                 >
                   {totalQuantity.toLocaleString()}
-                  <span className="text-sm font-medium text-slate-500 ml-1">
+                  <span className="text-sm font-medium text-muted-foreground ml-1">
                     {item.product?.uom}
                   </span>
                 </span>
@@ -276,19 +278,21 @@ export default function StockDetailModal({
                 <div
                   className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
                     !status?.status
-                      ? 'bg-emerald-50 border border-emerald-200'
-                      : 'bg-slate-50 border border-slate-100'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800'
+                      : 'bg-muted border border-border'
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        !status?.status ? 'bg-emerald-500' : 'bg-slate-300'
+                        !status?.status ? 'bg-emerald-500' : 'bg-muted-foreground'
                       }`}
                     ></div>
                     <span
                       className={`text-sm font-medium ${
-                        !status?.status ? 'text-emerald-700' : 'text-slate-500'
+                        !status?.status
+                          ? 'text-emerald-700 dark:text-emerald-300'
+                          : 'text-muted-foreground'
                       }`}
                     >
                       สถานะปกติ
@@ -296,7 +300,9 @@ export default function StockDetailModal({
                   </div>
                   <span
                     className={`font-bold text-lg ${
-                      !status?.status ? 'text-emerald-700' : 'text-slate-500'
+                      !status?.status
+                        ? 'text-emerald-700 dark:text-emerald-300'
+                        : 'text-muted-foreground'
                     }`}
                   >
                     {normalQuantity.toLocaleString()}
@@ -306,7 +312,7 @@ export default function StockDetailModal({
                 {/* Affected Quantity */}
                 <div
                   className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                    status?.status ? 'border' : 'bg-slate-50 border border-slate-100'
+                    status?.status ? 'border' : 'bg-muted border border-border'
                   }`}
                   style={affectedQtyStyle}
                 >
@@ -325,7 +331,7 @@ export default function StockDetailModal({
               {/* Status Action Button */}
               <button
                 onClick={() => setShowStatusModal(true)}
-                className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 font-bold text-sm hover:bg-indigo-100 active:scale-[0.98] transition-all touch-manipulation"
+                className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-primary/30 bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 active:scale-[0.98] transition-all touch-manipulation"
               >
                 <Shield size={16} />
                 {status?.status ? 'จัดการสถานะ' : 'เพิ่มสถานะ'}
@@ -334,17 +340,17 @@ export default function StockDetailModal({
 
             {/* Product Specifications (PRODUCT Scope) */}
             {item.product?.attributes && Object.keys(item.product.attributes).length > 0 && (
-              <div className="bg-indigo-50 rounded-xl border border-indigo-100 p-4">
-                <div className="text-label text-indigo-600 mb-3 flex items-center gap-1.5">
+              <div className="bg-primary/5 rounded-xl border border-primary/20 p-4">
+                <div className="text-label text-primary mb-3 flex items-center gap-1.5">
                   <Tag size={12} /> สเปคสินค้า (Product Spec)
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(item.product.attributes).map(([key, value]) => (
                     <span
                       key={key}
-                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200"
+                      className="inline-flex items-center rounded-md bg-card border border-border px-2.5 py-1 text-xs font-medium text-foreground"
                     >
-                      <span className="text-indigo-600 font-bold mr-1">
+                      <span className="text-primary font-bold mr-1">
                         {getAttributeLabel(key, item.product?.category_id || '', 'PRODUCT')}:
                       </span>
                       {String(value)}
@@ -356,17 +362,17 @@ export default function StockDetailModal({
 
             {/* Lot Attributes (LOT Scope) */}
             {item.attributes && Object.keys(item.attributes).length > 0 && (
-              <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-4">
-                <div className="text-label text-emerald-600 mb-3 flex items-center gap-1.5">
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-100 dark:border-emerald-800 p-4">
+                <div className="text-label text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-1.5">
                   <Layers size={12} /> ข้อมูลล็อต (Lot Details)
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(item.attributes).map(([key, value]) => (
                     <span
                       key={key}
-                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200"
+                      className="inline-flex items-center rounded-md bg-card border border-border px-2.5 py-1 text-xs font-medium text-foreground"
                     >
-                      <span className="text-emerald-700 font-bold mr-1">
+                      <span className="text-emerald-700 dark:text-emerald-300 font-bold mr-1">
                         {getAttributeLabel(key, item.product?.category_id || '', 'LOT')}:
                       </span>
                       {String(value)}
@@ -396,10 +402,10 @@ export default function StockDetailModal({
                       {pinnedNotes.slice(0, 2).map((note) => (
                         <div
                           key={note.id}
-                          className="flex items-start gap-2 bg-white/60 rounded-lg p-2"
+                          className="flex items-start gap-2 bg-card/60 rounded-lg p-2"
                         >
                           <span className="text-amber-500 mt-0.5">📌</span>
-                          <p className="text-xs text-amber-800 line-clamp-2 flex-1">
+                          <p className="text-xs text-amber-800 dark:text-amber-200 line-clamp-2 flex-1">
                             {note.content}
                           </p>
                         </div>
@@ -430,14 +436,14 @@ export default function StockDetailModal({
 
             {/* No Status - Quick Apply */}
             {!status?.status && notes.length === 0 && (
-              <div className="bg-slate-50 rounded-xl border border-dashed border-slate-300 p-4 text-center">
-                <Shield size={24} className="mx-auto text-slate-300 mb-2" />
-                <p className="text-sm text-slate-500 mb-3">
+              <div className="bg-muted rounded-xl border border-dashed border-border p-4 text-center">
+                <Shield size={24} className="mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground mb-3">
                   ยังไม่มีสถานะหรือหมายเหตุสำหรับรายการนี้
                 </p>
                 <button
                   onClick={() => setShowStatusModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 active:scale-[0.98] transition-all touch-manipulation"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 active:scale-[0.98] transition-all touch-manipulation"
                 >
                   <Shield size={16} />
                   เพิ่มสถานะหรือหมายเหตุ
