@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useDebounce } from 'use-debounce';
-import { Search, Calendar, X } from 'lucide-react';
+import { Search, Calendar, X, Loader2 } from 'lucide-react';
 
 export default function HistoryFilterBar() {
   const router = useRouter();
@@ -24,6 +24,7 @@ export default function HistoryFilterBar() {
   const [showDateFilter, setShowDateFilter] = useState(!!initialStartDate);
   const [startDate, setStartDate] = useState(initialStartDate);
   const [endDate, setEndDate] = useState(initialEndDate);
+  const [isPending, startTransition] = useTransition();
 
   // Update URL on Debounced Search or Filter Change
   useEffect(() => {
@@ -46,7 +47,9 @@ export default function HistoryFilterBar() {
     // Reset pagination if implemented later
     // params.set('page', '1');
 
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    });
   }, [query, type, mode, startDate, endDate, pathname, router, searchParams]);
 
   return (
@@ -63,25 +66,34 @@ export default function HistoryFilterBar() {
               type="text"
               placeholder="Search SKU, Product, User, Details..."
               value={text}
+              disabled={isPending}
               onChange={(e) => setText(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50"
             />
-            {text && (
-              <button
-                onClick={() => setText('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="Clear search"
-              >
-                <X size={14} />
-              </button>
+            {isPending ? (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                <Loader2 size={14} className="animate-spin" />
+              </div>
+            ) : (
+              text && (
+                <button
+                  onClick={() => setText('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )
             )}
           </div>
 
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-border text-sm bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            disabled={isPending}
+            className="px-3 py-2 rounded-lg border border-border text-sm bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
             aria-label="Filter by transaction type"
+            title="Filter by transaction type"
           >
             <option value="ALL">ทุกประเภท (All Types)</option>
             <optgroup label="รายการ (Transactions)">
@@ -143,8 +155,9 @@ export default function HistoryFilterBar() {
             <input
               type="date"
               value={startDate}
+              disabled={isPending}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-2 py-1 rounded border border-border bg-background text-foreground text-xs"
+              className="px-2 py-1 rounded border border-border bg-background text-foreground text-xs disabled:opacity-50"
               aria-label="Start date"
             />
           </div>
@@ -153,8 +166,9 @@ export default function HistoryFilterBar() {
             <input
               type="date"
               value={endDate}
+              disabled={isPending}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-2 py-1 rounded border border-border bg-background text-foreground text-xs"
+              className="px-2 py-1 rounded border border-border bg-background text-foreground text-xs disabled:opacity-50"
               aria-label="End date"
             />
           </div>

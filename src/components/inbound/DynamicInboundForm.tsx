@@ -27,6 +27,7 @@ export interface Category {
   id: string;
   name: string;
   form_schema?: FormSchemaField[];
+  units?: string[];
 }
 
 interface DynamicInboundFormProps {
@@ -57,6 +58,7 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
   // 3. Other States
   const [quantity, setQuantity] = useState('');
   const [attributes, setAttributes] = useState<Record<string, any>>({});
+  const [selectedUnit, setSelectedUnit] = useState<string>('');
 
   // Suggestion 1: Memoize schema extraction for performance and clarity.
   const lotSchema = useMemo(
@@ -71,15 +73,19 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
   useEffect(() => {
     if (!selectedProduct) {
       setAttributes({});
+      setSelectedUnit('');
+    } else {
+      // Default to either product UOM or first category unit or 'UNIT'
+      setSelectedUnit(selectedProduct.uom || category.units?.[0] || 'UNIT');
     }
-  }, [selectedProduct]);
+  }, [selectedProduct, category.units]);
 
-  // ✅ Reset แค่ Form Input (ไม่เคลียร์ Queue)
   const resetInput = useCallback(() => {
     setQuantity('');
     setAttributes({});
     setSelectedProduct(null);
     setSelectedLocation(null);
+    setSelectedUnit('');
     setFormResetKey(Date.now());
   }, []);
 
@@ -107,12 +113,17 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
       }
     }
 
+    const finalAttributes = { ...attributes };
+    if (selectedUnit) {
+      finalAttributes['Received Unit'] = selectedUnit;
+    }
+
     const newItem: InboundQueueItem = {
       id: Date.now().toString(),
       product: selectedProduct,
       location: selectedLocation,
       quantity: qty,
-      attributes: { ...attributes },
+      attributes: finalAttributes,
     };
 
     setQueue((prev) => [...prev, newItem]);
@@ -235,19 +246,44 @@ export default function DynamicInboundForm({ warehouseId, category }: DynamicInb
               </div>
               <div>
                 <label className="block text-sm font-bold text-foreground mb-2">จำนวน</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="1"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value)}
-                    disabled={!selectedLocation}
-                    className="w-full text-3xl font-black text-foreground px-4 py-3 bg-muted border border-border rounded-xl"
-                    placeholder="0"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">
-                    {selectedProduct?.uom || 'UNIT'}
-                  </span>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min="1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      disabled={!selectedLocation}
+                      className="w-full text-3xl font-black text-foreground px-4 py-3 bg-muted border border-border rounded-xl"
+                      placeholder="0"
+                    />
+                  </div>
+                  {category.units && category.units.length > 0 ? (
+                    <select
+                      value={selectedUnit}
+                      onChange={(e) => setSelectedUnit(e.target.value)}
+                      disabled={!selectedLocation || !selectedProduct}
+                      title="Select Unit"
+                      className="w-1/3 text-sm font-bold text-foreground px-3 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_1rem_center] bg-[length:0.6rem_auto]"
+                    >
+                      <option value={selectedProduct?.uom || 'UNIT'}>
+                        {selectedProduct?.uom || 'UNIT'} (Base)
+                      </option>
+                      {category.units
+                        .filter((u) => u !== (selectedProduct?.uom || 'UNIT'))
+                        .map((unit) => (
+                          <option key={unit} value={unit}>
+                            {unit}
+                          </option>
+                        ))}
+                    </select>
+                  ) : (
+                    <div className="flex items-center justify-center px-4 py-3 bg-muted border border-border rounded-xl w-1/3">
+                      <span className="text-muted-foreground text-sm font-bold">
+                        {selectedProduct?.uom || 'UNIT'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {/* ปุ่ม Add to Queue */}
                 <button

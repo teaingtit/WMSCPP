@@ -20,7 +20,7 @@ vi.mock('server-only', () => ({}));
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { InventoryService } from '@/services/InventoryService';
 import { RepositoryFactory } from '@/infrastructure/RepositoryFactory';
-import type { IInventoryRepository, Product, OperationResult, TransactionLog } from '@/core';
+import type { IInventoryRepository, Product, TransactionLog } from '@/core';
 import { TransactionType } from '@/core';
 
 // Mock the RepositoryFactory module

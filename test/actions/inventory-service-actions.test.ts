@@ -91,9 +91,7 @@ describe('Inventory Service Actions', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.product).toEqual(updated);
-      expect(InventoryService.updateStock).toHaveBeenCalledWith('P1', 20, {
-        expectedCurrentQty: undefined,
-      });
+      expect(InventoryService.updateStock).toHaveBeenCalledWith('P1', 20, undefined);
     });
 
     it('should return fail when service returns success false', async () => {

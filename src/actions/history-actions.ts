@@ -64,7 +64,7 @@ export async function getHistory(
       p_query: sanitizedQuery,
       p_type: filter?.type && filter.type !== 'ALL' ? filter.type : null,
       p_start_date: filter?.startDate || null,
-      p_end_date: filter?.endDate || null,
+      p_end_date: filter?.endDate ? `${filter.endDate} 23:59:59` : null,
       p_limit: limit,
     });
 
@@ -126,13 +126,13 @@ export async function getHistory(
       txQuery = txQuery.gte('created_at', filter.startDate);
     }
     if (filter?.endDate) {
-      txQuery = txQuery.lte('created_at', filter.endDate);
+      txQuery = txQuery.lte('created_at', `${filter.endDate} 23:59:59`);
     }
 
     if (mode === 'simple') {
       // If specific type selected, respect it, otherwise default simple types
       if (!filter?.type || filter.type === 'ALL') {
-        txQuery = txQuery.in('type', ['INBOUND', 'OUTBOUND', 'TRANSFER', 'TRANSFER_OUT']);
+        txQuery = txQuery.in('type', ['INBOUND', 'OUTBOUND', 'TRANSFER', 'TRANSFER_OUT', 'ADJUST']);
       }
     }
 
@@ -200,12 +200,7 @@ export async function getHistory(
     };
   });
 
-  // If Simple Mode, return transactions only
-  if (mode === 'simple') {
-    return mappedTransactions;
-  }
-
-  // 3. Fetch System Logs (Detailed Mode Only)
+  // Fetch System Logs (Included in both modes now, mapped appropriately)
 
   // Get Location IDs
   const { data: locIds } = await supabase.from('locations').select('id').eq('warehouse_id', whId);
@@ -245,7 +240,7 @@ export async function getHistory(
       logQuery = logQuery.gte('changed_at', filter.startDate);
     }
     if (filter?.endDate) {
-      logQuery = logQuery.lte('changed_at', filter.endDate);
+      logQuery = logQuery.lte('changed_at', `${filter.endDate} 23:59:59`);
     }
 
     const { data: statusLogs, error: logError } = await logQuery;

@@ -55,7 +55,7 @@ export default function TerminalLogView({ logs }: TerminalLogViewProps) {
             className="group flex items-start gap-3 hover:bg-accent/50 p-2 rounded transition-colors border-l-2 border-transparent hover:border-indigo-500"
           >
             {/* Timestamp */}
-            <div className="shrink-0 w-32 text-muted-foreground text-xs pt-1">
+            <div className="shrink-0 w-32 text-foreground/80 dark:text-muted-foreground text-xs pt-1">
               {format(new Date(log.date), 'MM/dd HH:mm:ss')}
             </div>
 
@@ -129,9 +129,9 @@ function TransactionLine({ entry, warehouseId }: { entry: TransactionEntry; ware
             {entry.quantity} {entry.uom}
           </span>
           <span>from</span>
-          <span className="text-indigo-300">{entry.from}</span>
+          <span className="text-indigo-600 dark:text-indigo-300 font-medium">{entry.from}</span>
           <span>to</span>
-          <span className="text-emerald-300">{entry.to}</span>
+          <span className="text-emerald-600 dark:text-emerald-300 font-medium">{entry.to}</span>
         </div>
 
         {entry.details && entry.details !== entry.from && entry.details !== entry.to && (
@@ -168,12 +168,14 @@ function SystemLine({ entry }: { entry: SystemLogEntry }) {
         <span className="text-purple-200 font-medium">{entry.entityName}</span>
         <span className="text-muted-foreground text-xs">({entry.entityType})</span>
       </div>
-      <div className="text-xs text-muted-foreground pl-1 border-l-2 border-border ml-1">
+      <div className="text-xs text-foreground/80 dark:text-muted-foreground pl-1 border-l-2 border-border ml-1">
         {entry.action}:{' '}
-        <span className="text-rose-300 line-through mr-1 opacity-70">{entry.oldValue}</span>{' '}
+        <span className="text-rose-600 dark:text-rose-300 line-through mr-1 opacity-80">
+          {entry.oldValue}
+        </span>{' '}
         <ArrowRight size={10} className="inline mx-1" />{' '}
-        <span className="text-emerald-300 font-bold">{entry.newValue}</span>
-        {entry.reason && <span className="ml-2 text-muted-foreground">Note: {entry.reason}</span>}
+        <span className="text-emerald-600 dark:text-emerald-300 font-bold">{entry.newValue}</span>
+        {entry.reason && <span className="ml-2">Note: {entry.reason}</span>}
       </div>
     </div>
   );

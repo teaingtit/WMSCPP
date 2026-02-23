@@ -241,7 +241,7 @@ describe('InventoryDashboard', () => {
         />,
       );
 
-      expect(screen.getByText(/1 รายการที่มีสถานะ/)).toBeInTheDocument();
+      expect(screen.getByText(/มีสถานะ 1 รายการ/)).toBeInTheDocument();
     });
   });
 
